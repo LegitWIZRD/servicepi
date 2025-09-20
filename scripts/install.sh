@@ -55,7 +55,28 @@ apt install -y \
     wget \
     nano \
     htop \
-    ufw
+    ufw \
+    parted \
+    e2fsprogs
+
+# Clone repository first (needed for NVMe setup script)
+log "Cloning ServicePi repository..."
+if [ -d "$INSTALL_DIR" ]; then
+    warning "Installation directory already exists, updating..."
+    cd "$INSTALL_DIR"
+    git pull
+else
+    git clone "$REPO_URL" "$INSTALL_DIR"
+fi
+
+# Set up NVMe storage for Docker (before starting Docker service)
+log "Setting up NVMe storage for Docker containers..."
+if [ -f "$INSTALL_DIR/scripts/setup-nvme-storage.sh" ]; then
+    chmod +x "$INSTALL_DIR/scripts/setup-nvme-storage.sh"
+    "$INSTALL_DIR/scripts/setup-nvme-storage.sh"
+else
+    warning "NVMe setup script not found, skipping NVMe storage setup"
+fi
 
 # Start and enable Docker
 log "Starting Docker service..."
@@ -69,16 +90,6 @@ if ! id "$SERVICE_USER" &>/dev/null; then
     usermod -aG docker $SERVICE_USER
 else
     log "Service user $SERVICE_USER already exists"
-fi
-
-# Clone repository
-log "Cloning ServicePi repository..."
-if [ -d "$INSTALL_DIR" ]; then
-    warning "Installation directory already exists, updating..."
-    cd "$INSTALL_DIR"
-    git pull
-else
-    git clone "$REPO_URL" "$INSTALL_DIR"
 fi
 
 # Set permissions

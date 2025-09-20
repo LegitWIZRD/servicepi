@@ -19,6 +19,7 @@ ServicePi provides a complete infrastructure-as-code solution for running Docker
 - 🔒 **Firewall configuration** and security hardening
 - 🌐 **Reverse proxy** with SSL termination
 - 🔗 **Inter-service communication** capabilities
+- 💾 **NVMe storage setup** for optimal container performance
 
 ## Quick Start
 
@@ -140,6 +141,41 @@ Create a `.env` file in the installation directory for environment-specific sett
 COMPOSE_PROJECT_NAME=servicepi
 TZ=America/New_York
 ```
+
+### NVMe Storage Setup
+
+ServicePi automatically detects and configures NVMe drives for optimal container storage performance. During installation, the setup script will:
+
+- **Automatically detect** additional NVMe drives (excluding boot drive)
+- **Safely format** the selected drive after user confirmation
+- **Mount** the drive to `/opt/docker-storage`
+- **Configure Docker** to use NVMe storage for all containers and volumes
+
+#### Manual NVMe Setup
+
+To manually configure NVMe storage after installation:
+
+```bash
+# Run the NVMe setup script
+sudo /opt/servicepi/scripts/setup-nvme-storage.sh
+
+# View help and options
+sudo /opt/servicepi/scripts/setup-nvme-storage.sh help
+```
+
+#### Safety Features
+
+- **Boot drive protection**: Automatically excludes the OS/boot drive
+- **User confirmation**: Requires explicit confirmation before formatting
+- **Drive information**: Shows detailed drive information before proceeding
+- **Graceful fallback**: Works without NVMe drives using default storage
+
+#### Benefits
+
+- **Performance**: NVMe storage provides faster I/O for containers
+- **Separation**: Application storage separated from OS for security
+- **Capacity**: Utilize full capacity of additional NVMe drives
+- **Reliability**: Reduces wear on the primary OS drive
 
 ### Custom Services
 
