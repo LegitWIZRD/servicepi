@@ -128,13 +128,18 @@ ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow ssh
-ufw allow 80/tcp  # Web server
-ufw allow 9000/tcp  # Portainer
+ufw allow 80/tcp   # HTTP (redirects to HTTPS)
+ufw allow 443/tcp  # HTTPS for web dashboard
+ufw allow 9443/tcp # HTTPS for Portainer
+ufw allow 8443/tcp # HTTPS for IoT API
 ufw --force enable
 
 # Initial deployment
-log "Starting initial deployment..."
+log "Generating SSL certificates..."
 cd "$INSTALL_DIR"
+./configs/nginx/generate-ssl.sh
+
+log "Starting initial deployment..."
 docker-compose pull
 docker-compose up -d
 
@@ -151,8 +156,9 @@ echo "🎉 Installation Summary:"
 echo "  - Installation directory: $INSTALL_DIR"
 echo "  - Service user: $SERVICE_USER"
 echo "  - Auto-update service: enabled (daily)"
-echo "  - Web dashboard: http://$(hostname -I | awk '{print $1}')"
-echo "  - Portainer: http://$(hostname -I | awk '{print $1}'):9000"
+echo "  - Web dashboard: https://$(hostname -I | awk '{print $1}')"
+echo "  - Portainer: https://$(hostname -I | awk '{print $1}'):9443"
+echo "  - IoT API: https://$(hostname -I | awk '{print $1}'):8443"
 echo ""
 echo "📝 Next steps:"
 echo "  1. Access the web dashboard to verify installation"

@@ -102,22 +102,40 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
       
+    - name: Install OpenSSL for certificate generation
+      run: sudo apt-get update && sudo apt-get install -y openssl
+      
+    - name: Generate SSL certificates for testing
+      run: |
+        chmod +x configs/nginx/generate-ssl.sh
+        ./configs/nginx/generate-ssl.sh localhost self-signed
+        
     - name: Test Docker Compose deployment
       run: |
         # Start services
         docker-compose up -d
         
         # Wait for services to be ready
-        sleep 30
+        sleep 45
         
         # Check if services are running
         docker-compose ps
         
-        # Test web service health
-        curl -f http://localhost/health || exit 1
+        # Test HTTP to HTTPS redirect
+        curl -I http://localhost/ | grep -q "301\|302" || echo "HTTP redirect working"
         
-        # Test if Portainer is accessible
-        curl -f http://localhost:9000 || echo "Portainer may take longer to start"
+        # Test HTTPS web service (with self-signed cert)
+        curl -k -f https://localhost/health || exit 1
+        
+        # Test HTTPS Portainer (with self-signed cert)
+        curl -k -f https://localhost:9443 || echo "Portainer may take longer to start"
+        
+        # Test HTTPS IoT API (with self-signed cert)
+        curl -k -f https://localhost:8443/health || exit 1
+        curl -k -f https://localhost:8443/api/sensors || exit 1
+        
+        # Test inter-service communication
+        curl -k -f -X POST https://localhost:8443/api/system/communicate || exit 1
         
         # Check logs for errors
         docker-compose logs
