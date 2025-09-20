@@ -167,6 +167,12 @@ echo "🎉 Installation Summary:"
 echo "  - Installation directory: $INSTALL_DIR"
 echo "  - Service user: $SERVICE_USER"
 echo "  - Auto-update service: enabled (daily)"
+# Check if NVMe storage was configured
+if [ -f "/etc/docker/daemon.json" ] && grep -q "data-root.*docker-storage" /etc/docker/daemon.json 2>/dev/null; then
+    echo "  - Docker storage: NVMe drive configured"
+else
+    echo "  - Docker storage: Default location"
+fi
 echo "  - Web dashboard: https://$(hostname -I | awk '{print $1}')"
 echo "  - Portainer: https://$(hostname -I | awk '{print $1}'):9443"
 echo "  - IoT API: https://$(hostname -I | awk '{print $1}'):8443"
@@ -181,3 +187,4 @@ echo "🔧 Useful commands:"
 echo "  - Manual update: sudo $INSTALL_DIR/scripts/update-pi.sh"
 echo "  - View logs: docker-compose -f $INSTALL_DIR/docker-compose.yml logs"
 echo "  - Restart services: docker-compose -f $INSTALL_DIR/docker-compose.yml restart"
+echo "  - NVMe setup: sudo $INSTALL_DIR/scripts/setup-nvme-storage.sh"
