@@ -1,0 +1,15 @@
+FROM python:3.11-alpine
+
+WORKDIR /app
+
+# Copy the simple app
+COPY simple_app.py app.py
+
+# Create non-root user
+RUN adduser -D -s /bin/sh iotuser && \
+    chown -R iotuser:iotuser /app
+USER iotuser
+
+EXPOSE 8080
+
+CMD ["python", "app.py"]
