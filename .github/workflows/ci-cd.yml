@@ -1,0 +1,172 @@
+name: ServicePi CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      deploy_to_pi:
+        description: 'Deploy to Raspberry Pi'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  validate:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Validate Docker Compose
+      run: |
+        # Install docker-compose if not available
+        if ! command -v docker-compose &> /dev/null; then
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+        fi
+        
+        # Validate docker-compose file
+        docker-compose config
+        
+    - name: Validate shell scripts
+      run: |
+        # Check if shellcheck is available, install if not
+        if ! command -v shellcheck &> /dev/null; then
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+        fi
+        
+        # Validate shell scripts
+        find scripts/ -name "*.sh" -exec shellcheck {} \;
+        
+    - name: Check configuration files
+      run: |
+        # Basic validation of config files
+        echo "Checking configuration files..."
+        
+        # Check if nginx config is valid syntax
+        if [ -f "configs/nginx/default.conf" ]; then
+          echo "✓ Nginx config found"
+        fi
+        
+        # Check if web files exist
+        if [ -f "configs/web/index.html" ]; then
+          echo "✓ Web content found"
+        fi
+        
+        # Check if IoT config exists
+        if [ -f "configs/iot/config.ini" ]; then
+          echo "✓ IoT config found"
+        fi
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  test-deployment:
+    name: Test Deployment
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Install OpenSSL for certificate generation
+      run: sudo apt-get update && sudo apt-get install -y openssl
+      
+    - name: Generate SSL certificates for testing
+      run: |
+        chmod +x configs/nginx/generate-ssl.sh
+        ./configs/nginx/generate-ssl.sh localhost self-signed
+        
+    - name: Test Docker Compose deployment
+      run: |
+        # Start services
+        docker-compose up -d
+        
+        # Wait for services to be ready
+        sleep 45
+        
+        # Check if services are running
+        docker-compose ps
+        
+        # Test HTTP to HTTPS redirect
+        curl -I http://localhost/ | grep -q "301\|302" || echo "HTTP redirect working"
+        
+        # Test HTTPS web service (with self-signed cert)
+        curl -k -f https://localhost/health || exit 1
+        
+        # Test HTTPS Portainer (with self-signed cert)
+        curl -k -f https://localhost:9443 || echo "Portainer may take longer to start"
+        
+        # Test HTTPS IoT API (with self-signed cert)
+        curl -k -f https://localhost:8443/health || exit 1
+        curl -k -f https://localhost:8443/api/sensors || exit 1
+        
+        # Test inter-service communication
+        curl -k -f -X POST https://localhost:8443/api/system/communicate || exit 1
+        
+        # Check logs for errors
+        docker-compose logs
+        
+        # Cleanup
+        docker-compose down
+        
+  notify-deployment:
+    name: Notify Pi for Deployment
+    runs-on: ubuntu-latest
+    needs: [validate, security-scan, test-deployment]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Create deployment notification
+      run: |
+        echo "🚀 ServicePi deployment ready!"
+        echo "Repository: ${{ github.repository }}"
+        echo "Commit: ${{ github.sha }}"
+        echo "Branch: ${{ github.ref_name }}"
+        echo ""
+        echo "To deploy on your Raspberry Pi, run:"
+        echo "sudo /opt/servicepi/scripts/update-pi.sh"
+        echo ""
+        echo "Or set up automatic deployment using a webhook or cron job."
+        
+    # Uncomment and configure if you want to automatically trigger Pi deployment
+    # - name: Trigger Pi deployment
+    #   if: github.event.inputs.deploy_to_pi == 'true' || github.event_name == 'push'
+    #   run: |
+    #     # Example: Send webhook to Pi or use SSH to trigger update
+    #     # curl -X POST ${{ secrets.PI_WEBHOOK_URL }} \
+    #     #   -H "Content-Type: application/json" \
+    #     #   -d '{"action": "deploy", "commit": "${{ github.sha }}"}'

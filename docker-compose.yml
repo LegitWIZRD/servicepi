@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # SSL Reverse Proxy - Central SSL termination point
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: servicepi-proxy
+    ports:
+      - "80:80"    # HTTP (redirects to HTTPS)
+      - "443:443"  # HTTPS for web dashboard
+      - "9443:9443" # HTTPS for Portainer
+      - "8443:8443" # HTTPS for IoT API
+    volumes:
+      - ./configs/nginx/proxy:/etc/nginx/conf.d
+      - ./configs/nginx/ssl:/etc/nginx/ssl
+      - ./configs/web:/usr/share/nginx/html/web
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+    depends_on:
+      - web-backend
+      - portainer
+      - iot-service
+
+  # Web Backend (internal only)
+  web-backend:
+    image: nginx:alpine
+    container_name: servicepi-web-backend
+    volumes:
+      - ./configs/nginx/backend:/etc/nginx/conf.d
+      - ./configs/web:/usr/share/nginx/html
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+    # No exposed ports - accessed via nginx-proxy
+
+  # Container Management (Portainer)
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: servicepi-portainer
+    command: --host unix:///var/run/docker.sock --base-url /portainer
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+    # No exposed ports - accessed via nginx-proxy at :9443
+
+  # IoT Service with API
+  iot-service:
+    build:
+      context: ./configs/iot
+      dockerfile: Dockerfile
+    container_name: servicepi-iot
+    volumes:
+      - ./configs/iot:/app/config
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+    environment:
+      - API_PORT=8080
+      - SSL_ENABLED=false  # SSL handled by proxy
+    # No exposed ports - accessed via nginx-proxy at :8443
+    # Uncomment for GPIO access on Pi
+    # privileged: true
+    # devices:
+    #   - /dev/gpiomem:/dev/gpiomem
+
+  # Certificate Management
+  certbot:
+    image: certbot/certbot:latest
+    container_name: servicepi-certbot
+    volumes:
+      - ./configs/nginx/ssl:/etc/letsencrypt
+      - ./configs/nginx/certbot-webroot:/var/www/certbot
+    restart: "no"
+    networks:
+      - servicepi-network
+    # Run certificate renewal on demand
+
+volumes:
+  portainer_data:
+
+networks:
+  servicepi-network:
+    driver: bridge
