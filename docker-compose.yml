@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Example web service
+  web:
+    image: nginx:alpine
+    container_name: servicepi-web
+    ports:
+      - "80:80"
+    volumes:
+      - ./configs/nginx:/etc/nginx/conf.d
+      - ./configs/web:/usr/share/nginx/html
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+
+  # Example monitoring service
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: servicepi-portainer
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+
+  # Example IoT service (placeholder for Pi-specific services)
+  iot-service:
+    image: alpine:latest
+    container_name: servicepi-iot
+    command: tail -f /dev/null  # Placeholder - replace with actual service
+    volumes:
+      - ./configs/iot:/app/config
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+    # Uncomment for GPIO access on Pi
+    # privileged: true
+    # devices:
+    #   - /dev/gpiomem:/dev/gpiomem
+
+volumes:
+  portainer_data:
+
+networks:
+  servicepi-network:
+    driver: bridge

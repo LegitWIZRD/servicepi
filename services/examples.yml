@@ -1,0 +1,77 @@
+# Example service configuration for ServicePi
+# This directory can contain additional service definitions that can be included in docker-compose.yml
+
+version: '3.8'
+
+services:
+  # Example: Home Assistant for IoT automation
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: servicepi-homeassistant
+    environment:
+      - TZ=America/New_York
+    volumes:
+      - ./configs/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    network_mode: host
+    # Uncomment for USB device access
+    # devices:
+    #   - /dev/ttyUSB0:/dev/ttyUSB0
+    
+  # Example: MQTT Broker for IoT communication
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: servicepi-mqtt
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./configs/mosquitto:/mosquitto/config
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+
+  # Example: InfluxDB for time-series data
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: servicepi-influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=servicepi123
+      - DOCKER_INFLUXDB_INIT_ORG=servicepi
+      - DOCKER_INFLUXDB_INIT_BUCKET=sensors
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+
+  # Example: Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: servicepi-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=servicepi123
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:
+  influxdb_data:
+  grafana_data:
+
+networks:
+  servicepi-network:
+    external: true

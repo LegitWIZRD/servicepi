@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ServicePi Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .service-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        .service-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.running {
+            background: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍓 ServicePi Dashboard</h1>
+            <p>Raspberry Pi 5 Docker Services</p>
+        </div>
+        
+        <div class="service-grid">
+            <div class="service-card">
+                <h3>Web Server</h3>
+                <p>Nginx web server for hosting applications</p>
+                <span class="status running">Running</span>
+            </div>
+            
+            <div class="service-card">
+                <h3>Container Management</h3>
+                <p>Portainer for Docker container management</p>
+                <a href="/portainer" target="_blank">Access Portainer</a>
+            </div>
+            
+            <div class="service-card">
+                <h3>IoT Service</h3>
+                <p>Custom IoT service for Pi hardware integration</p>
+                <span class="status running">Running</span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center; color: #666;">
+            <p>Last updated: <span id="timestamp"></span></p>
+            <p>🔄 Auto-deployed via CI/CD pipeline</p>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+    </script>
+</body>
+</html>
