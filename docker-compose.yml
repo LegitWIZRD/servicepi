@@ -81,6 +81,9 @@ services:
 
 volumes:
   portainer_data:
+    driver: local
+    # Note: When NVMe storage is configured, this volume will be stored on the NVMe drive
+    # via Docker's data-root configuration in /etc/docker/daemon.json
 
 networks:
   servicepi-network:
