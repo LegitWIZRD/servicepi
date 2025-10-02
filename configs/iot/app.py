@@ -9,9 +9,30 @@ import json
 import configparser
 from datetime import datetime
 from flask import Flask, jsonify, request
+from flask_wtf.csrf import CSRFProtect
+from flask_cors import CORS
 import requests
 
 app = Flask(__name__)
+
+# Configure CSRF protection
+# Use a secret key from environment or generate a random one
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(32).hex())
+# Disable CSRF for API endpoints since they're accessed via proxy and may use tokens
+app.config['WTF_CSRF_ENABLED'] = False  # Will be enabled selectively
+app.config['WTF_CSRF_CHECK_DEFAULT'] = False
+
+csrf = CSRFProtect(app)
+
+# Configure CORS to allow requests from the web dashboard and other services
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["https://*", "http://*"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+        "supports_credentials": True
+    }
+})
 
 # Load configuration
 config = configparser.ConfigParser()
