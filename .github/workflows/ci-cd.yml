@@ -125,7 +125,8 @@ jobs:
         docker-compose up -d
         
         # Wait for services to be ready
-        sleep 45
+        echo "Waiting 90 seconds for all services to start..."
+        sleep 90
         
         # Check if services are running
         docker-compose ps
@@ -137,7 +138,8 @@ jobs:
         curl -k -f https://localhost/health || exit 1
         
         # Test HTTPS Portainer (with self-signed cert)
-        curl -k -f https://localhost:9443 || echo "Portainer may take longer to start"
+        echo "Testing Portainer connection..."
+        curl -k -f https://localhost:9443 || exit 1
         
         # Test HTTPS IoT API (with self-signed cert)
         curl -k -f https://localhost:8443/health || exit 1
