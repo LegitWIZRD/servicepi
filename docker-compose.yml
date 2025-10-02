@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # SSL Reverse Proxy - Central SSL termination point
   nginx-proxy:
@@ -36,7 +38,7 @@ services:
   portainer:
     image: portainer/portainer-ce:latest
     container_name: servicepi-portainer
-    command: --host unix:///var/run/docker.sock
+    command: --host unix:///var/run/docker.sock --base-url /portainer
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
