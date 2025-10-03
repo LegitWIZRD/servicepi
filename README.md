@@ -59,6 +59,7 @@ Edit the configuration files in `/opt/servicepi/configs/` to customize your serv
 - `configs/nginx/default.conf` - Web server configuration
 - `configs/web/index.html` - Dashboard content
 - `configs/iot/config.ini` - IoT service settings
+- `configs/homeassistant/configuration.yaml` - Home Assistant configuration (reverse proxy trusted networks)
 
 ## Repository Structure
 
@@ -110,6 +111,7 @@ servicepi/
 - IoT device integration and management
 - User-friendly web interface for automation workflows
 - Direct integration with IoT API service
+- Configured to work behind reverse proxy with trusted networks
 
 ## CI/CD Pipeline
 

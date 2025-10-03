@@ -70,6 +70,7 @@ services:
     container_name: servicepi-homeassistant
     volumes:
       - homeassistant_data:/config
+      - ./configs/homeassistant/configuration.yaml:/config/configuration.yaml
     restart: unless-stopped
     networks:
       - servicepi-network

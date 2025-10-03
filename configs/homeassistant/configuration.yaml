@@ -1,0 +1,18 @@
+# Home Assistant Configuration for ServicePi
+# This configuration is set up to work behind the nginx reverse proxy
+
+# Configure HTTP component to trust the reverse proxy
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.18.0.0/16  # Docker network range
+    - 192.168.0.0/16 # Local network range
+    - 10.0.0.0/8     # Private network range
+
+# Default configuration
+default_config:
+
+# Example automation (customize as needed)
+# automation: !include automations.yaml
+# script: !include scripts.yaml
+# scene: !include scenes.yaml

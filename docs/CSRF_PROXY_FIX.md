@@ -97,6 +97,7 @@ homeassistant:
   container_name: servicepi-homeassistant
   volumes:
     - homeassistant_data:/config
+    - ./configs/homeassistant/configuration.yaml:/config/configuration.yaml
   restart: unless-stopped
   networks:
     - servicepi-network
@@ -105,6 +106,24 @@ homeassistant:
 ```
 
 Added port 8123 to nginx-proxy and volume for persistent data.
+
+### 4. Home Assistant Configuration
+
+Created `configs/homeassistant/configuration.yaml` to configure Home Assistant to trust the reverse proxy:
+
+```yaml
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.18.0.0/16  # Docker network range
+    - 192.168.0.0/16 # Local network range
+    - 10.0.0.0/8     # Private network range
+```
+
+This configuration:
+- Enables `use_x_forwarded_for` to trust X-Forwarded-For headers from the proxy
+- Lists trusted proxy IP ranges (Docker internal network and common private networks)
+- Prevents the "reverse proxy not set-up" error
 
 ## Technical Details
 
