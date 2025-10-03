@@ -7,6 +7,7 @@ services:
       - "80:80"    # HTTP for web dashboard
       - "9000:9000" # HTTP for Portainer
       - "8080:8080" # HTTP for IoT API
+      - "8123:8123" # HTTP for Home Assistant
     volumes:
       - ./configs/nginx/proxy:/etc/nginx/conf.d
       - ./configs/web:/usr/share/nginx/html/web
@@ -17,6 +18,7 @@ services:
       - web-backend
       - portainer
       - iot-service
+      - homeassistant
 
   # Web Backend (internal only)
   web-backend:
@@ -62,11 +64,26 @@ services:
     # devices:
     #   - /dev/gpiomem:/dev/gpiomem
 
+  # Home Assistant
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: servicepi-homeassistant
+    volumes:
+      - homeassistant_data:/config
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+    environment:
+      - TZ=America/New_York
+    # No exposed ports - accessed via nginx-proxy at :8123
+
 volumes:
   portainer_data:
     driver: local
     # Note: When NVMe storage is configured, this volume will be stored on the NVMe drive
     # via Docker's data-root configuration in /etc/docker/daemon.json
+  homeassistant_data:
+    driver: local
 
 networks:
   servicepi-network:
