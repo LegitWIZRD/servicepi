@@ -197,6 +197,21 @@
                     <span class="ssl-indicator">HTTPS</span> | Python Flask API
                 </div>
             </div>
+            
+            <div class="service-card">
+                <h3>
+                    Home Assistant
+                    <span class="port">:8123</span>
+                </h3>
+                <span class="status running">🟢 Running</span>
+                <p>Home automation platform for IoT and service orchestration</p>
+                <div class="service-links">
+                    <a href="http://localhost:8123" target="_blank">Access Home Assistant</a>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                    HTTP | Automation Platform
+                </div>
+            </div>
         </div>
         
         <div class="api-section">
@@ -217,7 +232,8 @@
             <p>
                 🌐 Web Dashboard: <span class="ssl-indicator">HTTPS :443</span> | 
                 🐳 Portainer: <span class="ssl-indicator">HTTPS :9443</span> | 
-                🔧 IoT API: <span class="ssl-indicator">HTTPS :8443</span>
+                🔧 IoT API: <span class="ssl-indicator">HTTPS :8443</span> | 
+                🏠 Home Assistant: HTTP :8123
             </p>
             <p>Last updated: <span id="timestamp"></span></p>
             <p>🔄 Auto-deployed via CI/CD pipeline | 🔒 SSL/TLS Secured</p>
@@ -232,6 +248,7 @@
             // Update Portainer and IoT API links with current hostname
             const portainerLink = document.querySelector('a[href^="https://localhost:9443"]');
             const iotApiLinks = document.querySelectorAll('a[href^="https://localhost:8443"]');
+            const homeAssistantLink = document.querySelector('a[href^="http://localhost:8123"]');
             
             if (portainerLink) {
                 portainerLink.href = `https://${location.hostname}:9443`;
@@ -240,6 +257,10 @@
             iotApiLinks.forEach(link => {
                 link.href = link.href.replace('localhost', location.hostname);
             });
+            
+            if (homeAssistantLink) {
+                homeAssistantLink.href = `http://${location.hostname}:8123`;
+            }
         }
     </script>
 </body>
