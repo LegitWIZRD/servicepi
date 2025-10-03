@@ -139,19 +139,14 @@ ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow ssh
-ufw allow 80/tcp   # HTTP (redirects to HTTPS)
-ufw allow 443/tcp  # HTTPS for web dashboard
-ufw allow 9443/tcp # HTTPS for Portainer
-ufw allow 8443/tcp # HTTPS for IoT API
-ufw allow 8123/tcp # HTTP for Home Assistant
+ufw allow 80/tcp   # HTTP for web dashboard
+ufw allow 9000/tcp # HTTP for Portainer
+ufw allow 8080/tcp # HTTP for IoT API
 ufw --force enable
 
 # Initial deployment
-log "Generating SSL certificates..."
-cd "$INSTALL_DIR"
-./configs/nginx/generate-ssl.sh
-
 log "Starting initial deployment..."
+cd "$INSTALL_DIR"
 docker-compose pull
 docker-compose up -d
 
@@ -174,10 +169,9 @@ if [ -f "/etc/docker/daemon.json" ] && grep -q "data-root.*docker-storage" /etc/
 else
     echo "  - Docker storage: Default location"
 fi
-echo "  - Web dashboard: https://$(hostname -I | awk '{print $1}')"
-echo "  - Portainer: https://$(hostname -I | awk '{print $1}'):9443"
-echo "  - IoT API: https://$(hostname -I | awk '{print $1}'):8443"
-echo "  - Home Assistant: http://$(hostname -I | awk '{print $1}'):8123"
+echo "  - Web dashboard: http://$(hostname -I | awk '{print $1}')"
+echo "  - Portainer: http://$(hostname -I | awk '{print $1}'):9000"
+echo "  - IoT API: http://$(hostname -I | awk '{print $1}'):8080"
 echo ""
 echo "📝 Next steps:"
 echo "  1. Access the web dashboard to verify installation"

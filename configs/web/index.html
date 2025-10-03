@@ -26,19 +26,6 @@
             padding-bottom: 20px;
             margin-bottom: 30px;
         }
-        .ssl-status {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        .ssl-status .ssl-icon {
-            color: #28a745;
-            font-size: 18px;
-            margin-right: 8px;
-        }
         .service-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -125,7 +112,7 @@
             font-family: monospace;
             font-size: 13px;
         }
-        .ssl-indicator {
+        .ssl-indicator, .http-indicator {
             color: #28a745;
             font-weight: bold;
         }
@@ -142,59 +129,54 @@
     <div class="container">
         <div class="header">
             <h1>🍓 ServicePi Dashboard</h1>
-            <p>Raspberry Pi 5 Docker Services with SSL/TLS</p>
-        </div>
-        
-        <div class="ssl-status">
-            <span class="ssl-icon">🔒</span>
-            <strong>SSL/TLS Enabled</strong> - All services running with encrypted connections
+            <p>Raspberry Pi 5 Docker Services</p>
         </div>
         
         <div class="service-grid">
             <div class="service-card">
                 <h3>
                     Web Dashboard
-                    <span class="port">:443</span>
+                    <span class="port">:80</span>
                 </h3>
                 <span class="status running">🟢 Running</span>
-                <p>Main dashboard with SSL termination</p>
+                <p>Main dashboard with reverse proxy</p>
                 <div class="service-links">
                     <a href="/health">Health Check</a>
                     <a href="/api/">IoT API</a>
                 </div>
                 <div style="margin-top: 10px; font-size: 12px; color: #666;">
-                    <span class="ssl-indicator">HTTPS</span> | Nginx Reverse Proxy
+                    <span class="http-indicator">HTTP</span> | Nginx Reverse Proxy
                 </div>
             </div>
             
             <div class="service-card">
                 <h3>
                     Container Management
-                    <span class="port">:9443</span>
+                    <span class="port">:9000</span>
                 </h3>
                 <span class="status running">🟢 Running</span>
                 <p>Portainer for Docker container management</p>
                 <div class="service-links">
-                    <a href="https://localhost:9443" target="_blank">Access Portainer</a>
+                    <a href="http://localhost:9000" target="_blank">Access Portainer</a>
                 </div>
                 <div style="margin-top: 10px; font-size: 12px; color: #666;">
-                    <span class="ssl-indicator">HTTPS</span> | Separate SSL Certificate
+                    <span class="http-indicator">HTTP</span> | Portainer CE
                 </div>
             </div>
             
             <div class="service-card">
                 <h3>
                     IoT API Service
-                    <span class="port">:8443</span>
+                    <span class="port">:8080</span>
                 </h3>
                 <span class="status running">🟢 Running</span>
                 <p>REST API for IoT device management and sensor data</p>
                 <div class="service-links">
-                    <a href="https://localhost:8443" target="_blank">API Root</a>
-                    <a href="https://localhost:8443/health" target="_blank">Health</a>
+                    <a href="http://localhost:8080" target="_blank">API Root</a>
+                    <a href="http://localhost:8080/health" target="_blank">Health</a>
                 </div>
                 <div style="margin-top: 10px; font-size: 12px; color: #666;">
-                    <span class="ssl-indicator">HTTPS</span> | Python Flask API
+                    <span class="http-indicator">HTTP</span> | Python Flask API
                 </div>
             </div>
             
@@ -216,7 +198,7 @@
         
         <div class="api-section">
             <h3>🔗 Available API Endpoints</h3>
-            <p>All endpoints support HTTPS with separate SSL certificates:</p>
+            <p>All endpoints accessible via HTTP:</p>
             <div class="api-endpoints">
                 <div class="api-endpoint">GET /api/sensors</div>
                 <div class="api-endpoint">GET/POST /api/sensors/data</div>
@@ -230,37 +212,36 @@
         <div class="footer-info">
             <p><strong>Service Ports:</strong></p>
             <p>
-                🌐 Web Dashboard: <span class="ssl-indicator">HTTPS :443</span> | 
-                🐳 Portainer: <span class="ssl-indicator">HTTPS :9443</span> | 
-                🔧 IoT API: <span class="ssl-indicator">HTTPS :8443</span> | 
-                🏠 Home Assistant: HTTP :8123
+                🌐 Web Dashboard: <span class="http-indicator">HTTP :80</span> | 
+                🐳 Portainer: <span class="http-indicator">HTTP :9000</span> | 
+                🔧 IoT API: <span class="http-indicator">HTTP :8080</span>
             </p>
             <p>Last updated: <span id="timestamp"></span></p>
-            <p>🔄 Auto-deployed via CI/CD pipeline | 🔒 SSL/TLS Secured</p>
+            <p>🔄 Auto-deployed via CI/CD pipeline</p>
         </div>
     </div>
     
     <script>
         document.getElementById('timestamp').textContent = new Date().toLocaleString();
         
-        // Check if we're running on HTTPS
-        if (location.protocol === 'https:') {
-            // Update Portainer and IoT API links with current hostname
-            const portainerLink = document.querySelector('a[href^="https://localhost:9443"]');
-            const iotApiLinks = document.querySelectorAll('a[href^="https://localhost:8443"]');
-            const homeAssistantLink = document.querySelector('a[href^="http://localhost:8123"]');
-            
-            if (portainerLink) {
-                portainerLink.href = `https://${location.hostname}:9443`;
-            }
-            
-            iotApiLinks.forEach(link => {
-                link.href = link.href.replace('localhost', location.hostname);
-            });
-            
-            if (homeAssistantLink) {
-                homeAssistantLink.href = `http://${location.hostname}:8123`;
-            }
+        // Update Portainer and IoT API links with current hostname
+        const hostname = window.location.hostname;
+        
+        // Update Portainer link
+        const portainerLink = document.querySelector('a[href="http://localhost:9000"]');
+        if (portainerLink && hostname !== 'localhost') {
+            portainerLink.href = `http://${hostname}:9000`;
+        }
+        
+        // Update IoT API links
+        const iotRootLink = document.querySelector('a[href="http://localhost:8080"]');
+        if (iotRootLink && hostname !== 'localhost') {
+            iotRootLink.href = `http://${hostname}:8080`;
+        }
+        
+        const iotHealthLink = document.querySelector('a[href="http://localhost:8080/health"]');
+        if (iotHealthLink && hostname !== 'localhost') {
+            iotHealthLink.href = `http://${hostname}:8080/health`;
         }
     </script>
 </body>
