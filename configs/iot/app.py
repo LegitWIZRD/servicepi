@@ -157,8 +157,7 @@ def system_info():
             'service': SERVICE_NAME,
             'uptime': 'Running',
             'version': '1.0.0',
-            'api_port': API_PORT,
-            'ssl_enabled': os.getenv('SSL_ENABLED', 'false').lower() == 'true'
+            'api_port': API_PORT
         },
         'statistics': {
             'total_sensor_readings': len(sensor_data),

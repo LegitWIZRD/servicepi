@@ -9,7 +9,6 @@ ServicePi provides a complete infrastructure-as-code solution for running Docker
 ## Features
 
 - 🐳 **Docker Compose** orchestration for multiple services
-- 🔒 **SSL/TLS Security** with separate certificates for each service
 - 🔄 **Automated CI/CD** pipeline with GitHub Actions
 - 🛡️ **Security scanning** with Trivy vulnerability scanner
 - 📊 **Web dashboard** for monitoring services
@@ -17,7 +16,7 @@ ServicePi provides a complete infrastructure-as-code solution for running Docker
 - 🚀 **One-command deployment** and updates
 - 📝 **Configuration management** for all services
 - 🔒 **Firewall configuration** and security hardening
-- 🌐 **Reverse proxy** with SSL termination
+- 🌐 **Reverse proxy** for service routing
 - 🔗 **Inter-service communication** capabilities
 - 💾 **NVMe storage setup** for optimal container performance
 
@@ -44,14 +43,12 @@ sudo /opt/servicepi/scripts/install.sh
 
 ### 2. Access Your Services
 
-After installation, access your services via HTTPS:
+After installation, access your services via HTTP:
 
-- **Web Dashboard**: `https://your-pi-ip/` (HTTPS :443)
-- **Portainer**: `https://your-pi-ip:9443/` (HTTPS :9443)
-- **IoT API**: `https://your-pi-ip:8443/` (HTTPS :8443)
-- **Health Check**: `https://your-pi-ip/health`
-
-Each service runs with its own SSL certificate for enhanced security.
+- **Web Dashboard**: `http://your-pi-ip/` (HTTP :80)
+- **Portainer**: `http://your-pi-ip:9000/` (HTTP :9000)
+- **IoT API**: `http://your-pi-ip:8080/` (HTTP :8080)
+- **Health Check**: `http://your-pi-ip/health`
 
 ### 3. Configure Services
 
@@ -81,26 +78,24 @@ servicepi/
 
 ## Services Included
 
-### SSL Reverse Proxy (Nginx)
-- Centralized SSL termination for all services
-- HTTP to HTTPS redirects
-- Separate SSL certificates for each service
+### Reverse Proxy (Nginx)
+- Centralized routing for all services
 - Security headers and CORS support
 
 ### Web Dashboard
-- HTTPS-secured main dashboard
+- Main dashboard
 - Service status monitoring
 - API access interface
 - Health monitoring endpoints
 
 ### Container Management (Portainer)
-- HTTPS-secured web-based Docker management interface
+- Web-based Docker management interface
 - Monitor container status and logs
 - Manage Docker images and volumes
 - WebSocket support for real-time updates
 
 ### IoT API Service
-- HTTPS-secured REST API for device management
+- REST API for device management
 - Sensor data collection and retrieval
 - Inter-service communication capabilities
 - GPIO access configuration for Pi hardware
