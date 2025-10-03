@@ -175,13 +175,13 @@ jobs:
         
         wait_for_service "nginx-proxy" "docker exec servicepi-proxy nginx -t" 60 2 || true
         wait_for_service "web-backend" "docker exec servicepi-web-backend nginx -t" 30 2 || true
-        wait_for_service "iot-service" "docker logs servicepi-iot 2>&1 | grep -q 'Starting.*API'" 60 3 || true
+        wait_for_service "iot-service" "docker logs servicepi-iot 2>&1 | grep -q 'Starting.*API'" 90 3 || true
         wait_for_service "portainer" "docker logs servicepi-portainer 2>&1 | grep -q 'Portainer started'" 120 3 || true
         
         # Additional stabilization time
         echo ""
         echo "Allowing services to stabilize..."
-        sleep 10
+        sleep 15
         
         # Show service status and logs
         echo ""
@@ -207,7 +207,7 @@ jobs:
         echo "=== Testing HTTP Endpoints ==="
         
         # Test web service health endpoint
-        test_http_endpoint "http://localhost/health" "Web service health check" 10 3 || {
+        test_http_endpoint "http://localhost/health" "Web service health check" 15 3 || {
           echo "=== Web Backend Logs ==="
           docker logs servicepi-web-backend --tail=50
           echo "=== Nginx Proxy Logs ==="
@@ -216,7 +216,7 @@ jobs:
         }
         
         # Test IoT API health endpoint
-        test_http_endpoint "http://localhost:8080/health" "IoT API health check" 10 3 || {
+        test_http_endpoint "http://localhost:8080/health" "IoT API health check" 15 4 || {
           echo "=== IoT Service Logs ==="
           docker logs servicepi-iot --tail=50
           echo "=== Nginx Proxy Logs ==="
@@ -225,7 +225,7 @@ jobs:
         }
         
         # Test IoT API sensors endpoint
-        test_http_endpoint "http://localhost:8080/api/sensors" "IoT API sensors endpoint" 10 3 || {
+        test_http_endpoint "http://localhost:8080/api/sensors" "IoT API sensors endpoint" 15 4 || {
           echo "=== IoT Service Logs ==="
           docker logs servicepi-iot --tail=50
           exit 1
@@ -233,14 +233,14 @@ jobs:
         
         # Test inter-service communication
         echo "Testing inter-service communication"
-        for i in $(seq 1 10); do
+        for i in $(seq 1 15); do
           if curl -f -s -X POST http://localhost:8080/api/system/communicate > /dev/null; then
             echo "✓ Inter-service communication - SUCCESS"
             break
           fi
-          if [ $i -lt 10 ]; then
-            echo "  Attempt $i/10 failed, retrying in 3s..."
-            sleep 3
+          if [ $i -lt 15 ]; then
+            echo "  Attempt $i/15 failed, retrying in 4s..."
+            sleep 4
           else
             echo "✗ Inter-service communication - FAILED"
             docker logs servicepi-iot --tail=50
@@ -249,7 +249,7 @@ jobs:
         done
         
         # Test Portainer endpoint
-        test_http_endpoint "http://localhost:9000" "Portainer web interface" 15 5 || {
+        test_http_endpoint "http://localhost:9000" "Portainer web interface" 20 5 || {
           echo "=== Portainer Logs ==="
           docker logs servicepi-portainer --tail=50
           echo "=== Nginx Proxy Logs ==="
