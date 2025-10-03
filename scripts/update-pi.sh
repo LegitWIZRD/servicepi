@@ -82,12 +82,6 @@ update_containers() {
     
     cd "$INSTALL_DIR"
     
-    # Regenerate SSL certificates if needed
-    if [ ! -f "configs/nginx/ssl/web/fullchain.pem" ]; then
-        log "Generating SSL certificates..."
-        ./configs/nginx/generate-ssl.sh
-    fi
-    
     # Pull latest images
     docker-compose pull
     
