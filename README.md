@@ -83,6 +83,8 @@ servicepi/
 ### Reverse Proxy (Nginx)
 - Centralized routing for all services
 - Security headers and CORS support
+- CSRF token and cookie forwarding for Portainer and Home Assistant
+- WebSocket support for real-time updates
 
 ### Web Dashboard
 - Main dashboard
@@ -241,14 +243,35 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
    sudo systemctl status docker
    ```
 
-2. **Port conflicts**: Ensure ports 80 and 9000 are available
+2. **Port conflicts**: Ensure ports 80, 8080, 8123, and 9000 are available
    ```bash
-   sudo netstat -tlnp | grep -E ':(80|9000) '
+   sudo netstat -tlnp | grep -E ':(80|8080|8123|9000) '
    ```
 
 3. **Permission issues**: Verify ownership
    ```bash
    sudo chown -R servicepi:servicepi /opt/servicepi
+   ```
+
+4. **Portainer CSRF validation errors**: The proxy is configured to forward all necessary headers. If you still experience issues:
+   ```bash
+   # Check nginx proxy logs
+   docker logs servicepi-proxy
+   
+   # Verify nginx configuration
+   docker exec servicepi-proxy nginx -t
+   
+   # Test proxy header forwarding
+   /opt/servicepi/scripts/test-proxy-headers.sh
+   ```
+
+5. **Home Assistant not accessible**: Ensure the service is running and healthy
+   ```bash
+   # Check Home Assistant status
+   docker logs servicepi-homeassistant
+   
+   # Verify the service is responding
+   curl -I http://localhost:8123
    ```
 
 ### Backup and Recovery
