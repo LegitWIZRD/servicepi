@@ -257,6 +257,60 @@ jobs:
           exit 1
         }
         
+        # Test Home Assistant endpoint
+        test_http_endpoint "http://localhost:8123" "Home Assistant web interface" 30 6 || {
+          echo "=== Home Assistant Logs ==="
+          docker logs servicepi-homeassistant --tail=50
+          echo "=== Nginx Proxy Logs ==="
+          docker logs servicepi-proxy --tail=50
+          exit 1
+        }
+        
+        # Test proxy header forwarding
+        echo ""
+        echo "=== Testing Proxy Header Forwarding ==="
+        
+        # Test that critical headers are forwarded to Portainer
+        echo "Testing Portainer proxy headers..."
+        PORTAINER_HEADERS=$(curl -v -s -o /dev/null \
+          -H "Origin: http://testorigin.com" \
+          -H "Referer: http://testreferer.com" \
+          http://localhost:9000/ 2>&1 || true)
+        
+        if echo "$PORTAINER_HEADERS" | grep -q "< HTTP"; then
+          echo "✓ Portainer proxy is forwarding requests"
+        else
+          echo "✗ Portainer proxy header forwarding test failed"
+          docker logs servicepi-proxy --tail=30
+          exit 1
+        fi
+        
+        # Test that critical headers are forwarded to Home Assistant
+        echo "Testing Home Assistant proxy headers..."
+        HA_HEADERS=$(curl -v -s -o /dev/null \
+          -H "Origin: http://testorigin.com" \
+          -H "Referer: http://testreferer.com" \
+          http://localhost:8123/ 2>&1 || true)
+        
+        if echo "$HA_HEADERS" | grep -q "< HTTP"; then
+          echo "✓ Home Assistant proxy is forwarding requests"
+        else
+          echo "✗ Home Assistant proxy header forwarding test failed"
+          docker logs servicepi-proxy --tail=30
+          exit 1
+        fi
+        
+        # Validate nginx configuration syntax inside container
+        echo ""
+        echo "=== Validating Nginx Configuration ==="
+        if docker exec servicepi-proxy nginx -t 2>&1 | grep -q "successful"; then
+          echo "✓ Nginx configuration syntax is valid"
+        else
+          echo "✗ Nginx configuration syntax validation failed"
+          docker exec servicepi-proxy nginx -t
+          exit 1
+        fi
+        
         echo ""
         echo "=== ✓ All tests passed ==="
         
