@@ -214,7 +214,8 @@
             <p>
                 🌐 Web Dashboard: <span class="http-indicator">HTTP :80</span> | 
                 🐳 Portainer: <span class="http-indicator">HTTP :9000</span> | 
-                🔧 IoT API: <span class="http-indicator">HTTP :8080</span>
+                🔧 IoT API: <span class="http-indicator">HTTP :8080</span> | 
+                🏠 Home Assistant: <span class="http-indicator">HTTP :8123</span>
             </p>
             <p>Last updated: <span id="timestamp"></span></p>
             <p>🔄 Auto-deployed via CI/CD pipeline</p>
@@ -242,6 +243,12 @@
         const iotHealthLink = document.querySelector('a[href="http://localhost:8080/health"]');
         if (iotHealthLink && hostname !== 'localhost') {
             iotHealthLink.href = `http://${hostname}:8080/health`;
+        }
+        
+        // Update Home Assistant link
+        const homeAssistantLink = document.querySelector('a[href="http://localhost:8123"]');
+        if (homeAssistantLink && hostname !== 'localhost') {
+            homeAssistantLink.href = `http://${hostname}:8123`;
         }
     </script>
 </body>

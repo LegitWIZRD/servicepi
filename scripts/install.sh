@@ -142,6 +142,7 @@ ufw allow ssh
 ufw allow 80/tcp   # HTTP for web dashboard
 ufw allow 9000/tcp # HTTP for Portainer
 ufw allow 8080/tcp # HTTP for IoT API
+ufw allow 8123/tcp # HTTP for Home Assistant
 ufw --force enable
 
 # Initial deployment
@@ -172,6 +173,7 @@ fi
 echo "  - Web dashboard: http://$(hostname -I | awk '{print $1}')"
 echo "  - Portainer: http://$(hostname -I | awk '{print $1}'):9000"
 echo "  - IoT API: http://$(hostname -I | awk '{print $1}'):8080"
+echo "  - Home Assistant: http://$(hostname -I | awk '{print $1}'):8123"
 echo ""
 echo "📝 Next steps:"
 echo "  1. Access the web dashboard to verify installation"

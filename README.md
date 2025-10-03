@@ -49,6 +49,7 @@ After installation, access your services via HTTP:
 - **Web Dashboard**: `http://your-pi-ip/` (HTTP :80)
 - **Portainer**: `http://your-pi-ip:9000/` (HTTP :9000)
 - **IoT API**: `http://your-pi-ip:8080/` (HTTP :8080)
+- **Home Assistant**: `http://your-pi-ip:8123/` (HTTP :8123)
 - **Health Check**: `http://your-pi-ip/health`
 
 ### 3. Configure Services
