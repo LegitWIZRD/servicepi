@@ -8,7 +8,7 @@ ServicePi is a Raspberry Pi 5 Docker container management system with automated 
 
 - **Deployment Target**: Raspberry Pi 5 (ARM64 architecture)
 - **Container Orchestration**: Docker Compose
-- **Reverse Proxy**: Nginx with SSL/TLS termination
+- **Reverse Proxy**: Nginx for HTTP routing
 - **Services**:
   - Web dashboard (HTML/CSS/JavaScript)
   - Portainer (container management UI)
@@ -22,7 +22,7 @@ ServicePi is a Raspberry Pi 5 Docker container management system with automated 
 - **Python**: Flask 2.3.3 for IoT API service
 - **Web**: HTML, CSS, JavaScript for dashboard
 - **Infrastructure**: Docker, Docker Compose, Nginx
-- **Security**: SSL/TLS certificates, UFW firewall
+- **Security**: UFW firewall, vulnerability scanning
 
 ## Coding Standards
 
@@ -47,14 +47,11 @@ ServicePi is a Raspberry Pi 5 Docker container management system with automated 
 - Configure restart policies (`unless-stopped`)
 - Use internal networks for service-to-service communication
 - Expose only necessary ports
-- Use SSL/TLS for all external services
 - Follow ARM64 compatibility requirements for Raspberry Pi
 
 ### Configuration Files
 - Store sensitive data in environment variables (`.env` files)
-- Keep SSL certificates in `configs/nginx/ssl/`
 - Organize configs by service in `configs/` directory
-- Use self-signed certificates for development, proper certificates for production
 
 ## Repository Structure
 
@@ -62,7 +59,7 @@ ServicePi is a Raspberry Pi 5 Docker container management system with automated 
 servicepi/
 ├── .github/workflows/    # CI/CD pipeline configuration
 ├── configs/             # Service configuration files
-│   ├── nginx/          # Nginx proxy and SSL config
+│   ├── nginx/          # Nginx proxy config
 │   ├── web/            # Web dashboard files
 │   └── iot/            # IoT service (Python Flask app)
 ├── scripts/            # Deployment and management scripts
@@ -84,9 +81,8 @@ servicepi/
 
 ### Security Considerations
 
-- Never commit secrets or certificates to the repository
+- Never commit secrets to the repository
 - Use environment variables for sensitive configuration
-- Ensure all external services use HTTPS/SSL
 - Configure UFW firewall rules appropriately
 - Scan for vulnerabilities with Trivy in CI/CD
 - Follow principle of least privilege for services
@@ -106,10 +102,10 @@ servicepi/
 - **Backup directory**: `/opt/servicepi-backups`
 - **Service user**: `servicepi`
 - **Exposed ports**:
-  - 80 (HTTP redirects to HTTPS)
-  - 443 (Web dashboard HTTPS)
-  - 9443 (Portainer HTTPS)
-  - 8443 (IoT API HTTPS)
+  - 80 (HTTP for Web dashboard)
+  - 9000 (HTTP for Portainer)
+  - 8080 (HTTP for IoT API)
+  - 8123 (HTTP for Home Assistant)
 
 ## Common Tasks
 
@@ -117,10 +113,9 @@ servicepi/
 
 1. Add service definition to `docker-compose.yml`
 2. Create config directory in `configs/`
-3. Configure SSL certificate in `configs/nginx/ssl/`
-4. Add Nginx proxy configuration
-5. Update firewall rules in `scripts/install.sh` if needed
-6. Document the service in README.md
+3. Add Nginx proxy configuration
+4. Update firewall rules in `scripts/install.sh` if needed
+5. Document the service in README.md
 
 ### Updating Dependencies
 
@@ -132,14 +127,13 @@ servicepi/
 
 1. Validate locally with Docker Compose
 2. Test shell scripts with shellcheck
-3. Verify SSL certificates are generated correctly
-4. Check service connectivity through Nginx proxy
-5. Review CI/CD pipeline execution
+3. Check service connectivity through Nginx proxy
+4. Review CI/CD pipeline execution
 
 ## Important Notes
 
 - This system is designed for **Raspberry Pi 5** - ensure ARM64 compatibility
 - All services communicate through an internal Docker network
-- SSL certificates are self-signed by default (use proper certs in production)
+- All services are configured for HTTP-only communication
 - The update script (`update-pi.sh`) creates backups before making changes
 - Services are configured for automatic restart unless stopped manually
