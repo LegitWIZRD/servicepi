@@ -13,6 +13,7 @@ ServicePi provides a complete infrastructure-as-code solution for running Docker
 - 🛡️ **Security scanning** with Trivy vulnerability scanner
 - 📊 **Web dashboard** for monitoring services
 - 🔧 **Container management** with Portainer
+- 🏠 **Home Assistant** for IoT automation and service orchestration
 - 🚀 **One-command deployment** and updates
 - 📝 **Configuration management** for all services
 - 🔒 **Firewall configuration** and security hardening
@@ -48,6 +49,7 @@ After installation, access your services via HTTP:
 - **Web Dashboard**: `http://your-pi-ip/` (HTTP :80)
 - **Portainer**: `http://your-pi-ip:9000/` (HTTP :9000)
 - **IoT API**: `http://your-pi-ip:8080/` (HTTP :8080)
+- **Home Assistant**: `http://your-pi-ip:8123/` (HTTP :8123)
 - **Health Check**: `http://your-pi-ip/health`
 
 ### 3. Configure Services
@@ -99,6 +101,13 @@ servicepi/
 - Sensor data collection and retrieval
 - Inter-service communication capabilities
 - GPIO access configuration for Pi hardware
+
+### Home Assistant
+- Open-source home automation platform
+- Automate and control Portainer-hosted services
+- IoT device integration and management
+- User-friendly web interface for automation workflows
+- Direct integration with IoT API service
 
 ## CI/CD Pipeline
 

@@ -179,6 +179,21 @@
                     <span class="http-indicator">HTTP</span> | Python Flask API
                 </div>
             </div>
+            
+            <div class="service-card">
+                <h3>
+                    Home Assistant
+                    <span class="port">:8123</span>
+                </h3>
+                <span class="status running">🟢 Running</span>
+                <p>Home automation platform for IoT and service orchestration</p>
+                <div class="service-links">
+                    <a href="http://localhost:8123" target="_blank">Access Home Assistant</a>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                    HTTP | Automation Platform
+                </div>
+            </div>
         </div>
         
         <div class="api-section">
@@ -199,7 +214,8 @@
             <p>
                 🌐 Web Dashboard: <span class="http-indicator">HTTP :80</span> | 
                 🐳 Portainer: <span class="http-indicator">HTTP :9000</span> | 
-                🔧 IoT API: <span class="http-indicator">HTTP :8080</span>
+                🔧 IoT API: <span class="http-indicator">HTTP :8080</span> | 
+                🏠 Home Assistant: <span class="http-indicator">HTTP :8123</span>
             </p>
             <p>Last updated: <span id="timestamp"></span></p>
             <p>🔄 Auto-deployed via CI/CD pipeline</p>
@@ -227,6 +243,12 @@
         const iotHealthLink = document.querySelector('a[href="http://localhost:8080/health"]');
         if (iotHealthLink && hostname !== 'localhost') {
             iotHealthLink.href = `http://${hostname}:8080/health`;
+        }
+        
+        // Update Home Assistant link
+        const homeAssistantLink = document.querySelector('a[href="http://localhost:8123"]');
+        if (homeAssistantLink && hostname !== 'localhost') {
+            homeAssistantLink.href = `http://${hostname}:8123`;
         }
     </script>
 </body>

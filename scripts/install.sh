@@ -142,6 +142,7 @@ ufw allow ssh
 ufw allow 80/tcp   # HTTP for web dashboard
 ufw allow 9000/tcp # HTTP for Portainer
 ufw allow 8080/tcp # HTTP for IoT API
+ufw allow 8123/tcp # HTTP for Home Assistant
 ufw --force enable
 
 # Initial deployment
@@ -172,12 +173,14 @@ fi
 echo "  - Web dashboard: http://$(hostname -I | awk '{print $1}')"
 echo "  - Portainer: http://$(hostname -I | awk '{print $1}'):9000"
 echo "  - IoT API: http://$(hostname -I | awk '{print $1}'):8080"
+echo "  - Home Assistant: http://$(hostname -I | awk '{print $1}'):8123"
 echo ""
 echo "📝 Next steps:"
 echo "  1. Access the web dashboard to verify installation"
 echo "  2. Configure Portainer (first-time setup)"
-echo "  3. Customize services in docker-compose.yml as needed"
-echo "  4. Set up automatic updates with 'sudo systemctl enable --now servicepi-update.timer'"
+echo "  3. Set up Home Assistant for automation (first-time setup)"
+echo "  4. Customize services in docker-compose.yml as needed"
+echo "  5. Set up automatic updates with 'sudo systemctl enable --now servicepi-update.timer'"
 echo ""
 echo "🔧 Useful commands:"
 echo "  - Manual update: sudo $INSTALL_DIR/scripts/update-pi.sh"
