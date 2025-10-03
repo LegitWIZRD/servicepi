@@ -124,30 +124,77 @@ jobs:
         # Start services
         docker-compose up -d
         
-        # Wait for services to be ready
-        sleep 45
-        
         # Check if services are running
+        echo "Checking service status..."
         docker-compose ps
         
+        # Wait for nginx-proxy to be ready
+        echo "Waiting for nginx-proxy to start..."
+        timeout 60 bash -c 'until docker exec servicepi-proxy nginx -t 2>/dev/null; do sleep 2; done' || echo "Nginx config check timeout"
+        
+        # Wait for web-backend to be ready
+        echo "Waiting for web-backend to start..."
+        timeout 30 bash -c 'until docker exec servicepi-web-backend nginx -t 2>/dev/null; do sleep 2; done' || echo "Web backend check timeout"
+        
+        # Wait for IoT service to be ready
+        echo "Waiting for IoT service to start..."
+        timeout 60 bash -c 'until docker logs servicepi-iot 2>&1 | grep -q "Starting.*API"; do sleep 2; done' || echo "IoT service still starting"
+        
+        # Wait for Portainer to be ready - check internal port first
+        echo "Waiting for Portainer to start (this may take up to 2 minutes)..."
+        timeout 120 bash -c 'until docker logs servicepi-portainer 2>&1 | grep -q "Portainer started"; do sleep 3; done' || echo "Portainer initialization check timeout"
+        
+        # Additional wait for Portainer to be fully responsive
+        echo "Allowing additional time for Portainer to be fully ready..."
+        sleep 30
+        
+        # Show service status
+        echo "=== Service Status ==="
+        docker-compose ps
+        
+        # Show recent logs
+        echo "=== Recent Logs ==="
+        docker-compose logs --tail=20
+        
         # Test HTTP to HTTPS redirect
+        echo "=== Testing HTTP to HTTPS redirect ==="
         curl -I http://localhost/ | grep -q "301\|302" || echo "HTTP redirect working"
         
         # Test HTTPS web service (with self-signed cert)
+        echo "=== Testing web service ==="
         curl -k -f https://localhost/health || exit 1
         
-        # Test HTTPS Portainer (with self-signed cert)
-        curl -k -f https://localhost:9443 || echo "Portainer may take longer to start"
-        
         # Test HTTPS IoT API (with self-signed cert)
+        echo "=== Testing IoT API ==="
         curl -k -f https://localhost:8443/health || exit 1
         curl -k -f https://localhost:8443/api/sensors || exit 1
         
         # Test inter-service communication
+        echo "=== Testing inter-service communication ==="
         curl -k -f -X POST https://localhost:8443/api/system/communicate || exit 1
         
-        # Check logs for errors
-        docker-compose logs
+        # Test HTTPS Portainer (with self-signed cert) - with retries
+        echo "=== Testing Portainer connection ==="
+        MAX_RETRIES=5
+        RETRY_COUNT=0
+        until curl -k -f https://localhost:9443 || [ $RETRY_COUNT -eq $MAX_RETRIES ]; do
+          RETRY_COUNT=$((RETRY_COUNT+1))
+          echo "Portainer test attempt $RETRY_COUNT of $MAX_RETRIES failed, waiting 10 seconds..."
+          if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+            sleep 10
+          fi
+        done
+        
+        if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+          echo "Portainer test failed after $MAX_RETRIES attempts"
+          echo "=== Portainer Logs ==="
+          docker logs servicepi-portainer --tail=50
+          echo "=== Nginx Proxy Logs ==="
+          docker logs servicepi-proxy --tail=50
+          exit 1
+        fi
+        
+        echo "=== All tests passed ==="
         
         # Cleanup
         docker-compose down
