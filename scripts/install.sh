@@ -139,10 +139,13 @@ ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow ssh
-ufw allow 80/tcp   # HTTP for web dashboard
-ufw allow 9000/tcp # HTTP for Portainer
-ufw allow 8080/tcp # HTTP for IoT API
-ufw allow 8123/tcp # HTTP for Home Assistant
+ufw allow 53/tcp    # DNS for Pi-hole
+ufw allow 53/udp    # DNS for Pi-hole
+ufw allow 80/tcp    # HTTP for web dashboard
+ufw allow 9000/tcp  # HTTP for Portainer
+ufw allow 8080/tcp  # HTTP for IoT API
+ufw allow 8123/tcp  # HTTP for Home Assistant
+ufw allow 8053/tcp  # HTTP for Pi-hole Admin
 ufw --force enable
 
 # Initial deployment
@@ -174,13 +177,17 @@ echo "  - Web dashboard: http://$(hostname -I | awk '{print $1}')"
 echo "  - Portainer: http://$(hostname -I | awk '{print $1}'):9000"
 echo "  - IoT API: http://$(hostname -I | awk '{print $1}'):8080"
 echo "  - Home Assistant: http://$(hostname -I | awk '{print $1}'):8123"
+echo "  - Pi-hole Admin: http://$(hostname -I | awk '{print $1}'):8053/admin"
+echo "  - Pi-hole DNS: $(hostname -I | awk '{print $1}')"
 echo ""
 echo "📝 Next steps:"
 echo "  1. Access the web dashboard to verify installation"
 echo "  2. Configure Portainer (first-time setup)"
 echo "  3. Set up Home Assistant for automation (first-time setup)"
-echo "  4. Customize services in docker-compose.yml as needed"
-echo "  5. Set up automatic updates with 'sudo systemctl enable --now servicepi-update.timer'"
+echo "  4. Configure Pi-hole admin (password: set via PIHOLE_PASSWORD or default 'servicepi')"
+echo "  5. Set your device's DNS to $(hostname -I | awk '{print $1}') to use Pi-hole ad blocking"
+echo "  6. Customize services in docker-compose.yml as needed"
+echo "  7. Set up automatic updates with 'sudo systemctl enable --now servicepi-update.timer'"
 echo ""
 echo "🔧 Useful commands:"
 echo "  - Manual update: sudo $INSTALL_DIR/scripts/update-pi.sh"

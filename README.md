@@ -14,6 +14,7 @@ ServicePi provides a complete infrastructure-as-code solution for running Docker
 - 📊 **Web dashboard** for monitoring services
 - 🔧 **Container management** with Portainer
 - 🏠 **Home Assistant** for IoT automation and service orchestration
+- 🚫 **Pi-hole DNS ad blocker** with curated blocklists
 - 🚀 **One-command deployment** and updates
 - 📝 **Configuration management** for all services
 - 🔒 **Firewall configuration** and security hardening
@@ -50,7 +51,10 @@ After installation, access your services via HTTP:
 - **Portainer**: `http://your-pi-ip:9000/` (HTTP :9000)
 - **IoT API**: `http://your-pi-ip:8080/` (HTTP :8080)
 - **Home Assistant**: `http://your-pi-ip:8123/` (HTTP :8123)
+- **Pi-hole Admin**: `http://your-pi-ip:8053/admin` (HTTP :8053)
 - **Health Check**: `http://your-pi-ip/health`
+
+**Pi-hole DNS**: Point your devices to `your-pi-ip` (port 53) to use Pi-hole ad blocking.
 
 ### 3. Configure Services
 
@@ -60,6 +64,8 @@ Edit the configuration files in `/opt/servicepi/configs/` to customize your serv
 - `configs/web/index.html` - Dashboard content
 - `configs/iot/config.ini` - IoT service settings
 - `configs/homeassistant/configuration.yaml` - Home Assistant configuration (reverse proxy trusted networks)
+- `configs/pihole/adlists.list` - Pi-hole blocklists
+- `configs/pihole/custom.list` - Custom DNS entries
 
 ## Repository Structure
 
@@ -70,7 +76,9 @@ servicepi/
 ├── configs/             # Service configuration files
 │   ├── nginx/          # Nginx web server config
 │   ├── web/            # Web dashboard files
-│   └── iot/            # IoT service configuration
+│   ├── iot/            # IoT service configuration
+│   ├── homeassistant/  # Home Assistant configuration
+│   └── pihole/         # Pi-hole blocklists and DNS config
 ├── scripts/            # Deployment and management scripts
 │   ├── install.sh      # Initial installation script
 │   └── update-pi.sh    # Update deployment script
@@ -112,6 +120,17 @@ servicepi/
 - User-friendly web interface for automation workflows
 - Direct integration with IoT API service
 - Configured to work behind reverse proxy with trusted networks
+
+### Pi-hole DNS Ad Blocker
+- Network-wide ad and tracker blocking
+- DNS-level filtering for all devices
+- Curated blocklists automatically applied
+- Web-based admin interface for management
+- Custom DNS entries support
+- Query logging and statistics
+- Blacklist/whitelist management
+
+Access Pi-hole at `http://your-pi-ip:8053/admin` and configure your devices to use your Pi's IP address as their DNS server.
 
 ## CI/CD Pipeline
 
@@ -211,10 +230,11 @@ devices:
 
 ## Security
 
-- **Firewall**: UFW configured to allow only necessary ports
+- **Firewall**: UFW configured to allow only necessary ports (SSH, HTTP services, DNS)
 - **User isolation**: Services run under dedicated user account
 - **Vulnerability scanning**: Automated security scans in CI/CD
 - **Regular updates**: Automatic system and container updates
+- **Network filtering**: Pi-hole provides DNS-level ad and malware blocking
 
 ## Monitoring
 
@@ -245,9 +265,9 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
    sudo systemctl status docker
    ```
 
-2. **Port conflicts**: Ensure ports 80, 8080, 8123, and 9000 are available
+2. **Port conflicts**: Ensure ports 53, 80, 8053, 8080, 8123, and 9000 are available
    ```bash
-   sudo netstat -tlnp | grep -E ':(80|8080|8123|9000) '
+   sudo netstat -tlnp | grep -E ':(53|80|8053|8080|8123|9000) '
    ```
 
 3. **Permission issues**: Verify ownership
@@ -274,6 +294,21 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
    
    # Verify the service is responding
    curl -I http://localhost:8123
+   ```
+
+6. **Pi-hole DNS not working**: Check that Pi-hole is running and DNS is configured
+   ```bash
+   # Check Pi-hole status
+   docker logs servicepi-pihole
+   
+   # Test DNS resolution
+   dig @localhost example.com
+   
+   # Verify Pi-hole admin is accessible
+   curl -I http://localhost:8053/admin
+   
+   # Update Pi-hole gravity (blocklists)
+   docker exec servicepi-pihole pihole -g
    ```
 
 ### Backup and Recovery

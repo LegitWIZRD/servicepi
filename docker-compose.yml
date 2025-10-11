@@ -8,6 +8,7 @@ services:
       - "9000:9000" # HTTP for Portainer
       - "8080:8080" # HTTP for IoT API
       - "8123:8123" # HTTP for Home Assistant
+      - "8053:8053" # HTTP for Pi-hole Admin
     volumes:
       - ./configs/nginx/proxy:/etc/nginx/conf.d
       - ./configs/web:/usr/share/nginx/html/web
@@ -19,6 +20,7 @@ services:
       - portainer
       - iot-service
       - homeassistant
+      - pihole
 
   # Web Backend (internal only)
   web-backend:
@@ -78,12 +80,44 @@ services:
       - TZ=America/New_York
     # No exposed ports - accessed via nginx-proxy at :8123
 
+  # Pi-hole DNS Ad Blocker
+  pihole:
+    image: pihole/pihole:latest
+    container_name: servicepi-pihole
+    ports:
+      - "53:53/tcp"     # DNS TCP
+      - "53:53/udp"     # DNS UDP
+    volumes:
+      - pihole_data:/etc/pihole
+      - pihole_dnsmasq:/etc/dnsmasq.d
+      - ./configs/pihole/adlists.list:/etc/pihole/adlists.list
+      - ./configs/pihole/custom.list:/etc/pihole/custom.list
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+    environment:
+      - TZ=America/New_York
+      - WEBPASSWORD=${PIHOLE_PASSWORD:-servicepi}
+      - FTLCONF_LOCAL_IPV4=${PI_IP:-}
+      - PIHOLE_DNS_=1.1.1.1;1.0.0.1
+      - DNSMASQ_LISTENING=all
+    # No exposed port for web interface - accessed via nginx-proxy at :8053
+    cap_add:
+      - NET_ADMIN
+    dns:
+      - 127.0.0.1
+      - 1.1.1.1
+
 volumes:
   portainer_data:
     driver: local
     # Note: When NVMe storage is configured, this volume will be stored on the NVMe drive
     # via Docker's data-root configuration in /etc/docker/daemon.json
   homeassistant_data:
+    driver: local
+  pihole_data:
+    driver: local
+  pihole_dnsmasq:
     driver: local
 
 networks:
