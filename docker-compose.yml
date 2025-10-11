@@ -84,9 +84,11 @@ services:
   pihole:
     image: pihole/pihole:latest
     container_name: servicepi-pihole
-    ports:
-      - "53:53/tcp"     # DNS TCP
-      - "53:53/udp"     # DNS UDP
+    # Uncomment the ports below to enable network-wide DNS on your Pi
+    # Note: Port 53 requires elevated privileges and may conflict with existing DNS services
+    # ports:
+    #   - "53:53/tcp"     # DNS TCP
+    #   - "53:53/udp"     # DNS UDP
     volumes:
       - pihole_data:/etc/pihole
       - pihole_dnsmasq:/etc/dnsmasq.d

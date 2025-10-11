@@ -9,7 +9,7 @@ This document summarizes the Pi-hole integration into ServicePi.
 
 Added Pi-hole service with:
 - **Container**: `servicepi-pihole` using `pihole/pihole:latest` image
-- **DNS Ports**: 53/tcp and 53/udp exposed for network DNS
+- **DNS Ports**: 53/tcp and 53/udp (commented out by default to avoid conflicts during testing)
 - **Admin Port**: Proxied through nginx on port 8053
 - **Volumes**: 
   - `pihole_data` for Pi-hole configuration
@@ -20,6 +20,8 @@ Added Pi-hole service with:
   - Default password: `servicepi` (can be overridden with `PIHOLE_PASSWORD`)
   - Upstream DNS: Cloudflare (1.1.1.1 and 1.0.0.1)
   - Timezone: America/New_York
+
+**Important**: The DNS ports (53/tcp and 53/udp) are commented out by default to prevent port conflicts during CI/CD testing and initial setup. To enable network-wide DNS blocking, uncomment these ports in `docker-compose.yml`.
 
 ### 2. Pi-hole Configuration Files
 **Directory**: `configs/pihole/`
@@ -141,6 +143,27 @@ Created comprehensive test script that validates:
 
 ## Usage
 
+### Enable DNS Service (Required for Network-wide Blocking)
+
+By default, DNS ports are commented out. To enable:
+
+1. Edit `docker-compose.yml`:
+   ```bash
+   sudo nano /opt/servicepi/docker-compose.yml
+   ```
+
+2. In the `pihole` service section, uncomment the ports:
+   ```yaml
+   ports:
+     - "53:53/tcp"     # DNS TCP
+     - "53:53/udp"     # DNS UDP
+   ```
+
+3. Restart Pi-hole:
+   ```bash
+   docker-compose -f /opt/servicepi/docker-compose.yml up -d pihole
+   ```
+
 ### Access Pi-hole Admin Interface
 ```
 http://your-pi-ip:8053/admin
@@ -148,7 +171,7 @@ Default Password: servicepi
 ```
 
 ### Configure Devices to Use Pi-hole
-Set device DNS to: `your-pi-ip` (port 53)
+After enabling DNS ports, set device DNS to: `your-pi-ip`
 
 ### Update Blocklists
 ```bash

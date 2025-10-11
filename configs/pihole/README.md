@@ -8,6 +8,34 @@ This directory contains the configuration for Pi-hole DNS ad-blocker running in 
 - `custom.list` - Custom DNS entries (optional)
 - `README.md` - This file
 
+## Enabling DNS Service
+
+By default, Pi-hole's DNS ports (53/tcp and 53/udp) are commented out in `docker-compose.yml` to avoid port conflicts during testing and deployment.
+
+To enable network-wide DNS blocking on your Raspberry Pi:
+
+1. Edit `docker-compose.yml`:
+   ```bash
+   sudo nano /opt/servicepi/docker-compose.yml
+   ```
+
+2. Uncomment the DNS ports in the `pihole` service section:
+   ```yaml
+   pihole:
+     ports:
+       - "53:53/tcp"     # DNS TCP
+       - "53:53/udp"     # DNS UDP
+   ```
+
+3. Restart the Pi-hole service:
+   ```bash
+   docker-compose -f /opt/servicepi/docker-compose.yml up -d pihole
+   ```
+
+4. Configure your devices to use your Pi's IP address as their DNS server.
+
+**Note**: Port 53 may conflict with systemd-resolved or other DNS services. If you encounter conflicts, you may need to disable or reconfigure the conflicting service.
+
 ## Blocklists
 
 The `adlists.list` file contains carefully selected blocklists that provide comprehensive ad and tracker blocking while minimizing false positives. These lists are automatically applied when Pi-hole starts or during updates.
@@ -62,7 +90,8 @@ docker exec -it servicepi-pihole pihole -a -p
 
 ## Notes
 
-- Pi-hole DNS service runs on ports 53 (UDP/TCP)
+- Pi-hole DNS service ports (53 UDP/TCP) are commented out by default to avoid conflicts
+- Uncomment the ports in docker-compose.yml to enable network-wide DNS blocking
 - Admin interface is proxied through nginx on port 8053
 - Configuration and data are persisted in Docker volumes
 - Blocklists are updated automatically by Pi-hole's built-in scheduler

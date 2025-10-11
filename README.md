@@ -54,7 +54,7 @@ After installation, access your services via HTTP:
 - **Pi-hole Admin**: `http://your-pi-ip:8053/admin` (HTTP :8053)
 - **Health Check**: `http://your-pi-ip/health`
 
-**Pi-hole DNS**: Point your devices to `your-pi-ip` (port 53) to use Pi-hole ad blocking.
+**Pi-hole DNS**: To enable network-wide ad blocking, uncomment the DNS ports in `docker-compose.yml` (lines 89-90) and point your devices to `your-pi-ip` as their DNS server.
 
 ### 3. Configure Services
 
@@ -130,7 +130,7 @@ servicepi/
 - Query logging and statistics
 - Blacklist/whitelist management
 
-Access Pi-hole at `http://your-pi-ip:8053/admin` and configure your devices to use your Pi's IP address as their DNS server.
+Access Pi-hole admin at `http://your-pi-ip:8053/admin`. To enable DNS blocking, uncomment port 53 mappings in `docker-compose.yml` and configure your devices to use your Pi's IP address as their DNS server.
 
 ## CI/CD Pipeline
 
@@ -296,12 +296,21 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
    curl -I http://localhost:8123
    ```
 
-6. **Pi-hole DNS not working**: Check that Pi-hole is running and DNS is configured
+6. **Pi-hole DNS not working**: Check that Pi-hole is running and DNS ports are enabled
    ```bash
    # Check Pi-hole status
    docker logs servicepi-pihole
    
-   # Test DNS resolution
+   # Verify DNS ports are uncommented in docker-compose.yml
+   grep -A 3 "pihole:" /opt/servicepi/docker-compose.yml | grep "53:53"
+   
+   # If ports are commented, edit docker-compose.yml to uncomment them
+   sudo nano /opt/servicepi/docker-compose.yml
+   
+   # Restart Pi-hole after enabling ports
+   docker-compose -f /opt/servicepi/docker-compose.yml up -d pihole
+   
+   # Test DNS resolution (only works if ports are enabled)
    dig @localhost example.com
    
    # Verify Pi-hole admin is accessible
