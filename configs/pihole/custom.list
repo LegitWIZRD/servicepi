@@ -1,0 +1,5 @@
+# Custom DNS entries for Pi-hole
+# Format: IP_address domain.name
+# Example: 192.168.1.100 mydevice.local
+
+# Add your custom DNS entries below

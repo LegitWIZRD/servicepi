@@ -177,6 +177,7 @@ jobs:
         wait_for_service "web-backend" "docker exec servicepi-web-backend nginx -t" 30 2 || true
         wait_for_service "iot-service" "docker logs servicepi-iot 2>&1 | grep -q 'Starting.*API'" 90 3 || true
         wait_for_service "portainer" "docker logs servicepi-portainer 2>&1 | grep -q 'Portainer started'" 120 3 || true
+        wait_for_service "pihole" "docker logs servicepi-pihole 2>&1 | grep -q 'FTL started'" 120 3 || true
         
         # Additional stabilization time
         echo ""
@@ -201,6 +202,9 @@ jobs:
         echo ""
         echo "--- Portainer ---"
         docker logs servicepi-portainer --tail=30 2>&1 || true
+        echo ""
+        echo "--- Pi-hole ---"
+        docker logs servicepi-pihole --tail=30 2>&1 || true
         
         # Test endpoints with retry logic
         echo ""
@@ -265,6 +269,23 @@ jobs:
           docker logs servicepi-proxy --tail=50
           exit 1
         }
+        
+        # Test Pi-hole admin endpoint
+        test_http_endpoint "http://localhost:8053/admin" "Pi-hole admin interface" 30 6 || {
+          echo "=== Pi-hole Logs ==="
+          docker logs servicepi-pihole --tail=50
+          echo "=== Nginx Proxy Logs ==="
+          docker logs servicepi-proxy --tail=50
+          exit 1
+        }
+        
+        # Test Pi-hole DNS functionality
+        echo ""
+        echo "=== Testing Pi-hole DNS ==="
+        # Note: DNS ports (53) are commented out by default to avoid conflicts
+        # DNS functionality is tested through the admin interface instead
+        echo "⊘ SKIP DNS resolution test (port 53 not exposed by default)"
+        echo "  DNS ports can be enabled by uncommenting them in docker-compose.yml"
         
         # Test proxy header forwarding
         echo ""
