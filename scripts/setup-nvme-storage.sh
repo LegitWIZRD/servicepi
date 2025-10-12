@@ -241,7 +241,26 @@ set_permissions() {
 
 # Main function
 main() {
+    local dry_run=false
+    local skip_format=false
+    
+    # Parse arguments
+    for arg in "$@"; do
+        case "$arg" in
+            --dry-run)
+                dry_run=true
+                ;;
+            --no-format)
+                skip_format=true
+                ;;
+        esac
+    done
+    
     log "Starting NVMe storage setup for ServicePi..."
+    
+    if [ "$dry_run" = true ]; then
+        warning "DRY RUN MODE - No changes will be made"
+    fi
     
     check_root
     
@@ -252,13 +271,38 @@ main() {
     
     select_drive
     
-    if ! confirm_format "$SELECTED_DRIVE"; then
-        log "NVMe setup cancelled by user"
+    # Show detailed drive information
+    log "Selected drive information:"
+    lsblk "$SELECTED_DRIVE" -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT,LABEL
+    echo ""
+    
+    if [ "$dry_run" = true ]; then
+        success "DRY RUN: Would perform the following actions:"
+        echo "  1. Format drive: $SELECTED_DRIVE"
+        echo "  2. Create partition: ${SELECTED_DRIVE}p1 or ${SELECTED_DRIVE}1"
+        echo "  3. Format partition with ext4"
+        echo "  4. Mount to: $NVME_MOUNT_POINT"
+        echo "  5. Configure Docker data root: $DOCKER_DATA_ROOT"
+        echo "  6. Update fstab for persistent mount"
+        echo ""
+        warning "DRY RUN: No changes were made"
         exit 0
     fi
     
-    format_drive
-    setup_mount
+    if [ "$skip_format" = false ]; then
+        if ! confirm_format "$SELECTED_DRIVE"; then
+            log "NVMe setup cancelled by user"
+            exit 0
+        fi
+        
+        format_drive
+        setup_mount
+    else
+        log "Skipping drive formatting (--no-format specified)"
+        warning "You must manually format and mount the drive before continuing"
+        exit 0
+    fi
+    
     configure_docker
     set_permissions
     
@@ -278,11 +322,13 @@ case "${1:-}" in
     "help"|"-h"|"--help")
         echo "ServicePi NVMe Storage Setup Script"
         echo ""
-        echo "Usage: $0 [command]"
+        echo "Usage: $0 [options]"
         echo ""
-        echo "Commands:"
-        echo "  (no args)   Run interactive NVMe setup"
-        echo "  help        Show this help message"
+        echo "Options:"
+        echo "  (no args)      Run interactive NVMe setup"
+        echo "  --dry-run      Show what would be done without making changes"
+        echo "  --no-format    Skip drive formatting (manual setup required)"
+        echo "  help, -h       Show this help message"
         echo ""
         echo "This script will:"
         echo "  1. Detect available NVMe drives (excluding boot drive)"
@@ -293,8 +339,15 @@ case "${1:-}" in
         echo ""
         echo "Safety features:"
         echo "  - Automatically excludes boot/root drive"
-        echo "  - Requires explicit user confirmation"
-        echo "  - Shows drive information before formatting"
+        echo "  - Requires explicit user confirmation (type 'FORMAT')"
+        echo "  - Shows detailed drive information before formatting"
+        echo "  - Supports --dry-run to preview actions"
+        echo "  - Validates device is not root/boot drive"
+        echo ""
+        echo "Examples:"
+        echo "  $0                    # Interactive setup"
+        echo "  $0 --dry-run          # Preview actions without changes"
+        echo "  $0 --no-format        # Skip formatting step"
         ;;
     *)
         main "$@"
