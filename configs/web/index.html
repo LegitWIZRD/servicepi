@@ -194,6 +194,21 @@
                     HTTP | Automation Platform
                 </div>
             </div>
+            
+            <div class="service-card">
+                <h3>
+                    Pi-hole DNS Ad Blocker
+                    <span class="port">:8053</span>
+                </h3>
+                <span class="status running">🟢 Running</span>
+                <p>Network-wide ad blocking and DNS management</p>
+                <div class="service-links">
+                    <a href="http://localhost:8053/admin" target="_blank">Access Pi-hole Admin</a>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                    <span class="http-indicator">HTTP</span> | Ad Blocking & DNS
+                </div>
+            </div>
         </div>
         
         <div class="api-section">
@@ -215,7 +230,8 @@
                 🌐 Web Dashboard: <span class="http-indicator">HTTP :80</span> | 
                 🐳 Portainer: <span class="http-indicator">HTTP :9000</span> | 
                 🔧 IoT API: <span class="http-indicator">HTTP :8080</span> | 
-                🏠 Home Assistant: <span class="http-indicator">HTTP :8123</span>
+                🏠 Home Assistant: <span class="http-indicator">HTTP :8123</span> | 
+                🛡️ Pi-hole: <span class="http-indicator">HTTP :8053</span>
             </p>
             <p>Last updated: <span id="timestamp"></span></p>
             <p>🔄 Auto-deployed via CI/CD pipeline</p>
@@ -249,6 +265,12 @@
         const homeAssistantLink = document.querySelector('a[href="http://localhost:8123"]');
         if (homeAssistantLink && hostname !== 'localhost') {
             homeAssistantLink.href = `http://${hostname}:8123`;
+        }
+        
+        // Update Pi-hole link
+        const piholeLink = document.querySelector('a[href="http://localhost:8053/admin"]');
+        if (piholeLink && hostname !== 'localhost') {
+            piholeLink.href = `http://${hostname}:8053/admin`;
         }
     </script>
 </body>
