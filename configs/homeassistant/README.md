@@ -16,14 +16,14 @@ The configuration file sets up Home Assistant to work properly behind the nginx 
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - 172.18.0.0/16  # Docker network range
+    - 172.16.0.0/12  # Docker bridge network range (172.16.0.0 - 172.31.255.255)
     - 192.168.0.0/16 # Local network range
     - 10.0.0.0/8     # Private network range
 ```
 
 This configuration:
 - Enables `use_x_forwarded_for` to accept X-Forwarded-For headers from trusted proxies
-- Trusts the Docker internal network (172.18.0.0/16)
+- Trusts the entire Docker bridge network range (172.16.0.0/12) to handle dynamic IP assignments
 - Trusts common private network ranges for external proxies
 
 ### Why This is Needed
@@ -35,6 +35,8 @@ ERROR (MainThread) [homeassistant.components.http.forwarded] A request from a re
 ```
 
 The `trusted_proxies` configuration tells Home Assistant that requests from these IP ranges are legitimate and should use the X-Forwarded-For header to determine the actual client IP.
+
+**Why 172.16.0.0/12?** Docker bridge networks use the 172.16.0.0 - 172.31.255.255 range (172.16.0.0/12). When containers restart or the Docker daemon restarts, the network subnet may change within this range (e.g., from 172.18.0.0/16 to 172.19.0.0/16). Using the full /12 range ensures Home Assistant works regardless of which subnet Docker assigns.
 
 ## Customization
 

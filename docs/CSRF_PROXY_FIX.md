@@ -115,14 +115,15 @@ Created `configs/homeassistant/configuration.yaml` to configure Home Assistant t
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - 172.18.0.0/16  # Docker network range
+    - 172.16.0.0/12  # Docker bridge network range (172.16.0.0 - 172.31.255.255)
     - 192.168.0.0/16 # Local network range
     - 10.0.0.0/8     # Private network range
 ```
 
 This configuration:
 - Enables `use_x_forwarded_for` to trust X-Forwarded-For headers from the proxy
-- Lists trusted proxy IP ranges (Docker internal network and common private networks)
+- Trusts the entire Docker bridge network range (172.16.0.0/12) to handle dynamic IP assignments across restarts
+- Lists trusted proxy IP ranges for common private networks
 - Prevents the "reverse proxy not set-up" error
 
 ## Technical Details
