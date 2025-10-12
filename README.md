@@ -174,6 +174,36 @@ Update your Pi services manually:
 sudo /opt/servicepi/scripts/update-pi.sh
 ```
 
+### Updating Docker Images
+
+Docker images are pinned to specific versions for reproducibility and security. To update to newer versions:
+
+1. **Review the latest versions**:
+   - Nginx: Check [Docker Hub - nginx](https://hub.docker.com/_/nginx/tags?page=1&name=alpine)
+   - Portainer: Check [Docker Hub - portainer-ce](https://hub.docker.com/r/portainer/portainer-ce/tags)
+   - Home Assistant: Check [GitHub - home-assistant releases](https://github.com/home-assistant/core/releases)
+   - Pi-hole: Check [Docker Hub - pihole](https://hub.docker.com/r/pihole/pihole/tags)
+
+2. **Update docker-compose.yml**:
+   ```bash
+   sudo nano /opt/servicepi/docker-compose.yml
+   # Update image tags to new versions
+   ```
+
+3. **Pull new images and restart**:
+   ```bash
+   cd /opt/servicepi
+   sudo docker-compose pull
+   sudo docker-compose up -d
+   ```
+
+4. **Verify services are running**:
+   ```bash
+   sudo docker-compose ps
+   ```
+
+**Recommendation**: Review and update images monthly, or when security updates are released. Always test updates in a non-production environment first if possible.
+
 ## Configuration
 
 ### Environment Variables
@@ -382,11 +412,34 @@ sudo cp -r /opt/servicepi-backups/servicepi-backup-YYYYMMDD-HHMMSS/* /opt/servic
 
 ## Contributing
 
+Contributions are welcome! Please follow these guidelines:
+
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/your-feature`)
+3. Make your changes following the coding standards
+4. Test thoroughly (run shellcheck, validate docker-compose)
+5. Commit your changes with descriptive messages
+6. Submit a pull request
+
+### Development Tools
+
+- **Pre-commit hooks**: See `.pre-commit-config.yaml.example` for code quality checks
+- **Dependabot**: See `.github/dependabot.yml.example` for automated dependency updates
+- **Shellcheck**: Validate shell scripts before committing
+- **Docker Compose validation**: Run `docker-compose config` to validate syntax
+
+For more information, see:
+- [Security Policy](SECURITY.md) - Vulnerability reporting and security guidelines
+- [Installation Guide](INSTALL.md) - Detailed installation instructions
+- [Dependency Management](docs/DEPENDENCY_MANAGEMENT.md) - How to update dependencies
+
+## Additional Documentation
+
+- **[SECURITY.md](SECURITY.md)** - Security policy, vulnerability reporting, and best practices
+- **[INSTALL.md](INSTALL.md)** - Detailed installation guide with security focus
+- **[docs/DEPENDENCY_MANAGEMENT.md](docs/DEPENDENCY_MANAGEMENT.md)** - Managing and updating dependencies
+- **[docs/PIHOLE_INTEGRATION.md](docs/PIHOLE_INTEGRATION.md)** - Pi-hole setup and configuration
+- **[docs/CSRF_PROXY_FIX.md](docs/CSRF_PROXY_FIX.md)** - Portainer CSRF configuration
 
 ## License
 
