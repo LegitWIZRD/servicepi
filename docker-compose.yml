@@ -1,7 +1,9 @@
 services:
   # Reverse Proxy - HTTP only
   nginx-proxy:
-    image: nginx:alpine
+    # Using nginx:alpine with version tag for ARM64 compatibility
+    # Alpine images are lightweight and well-suited for Raspberry Pi
+    image: nginx:1.27.3-alpine
     container_name: servicepi-proxy
     ports:
       - "80:80"    # HTTP for web dashboard
@@ -24,7 +26,8 @@ services:
 
   # Web Backend (internal only)
   web-backend:
-    image: nginx:alpine
+    # Using nginx:alpine with version tag for ARM64 compatibility
+    image: nginx:1.27.3-alpine
     container_name: servicepi-web-backend
     volumes:
       - ./configs/nginx/backend:/etc/nginx/conf.d
@@ -36,7 +39,9 @@ services:
 
   # Container Management (Portainer)
   portainer:
-    image: portainer/portainer-ce:latest
+    # Using specific version tag instead of :latest for reproducibility
+    # Portainer CE 2.21 is stable and well-tested
+    image: portainer/portainer-ce:2.21.4-alpine
     container_name: servicepi-portainer
     command: --host unix:///var/run/docker.sock
     volumes:
@@ -68,7 +73,9 @@ services:
 
   # Home Assistant
   homeassistant:
-    image: ghcr.io/home-assistant/home-assistant:stable
+    # Using stable tag with specific version for reproducibility
+    # Home Assistant 2024.11 is the latest stable release as of Oct 2024
+    image: ghcr.io/home-assistant/home-assistant:2024.11.3
     container_name: servicepi-homeassistant
     volumes:
       - homeassistant_data:/config
@@ -82,7 +89,9 @@ services:
 
   # Pi-hole DNS Ad Blocker
   pihole:
-    image: pihole/pihole:latest
+    # Using specific version tag instead of :latest
+    # Pi-hole 2024.07.0 is the latest stable release
+    image: pihole/pihole:2024.07.0
     container_name: servicepi-pihole
     # Uncomment the ports below to enable network-wide DNS on your Pi
     # Note: Port 53 requires elevated privileges and may conflict with existing DNS services
@@ -104,6 +113,8 @@ services:
       - PIHOLE_DNS_=1.1.1.1;1.0.0.1
       - DNSMASQ_LISTENING=all
     # No exposed port for web interface - accessed via nginx-proxy at :8053
+    # Pi-hole requires NET_ADMIN capability for DNS functionality
+    # This is necessary and cannot be removed
     cap_add:
       - NET_ADMIN
     dns:

@@ -26,22 +26,37 @@ ServicePi provides a complete infrastructure-as-code solution for running Docker
 
 ### 1. Initial Setup on Raspberry Pi
 
-Run the installation script on your Raspberry Pi 5:
+⚠️ **Security Note**: For detailed security-focused installation instructions, see [INSTALL.md](INSTALL.md).
+
+**Recommended Installation Method (Secure):**
 
 ```bash
-# Download and run the installer
-curl -sSL https://raw.githubusercontent.com/LegitWIZRD/servicepi/main/scripts/install.sh | sudo bash
+# Clone the repository to a temporary location
+git clone https://github.com/LegitWIZRD/servicepi.git /tmp/servicepi-install
+cd /tmp/servicepi-install
+
+# IMPORTANT: Review the installation script before running it
+less scripts/install.sh
+
+# Once verified, run the installation script
+sudo ./scripts/install.sh
 ```
 
-Or manually:
+**After Installation:**
 
 ```bash
-# Clone the repository
-sudo git clone https://github.com/LegitWIZRD/servicepi.git /opt/servicepi
+# Navigate to installation directory
+cd /opt/servicepi
 
-# Run the installation script
-sudo /opt/servicepi/scripts/install.sh
+# Copy and configure environment variables
+sudo cp .env.example .env
+sudo nano .env
+
+# IMPORTANT: Change default passwords in .env file
+# Especially PIHOLE_PASSWORD - do NOT use the default 'servicepi' password!
 ```
+
+For complete installation instructions with security best practices, see [INSTALL.md](INSTALL.md).
 
 ### 2. Access Your Services
 
@@ -53,6 +68,8 @@ After installation, access your services via HTTP:
 - **Home Assistant**: `http://your-pi-ip:8123/` (HTTP :8123)
 - **Pi-hole Admin**: `http://your-pi-ip:8053/admin` (HTTP :8053)
 - **Health Check**: `http://your-pi-ip/health`
+
+⚠️ **Security Warning**: These services are HTTP-only and should ONLY be accessible on your trusted local network. Do NOT expose them directly to the internet. For remote access, use a VPN (WireGuard, Tailscale) or SSH tunnel.
 
 **Pi-hole DNS**: To enable network-wide ad blocking, uncomment the DNS ports in `docker-compose.yml` (lines 89-90) and point your devices to `your-pi-ip` as their DNS server.
 
@@ -220,6 +237,8 @@ your-service:
 
 ### GPIO Access
 
+⚠️ **Security Note**: GPIO access requires privileged container mode, which increases security risk.
+
 For services that need GPIO access, uncomment the privileged mode in `docker-compose.yml`:
 
 ```yaml
@@ -228,13 +247,42 @@ devices:
   - /dev/gpiomem:/dev/gpiomem
 ```
 
+**Only enable privileged mode if absolutely necessary for your use case.**
+
 ## Security
 
+For comprehensive security information, see [SECURITY.md](SECURITY.md).
+
+### Security Features
+
 - **Firewall**: UFW configured to allow only necessary ports (SSH, HTTP services, DNS)
-- **User isolation**: Services run under dedicated user account
-- **Vulnerability scanning**: Automated security scans in CI/CD
+- **User isolation**: Services run under dedicated `servicepi` user account
+- **Vulnerability scanning**: Automated security scans in CI/CD pipeline
 - **Regular updates**: Automatic system and container updates
 - **Network filtering**: Pi-hole provides DNS-level ad and malware blocking
+- **Secret management**: `.env` files are git-ignored by default
+- **Container isolation**: Services communicate through internal Docker network
+- **Minimal privileges**: Containers run with minimal required permissions
+
+### Important Security Recommendations
+
+⚠️ **Change Default Passwords**: After installation, immediately change:
+- Pi-hole web interface password (in `.env` file)
+- Portainer admin password (on first access)
+- Home Assistant admin password (on first access)
+
+⚠️ **Network Security**: 
+- Keep management interfaces accessible only on your local network
+- Use a VPN (WireGuard, Tailscale) for remote access
+- Do NOT expose HTTP services directly to the internet
+- Consider adding HTTPS via a reverse proxy for production use
+
+⚠️ **Container Privileges**:
+- Pi-hole requires `CAP_NET_ADMIN` for DNS functionality (necessary, cannot be removed)
+- GPIO access (commented by default) requires `privileged: true` - only enable if needed
+- Review any privileged containers before enabling
+
+For detailed security guidelines, vulnerability reporting, and best practices, see [SECURITY.md](SECURITY.md).
 
 ## Monitoring
 

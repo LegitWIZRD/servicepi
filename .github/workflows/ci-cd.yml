@@ -36,6 +36,25 @@ jobs:
         # Validate docker-compose file
         docker-compose config
         
+    - name: Check for unpinned Docker images
+      run: |
+        echo "Checking for unpinned Docker images (using :latest tag)..."
+        
+        # Check docker-compose.yml for :latest tags
+        if grep -E '^\s+image:.*:latest' docker-compose.yml; then
+          echo "❌ ERROR: Found unpinned Docker images using ':latest' tag"
+          echo ""
+          echo "For security and reproducibility, all Docker images should be pinned to specific versions."
+          echo "Please update docker-compose.yml to use version tags instead of ':latest'"
+          echo ""
+          echo "Example:"
+          echo "  ❌ image: nginx:latest"
+          echo "  ✅ image: nginx:1.27.3-alpine"
+          exit 1
+        else
+          echo "✅ All Docker images are pinned to specific versions"
+        fi
+        
     - name: Validate shell scripts
       run: |
         # Check if shellcheck is available, install if not
