@@ -11,6 +11,7 @@ services:
       - "8080:8080" # HTTP for IoT API
       - "8123:8123" # HTTP for Home Assistant
       - "8053:8053" # HTTP for Pi-hole Admin
+      - "5678:5678" # HTTP for N8N
     volumes:
       - ./configs/nginx/proxy:/etc/nginx/conf.d
       - ./configs/web:/usr/share/nginx/html/web
@@ -23,6 +24,7 @@ services:
       - iot-service
       - homeassistant
       - pihole
+      - n8n
 
   # Web Backend (internal only)
   web-backend:
@@ -121,6 +123,26 @@ services:
       - 127.0.0.1
       - 1.1.1.1
 
+  # N8N Workflow Automation
+  n8n:
+    # Using specific version tag for reproducibility
+    # n8n 1.63.4 is a stable release with ARM64 support
+    image: n8nio/n8n:1.63.4
+    container_name: servicepi-n8n
+    volumes:
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+    environment:
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5678/}
+      - GENERIC_TIMEZONE=America/New_York
+      - TZ=America/New_York
+    # No exposed ports - accessed via nginx-proxy at :5678
+
 volumes:
   portainer_data:
     driver: local
@@ -131,6 +153,8 @@ volumes:
   pihole_data:
     driver: local
   pihole_dnsmasq:
+    driver: local
+  n8n_data:
     driver: local
 
 networks:

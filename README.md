@@ -15,6 +15,7 @@ ServicePi provides a complete infrastructure-as-code solution for running Docker
 - 🔧 **Container management** with Portainer
 - 🏠 **Home Assistant** for IoT automation and service orchestration
 - 🚫 **Pi-hole DNS ad blocker** with curated blocklists
+- 🔁 **N8N workflow automation** for integrations and automation
 - 🚀 **One-command deployment** and updates
 - 📝 **Configuration management** for all services
 - 🔒 **Firewall configuration** and security hardening
@@ -67,6 +68,7 @@ After installation, access your services via HTTP:
 - **IoT API**: `http://your-pi-ip:8080/` (HTTP :8080)
 - **Home Assistant**: `http://your-pi-ip:8123/` (HTTP :8123)
 - **Pi-hole Admin**: `http://your-pi-ip:8053/admin` (HTTP :8053)
+- **N8N Workflow Automation**: `http://your-pi-ip:5678/` (HTTP :5678)
 - **Health Check**: `http://your-pi-ip/health`
 
 ⚠️ **Security Warning**: These services are HTTP-only and should ONLY be accessible on your trusted local network. Do NOT expose them directly to the internet. For remote access, use a VPN (WireGuard, Tailscale) or SSH tunnel.
@@ -148,6 +150,17 @@ servicepi/
 - Blacklist/whitelist management
 
 Access Pi-hole admin at `http://your-pi-ip:8053/admin`. To enable DNS blocking, uncomment port 53 mappings in `docker-compose.yml` and configure your devices to use your Pi's IP address as their DNS server.
+
+### N8N Workflow Automation
+- Powerful workflow automation and integration platform
+- Visual workflow editor with 400+ integrations
+- Connect and automate services (APIs, databases, IoT devices)
+- Schedule workflows and trigger on events
+- Self-hosted alternative to Zapier/Make
+- WebSocket support for real-time updates
+- Integration with Home Assistant and IoT API service
+
+Access N8N at `http://your-pi-ip:5678/`. Create workflows to automate tasks between your ServicePi services and external platforms.
 
 ## CI/CD Pipeline
 
@@ -343,9 +356,9 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
    sudo systemctl status docker
    ```
 
-2. **Port conflicts**: Ensure ports 53, 80, 8053, 8080, 8123, and 9000 are available
+2. **Port conflicts**: Ensure ports 53, 80, 5678, 8053, 8080, 8123, and 9000 are available
    ```bash
-   sudo netstat -tlnp | grep -E ':(53|80|8053|8080|8123|9000) '
+   sudo netstat -tlnp | grep -E ':(53|80|5678|8053|8080|8123|9000) '
    ```
 
 3. **Permission issues**: Verify ownership
