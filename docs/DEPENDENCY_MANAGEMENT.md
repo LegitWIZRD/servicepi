@@ -156,7 +156,7 @@ The IoT service uses Python with Flask. Dependencies are managed in `configs/iot
 ### Current Dependencies
 
 ```
-Flask==3.1.0
+Flask==3.1.1
 Werkzeug==3.1.3
 flask-wtf==1.2.2
 flask-cors==5.0.0
@@ -177,7 +177,7 @@ pip list --outdated
 Update version numbers in `configs/iot/requirements.txt`:
 
 ```
-Flask==3.1.0
+Flask==3.1.1
 Werkzeug==3.1.3
 flask-wtf==1.2.2
 flask-cors==5.0.0
