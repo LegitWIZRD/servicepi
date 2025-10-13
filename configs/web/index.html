@@ -209,6 +209,21 @@
                     <span class="http-indicator">HTTP</span> | Ad Blocking & DNS
                 </div>
             </div>
+            
+            <div class="service-card">
+                <h3>
+                    N8N Workflow Automation
+                    <span class="port">:5678</span>
+                </h3>
+                <span class="status running">🟢 Running</span>
+                <p>Workflow automation and integration platform</p>
+                <div class="service-links">
+                    <a href="http://localhost:5678" target="_blank">Access N8N</a>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                    <span class="http-indicator">HTTP</span> | Automation Platform
+                </div>
+            </div>
         </div>
         
         <div class="api-section">
@@ -231,7 +246,8 @@
                 🐳 Portainer: <span class="http-indicator">HTTP :9000</span> | 
                 🔧 IoT API: <span class="http-indicator">HTTP :8080</span> | 
                 🏠 Home Assistant: <span class="http-indicator">HTTP :8123</span> | 
-                🛡️ Pi-hole: <span class="http-indicator">HTTP :8053</span>
+                🛡️ Pi-hole: <span class="http-indicator">HTTP :8053</span> | 
+                🔄 N8N: <span class="http-indicator">HTTP :5678</span>
             </p>
             <p>Last updated: <span id="timestamp"></span></p>
             <p>🔄 Auto-deployed via CI/CD pipeline</p>
@@ -271,6 +287,12 @@
         const piholeLink = document.querySelector('a[href="http://localhost:8053/admin"]');
         if (piholeLink && hostname !== 'localhost') {
             piholeLink.href = `http://${hostname}:8053/admin`;
+        }
+        
+        // Update N8N link
+        const n8nLink = document.querySelector('a[href="http://localhost:5678"]');
+        if (n8nLink && hostname !== 'localhost') {
+            n8nLink.href = `http://${hostname}:5678`;
         }
     </script>
 </body>

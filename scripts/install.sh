@@ -146,6 +146,7 @@ ufw allow 9000/tcp  # HTTP for Portainer
 ufw allow 8080/tcp  # HTTP for IoT API
 ufw allow 8123/tcp  # HTTP for Home Assistant
 ufw allow 8053/tcp  # HTTP for Pi-hole Admin
+ufw allow 5678/tcp  # HTTP for N8N
 ufw --force enable
 
 # Initial deployment
