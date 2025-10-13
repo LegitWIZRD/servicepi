@@ -30,7 +30,7 @@ Added the `N8N_SECURE_COOKIE=false` environment variable to the N8N service conf
 
 ```yaml
 n8n:
-  image: n8nio/n8n:1.63.4
+  image: n8nio/n8n:1.71.0
   container_name: servicepi-n8n
   environment:
     - N8N_HOST=${N8N_HOST:-localhost}

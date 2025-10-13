@@ -263,9 +263,10 @@ trivy fs .
 
 # Scan specific Docker images
 trivy image nginx:1.27.3-alpine
-trivy image portainer/portainer-ce:2.21.4-alpine
-trivy image ghcr.io/home-assistant/home-assistant:2024.11.3
-trivy image pihole/pihole:2024.07.0
+trivy image portainer/portainer-ce:2.21.5-alpine
+trivy image ghcr.io/home-assistant/home-assistant:2025.1.0
+trivy image pihole/pihole:2024.12.0
+trivy image n8nio/n8n:1.71.0
 
 # Scan with severity filtering
 trivy image --severity HIGH,CRITICAL nginx:1.27.3-alpine
