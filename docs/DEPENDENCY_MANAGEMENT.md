@@ -12,10 +12,10 @@ ServicePi uses Docker images from trusted sources. All images are pinned to spec
 |---------|-------|---------|-------|
 | Nginx Proxy | nginx:alpine | 1.27.3-alpine | Reverse proxy for all services |
 | Web Backend | nginx:alpine | 1.27.3-alpine | Static content server |
-| Portainer | portainer/portainer-ce | 2.21.5-alpine | Container management UI |
-| Home Assistant | ghcr.io/home-assistant/home-assistant | 2025.1.0 | Home automation platform |
-| Pi-hole | pihole/pihole | 2024.12.0 | DNS ad blocker |
-| N8N | n8nio/n8n | 1.71.0 | Workflow automation platform |
+| Portainer | portainer/portainer-ce | 2.33.2-alpine | Container management UI |
+| Home Assistant | ghcr.io/home-assistant/home-assistant | 2025.10.2 | Home automation platform |
+| Pi-hole | pihole/pihole | 2025.08.0 | DNS ad blocker |
+| N8N | n8nio/n8n | 1.114.3 | Workflow automation platform |
 | IoT Service | (custom build) | Python 3.13-alpine | Built from local Dockerfile |
 
 ### Why Pin Versions?
@@ -263,10 +263,10 @@ trivy fs .
 
 # Scan specific Docker images
 trivy image nginx:1.27.3-alpine
-trivy image portainer/portainer-ce:2.21.5-alpine
-trivy image ghcr.io/home-assistant/home-assistant:2025.1.0
-trivy image pihole/pihole:2024.12.0
-trivy image n8nio/n8n:1.71.0
+trivy image portainer/portainer-ce:2.33.2-alpine
+trivy image ghcr.io/home-assistant/home-assistant:2025.10.2
+trivy image pihole/pihole:2025.08.0
+trivy image n8nio/n8n:1.114.3
 
 # Scan with severity filtering
 trivy image --severity HIGH,CRITICAL nginx:1.27.3-alpine

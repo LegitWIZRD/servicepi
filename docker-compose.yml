@@ -42,8 +42,8 @@ services:
   # Container Management (Portainer)
   portainer:
     # Using specific version tag instead of :latest for reproducibility
-    # Portainer CE 2.21.5 includes bug fixes and improvements
-    image: portainer/portainer-ce:2.21.5-alpine
+    # Portainer CE 2.33.2 includes bug fixes and improvements
+    image: portainer/portainer-ce:2.33.2-alpine
     container_name: servicepi-portainer
     command: --host unix:///var/run/docker.sock
     volumes:
@@ -76,8 +76,8 @@ services:
   # Home Assistant
   homeassistant:
     # Using stable tag with specific version for reproducibility
-    # Home Assistant 2025.1 includes new features and improvements
-    image: ghcr.io/home-assistant/home-assistant:2025.1.0
+    # Home Assistant 2025.10 includes new features and improvements
+    image: ghcr.io/home-assistant/home-assistant:2025.10.2
     container_name: servicepi-homeassistant
     volumes:
       - homeassistant_data:/config
@@ -92,8 +92,8 @@ services:
   # Pi-hole DNS Ad Blocker
   pihole:
     # Using specific version tag instead of :latest
-    # Pi-hole 2024.12.0 includes important updates and fixes
-    image: pihole/pihole:2024.12.0
+    # Pi-hole 2025.08.0 includes important updates and fixes
+    image: pihole/pihole:2025.08.0
     container_name: servicepi-pihole
     # Uncomment the ports below to enable network-wide DNS on your Pi
     # Note: Port 53 requires elevated privileges and may conflict with existing DNS services
@@ -126,8 +126,8 @@ services:
   # N8N Workflow Automation
   n8n:
     # Using specific version tag for reproducibility
-    # n8n 1.71.0 includes workflow improvements and bug fixes
-    image: n8nio/n8n:1.71.0
+    # n8n 1.114.3 includes workflow improvements and bug fixes
+    image: n8nio/n8n:1.114.3
     container_name: servicepi-n8n
     volumes:
       - n8n_data:/home/node/.n8n
