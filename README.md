@@ -411,6 +411,22 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
    docker exec servicepi-pihole pihole -g
    ```
 
+7. **N8N secure cookie error**: If you see "Your n8n server is configured to use a secure cookie" error, ensure the N8N_SECURE_COOKIE environment variable is properly configured:
+   ```bash
+   # Verify N8N configuration
+   /opt/servicepi/scripts/test-n8n-config.sh
+   
+   # Check N8N logs
+   docker logs servicepi-n8n
+   
+   # Restart N8N service
+   docker-compose -f /opt/servicepi/docker-compose.yml restart n8n
+   
+   # Access N8N via HTTP
+   curl -I http://localhost:5678
+   ```
+   See [docs/N8N_SECURE_COOKIE_FIX.md](docs/N8N_SECURE_COOKIE_FIX.md) for more details.
+
 ### Backup and Recovery
 
 Create backup:
@@ -453,6 +469,7 @@ For more information, see:
 - **[docs/DEPENDENCY_MANAGEMENT.md](docs/DEPENDENCY_MANAGEMENT.md)** - Managing and updating dependencies
 - **[docs/PIHOLE_INTEGRATION.md](docs/PIHOLE_INTEGRATION.md)** - Pi-hole setup and configuration
 - **[docs/CSRF_PROXY_FIX.md](docs/CSRF_PROXY_FIX.md)** - Portainer CSRF configuration
+- **[docs/N8N_SECURE_COOKIE_FIX.md](docs/N8N_SECURE_COOKIE_FIX.md)** - N8N HTTP-only configuration
 
 ## License
 
