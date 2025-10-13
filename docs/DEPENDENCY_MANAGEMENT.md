@@ -160,7 +160,7 @@ Flask==3.1.0
 Werkzeug==3.1.3
 flask-wtf==1.2.2
 flask-cors==5.0.0
-configparser==7.1.0
+configparser==7.2.0
 requests==2.32.3
 ```
 
@@ -181,7 +181,7 @@ Flask==3.1.0
 Werkzeug==3.1.3
 flask-wtf==1.2.2
 flask-cors==5.0.0
-configparser==7.1.0
+configparser==7.2.0
 requests==2.32.3
 ```
 
