@@ -12,10 +12,11 @@ ServicePi uses Docker images from trusted sources. All images are pinned to spec
 |---------|-------|---------|-------|
 | Nginx Proxy | nginx:alpine | 1.27.3-alpine | Reverse proxy for all services |
 | Web Backend | nginx:alpine | 1.27.3-alpine | Static content server |
-| Portainer | portainer/portainer-ce | 2.21.4-alpine | Container management UI |
-| Home Assistant | ghcr.io/home-assistant/home-assistant | 2024.11.3 | Home automation platform |
-| Pi-hole | pihole/pihole | 2024.07.0 | DNS ad blocker |
-| IoT Service | (custom build) | N/A | Built from local Dockerfile |
+| Portainer | portainer/portainer-ce | 2.33.2-alpine | Container management UI |
+| Home Assistant | ghcr.io/home-assistant/home-assistant | 2025.10.2 | Home automation platform |
+| Pi-hole | pihole/pihole | 2025.08.0 | DNS ad blocker |
+| N8N | n8nio/n8n | 1.114.3 | Workflow automation platform |
+| IoT Service | (custom build) | Python 3.13-alpine | Built from local Dockerfile |
 
 ### Why Pin Versions?
 
@@ -155,10 +156,12 @@ The IoT service uses Python with Flask. Dependencies are managed in `configs/iot
 ### Current Dependencies
 
 ```
-Flask==2.3.3
-Werkzeug==2.3.7
-configparser==6.0.0
-flask-cors==4.0.0
+Flask==3.1.1
+Werkzeug==3.1.3
+flask-wtf==1.2.2
+flask-cors==5.0.0
+configparser==7.2.0
+requests==2.32.3
 ```
 
 ### Updating Python Dependencies
@@ -174,10 +177,12 @@ pip list --outdated
 Update version numbers in `configs/iot/requirements.txt`:
 
 ```
-Flask==2.4.0
-Werkzeug==3.0.0
-configparser==6.0.0
-flask-cors==4.0.1
+Flask==3.1.1
+Werkzeug==3.1.3
+flask-wtf==1.2.2
+flask-cors==5.0.0
+configparser==7.2.0
+requests==2.32.3
 ```
 
 #### 3. Rebuild the IoT Service
@@ -258,9 +263,10 @@ trivy fs .
 
 # Scan specific Docker images
 trivy image nginx:1.27.3-alpine
-trivy image portainer/portainer-ce:2.21.4-alpine
-trivy image ghcr.io/home-assistant/home-assistant:2024.11.3
-trivy image pihole/pihole:2024.07.0
+trivy image portainer/portainer-ce:2.33.2-alpine
+trivy image ghcr.io/home-assistant/home-assistant:2025.10.2
+trivy image pihole/pihole:2025.08.0
+trivy image n8nio/n8n:1.114.3
 
 # Scan with severity filtering
 trivy image --severity HIGH,CRITICAL nginx:1.27.3-alpine
