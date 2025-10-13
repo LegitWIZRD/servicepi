@@ -12,10 +12,11 @@ ServicePi uses Docker images from trusted sources. All images are pinned to spec
 |---------|-------|---------|-------|
 | Nginx Proxy | nginx:alpine | 1.27.3-alpine | Reverse proxy for all services |
 | Web Backend | nginx:alpine | 1.27.3-alpine | Static content server |
-| Portainer | portainer/portainer-ce | 2.21.4-alpine | Container management UI |
-| Home Assistant | ghcr.io/home-assistant/home-assistant | 2024.11.3 | Home automation platform |
-| Pi-hole | pihole/pihole | 2024.07.0 | DNS ad blocker |
-| IoT Service | (custom build) | N/A | Built from local Dockerfile |
+| Portainer | portainer/portainer-ce | 2.21.5-alpine | Container management UI |
+| Home Assistant | ghcr.io/home-assistant/home-assistant | 2025.1.0 | Home automation platform |
+| Pi-hole | pihole/pihole | 2024.12.0 | DNS ad blocker |
+| N8N | n8nio/n8n | 1.71.0 | Workflow automation platform |
+| IoT Service | (custom build) | Python 3.13-alpine | Built from local Dockerfile |
 
 ### Why Pin Versions?
 
@@ -155,10 +156,12 @@ The IoT service uses Python with Flask. Dependencies are managed in `configs/iot
 ### Current Dependencies
 
 ```
-Flask==2.3.3
-Werkzeug==2.3.7
-configparser==6.0.0
-flask-cors==4.0.0
+Flask==3.1.0
+Werkzeug==3.1.3
+flask-wtf==1.2.2
+flask-cors==5.0.0
+configparser==7.1.0
+requests==2.32.3
 ```
 
 ### Updating Python Dependencies
@@ -174,10 +177,12 @@ pip list --outdated
 Update version numbers in `configs/iot/requirements.txt`:
 
 ```
-Flask==2.4.0
-Werkzeug==3.0.0
-configparser==6.0.0
-flask-cors==4.0.1
+Flask==3.1.0
+Werkzeug==3.1.3
+flask-wtf==1.2.2
+flask-cors==5.0.0
+configparser==7.1.0
+requests==2.32.3
 ```
 
 #### 3. Rebuild the IoT Service

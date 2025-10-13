@@ -189,9 +189,10 @@ All security concerns from the meta-issue have been addressed through code chang
 1. **Pinned all images to specific versions**
    - File: `docker-compose.yml`
    - nginx:alpine → nginx:1.27.3-alpine
-   - portainer/portainer-ce:latest → portainer/portainer-ce:2.21.4-alpine
-   - ghcr.io/home-assistant/home-assistant:stable → ghcr.io/home-assistant/home-assistant:2024.11.3
-   - pihole/pihole:latest → pihole/pihole:2024.07.0
+   - portainer/portainer-ce:latest → portainer/portainer-ce:2.21.5-alpine (updated)
+   - ghcr.io/home-assistant/home-assistant:stable → ghcr.io/home-assistant/home-assistant:2025.1.0 (updated)
+   - pihole/pihole:latest → pihole/pihole:2024.12.0 (updated)
+   - n8nio/n8n:latest → n8nio/n8n:1.71.0 (updated)
 
 2. **Added CI check to prevent `:latest` tags**
    - File: `.github/workflows/ci-cd.yml`
