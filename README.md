@@ -187,15 +187,47 @@ Update your Pi services manually:
 sudo /opt/servicepi/scripts/update-pi.sh
 ```
 
-### Updating Docker Images
+### Automated Container Version Updates
 
-Docker images are pinned to specific versions for reproducibility and security. To update to newer versions:
+ServicePi includes automated systems to keep your containers up to date:
+
+#### 1. Automated Version Checking (Recommended)
+
+A GitHub Actions workflow runs **weekly on Mondays at 09:00 UTC** to check for new container versions:
+
+- **Checks** Docker Hub and GitHub Container Registry for latest LTS versions
+- **Creates issues** automatically when updates are available
+- **Assigns to Copilot** for automated PR creation
+- **Prevents duplicate issues** by updating existing open issues
+
+The workflow checks these containers:
+- Portainer
+- n8n
+- Pi-hole
+- Home Assistant
+
+You can also trigger the check manually from the Actions tab in your GitHub repository.
+
+#### 2. Dependabot Integration
+
+Dependabot is enabled to automatically:
+- Monitor Docker images in `docker-compose.yml`
+- Monitor Python dependencies in IoT service
+- Monitor GitHub Actions versions
+- Create pull requests for updates weekly
+
+Configure Dependabot settings in `.github/dependabot.yml`.
+
+### Manual Container Updates
+
+Docker images are pinned to specific versions for reproducibility and security. To update to newer versions manually:
 
 1. **Review the latest versions**:
    - Nginx: Check [Docker Hub - nginx](https://hub.docker.com/_/nginx/tags?page=1&name=alpine)
    - Portainer: Check [Docker Hub - portainer-ce](https://hub.docker.com/r/portainer/portainer-ce/tags)
    - Home Assistant: Check [GitHub - home-assistant releases](https://github.com/home-assistant/core/releases)
    - Pi-hole: Check [Docker Hub - pihole](https://hub.docker.com/r/pihole/pihole/tags)
+   - n8n: Check [Docker Hub - n8n](https://hub.docker.com/r/n8nio/n8n/tags)
 
 2. **Update docker-compose.yml**:
    ```bash
@@ -215,7 +247,7 @@ Docker images are pinned to specific versions for reproducibility and security. 
    sudo docker-compose ps
    ```
 
-**Recommendation**: Review and update images monthly, or when security updates are released. Always test updates in a non-production environment first if possible.
+**Recommendation**: The automated systems handle most updates, but always review changes before merging. Test updates in a non-production environment first if possible.
 
 ## Configuration
 
