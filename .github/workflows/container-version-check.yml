@@ -1,0 +1,221 @@
+name: Container Version Check
+
+on:
+  schedule:
+    # Run every Monday at 09:00 UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  check-versions:
+    name: Check for Container Updates
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Check for container updates
+      id: check
+      run: |
+        # Function to get latest version from Docker Hub
+        get_dockerhub_version() {
+          local repo=$1
+          local current=$2
+          
+          echo "Checking $repo (current: $current)..."
+          
+          # Get latest version from Docker Hub API
+          if [[ "$repo" == *"/"* ]]; then
+            local namespace=$(echo $repo | cut -d'/' -f1)
+            local image=$(echo $repo | cut -d'/' -f2)
+            
+            # Get tags from Docker Hub API
+            local api_url="https://hub.docker.com/v2/repositories/${namespace}/${image}/tags?page_size=100"
+            local response=$(curl -s "$api_url")
+            
+            # Extract version tags (filter out 'latest', 'alpine', etc.)
+            # Look for semantic versions or date-based versions
+            local latest=$(echo "$response" | jq -r '.results[].name' | \
+              grep -E '^[0-9]+\.[0-9]+(\.[0-9]+)?(-alpine)?$|^202[0-9]\.[0-9]{2}\.[0-9]+$' | \
+              grep -v 'rc\|beta\|alpha' | \
+              sort -V | tail -1)
+            
+            echo "$latest"
+          fi
+        }
+        
+        # Function to get latest version from GitHub Container Registry
+        get_ghcr_version() {
+          local repo=$1
+          local current=$2
+          
+          echo "Checking $repo (current: $current)..." >&2
+          
+          # For GitHub Container Registry, we need to use GitHub API
+          # Extract owner and image name
+          local owner=$(echo $repo | cut -d'/' -f1)
+          local image=$(echo $repo | cut -d'/' -f2)
+          
+          # Get releases from GitHub API for home-assistant
+          if [[ "$image" == "home-assistant" ]]; then
+            local api_url="https://api.github.com/repos/home-assistant/core/releases"
+            local response=$(curl -s "$api_url")
+            
+            # Get latest stable release (filter out betas and RCs)
+            local latest=$(echo "$response" | jq -r '.[].tag_name' | \
+              grep -E '^[0-9]{4}\.[0-9]{1,2}\.[0-9]+$' | \
+              grep -v 'b\|rc' | \
+              sort -V | tail -1)
+            
+            echo "$latest"
+          fi
+        }
+        
+        # Read current versions from docker-compose.yml
+        echo "Reading current versions from docker-compose.yml..."
+        
+        PORTAINER_CURRENT=$(grep "portainer/portainer-ce:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+)-alpine.*/\1/')
+        N8N_CURRENT=$(grep "n8nio/n8n:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+        PIHOLE_CURRENT=$(grep "pihole/pihole:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+        HOMEASSISTANT_CURRENT=$(grep "home-assistant/home-assistant:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+        
+        echo "Current versions:"
+        echo "  Portainer: $PORTAINER_CURRENT"
+        echo "  n8n: $N8N_CURRENT"
+        echo "  Pi-hole: $PIHOLE_CURRENT"
+        echo "  Home Assistant: $HOMEASSISTANT_CURRENT"
+        echo ""
+        
+        # Check for updates
+        echo "Checking for updates..."
+        UPDATES_AVAILABLE=""
+        
+        # Check Portainer
+        PORTAINER_LATEST=$(get_dockerhub_version "portainer/portainer-ce" "$PORTAINER_CURRENT")
+        if [ ! -z "$PORTAINER_LATEST" ] && [ "$PORTAINER_LATEST" != "$PORTAINER_CURRENT" ]; then
+          if [ $(printf '%s\n' "$PORTAINER_CURRENT" "$PORTAINER_LATEST" | sort -V | tail -1) = "$PORTAINER_LATEST" ]; then
+            echo "✨ Portainer update available: $PORTAINER_CURRENT -> $PORTAINER_LATEST"
+            UPDATES_AVAILABLE="${UPDATES_AVAILABLE}Portainer: ${PORTAINER_CURRENT} → ${PORTAINER_LATEST}\n"
+          fi
+        fi
+        
+        # Check n8n
+        N8N_LATEST=$(get_dockerhub_version "n8nio/n8n" "$N8N_CURRENT")
+        if [ ! -z "$N8N_LATEST" ] && [ "$N8N_LATEST" != "$N8N_CURRENT" ]; then
+          if [ $(printf '%s\n' "$N8N_CURRENT" "$N8N_LATEST" | sort -V | tail -1) = "$N8N_LATEST" ]; then
+            echo "✨ n8n update available: $N8N_CURRENT -> $N8N_LATEST"
+            UPDATES_AVAILABLE="${UPDATES_AVAILABLE}n8n: ${N8N_CURRENT} → ${N8N_LATEST}\n"
+          fi
+        fi
+        
+        # Check Pi-hole
+        PIHOLE_LATEST=$(get_dockerhub_version "pihole/pihole" "$PIHOLE_CURRENT")
+        if [ ! -z "$PIHOLE_LATEST" ] && [ "$PIHOLE_LATEST" != "$PIHOLE_CURRENT" ]; then
+          if [ $(printf '%s\n' "$PIHOLE_CURRENT" "$PIHOLE_LATEST" | sort -V | tail -1) = "$PIHOLE_LATEST" ]; then
+            echo "✨ Pi-hole update available: $PIHOLE_CURRENT -> $PIHOLE_LATEST"
+            UPDATES_AVAILABLE="${UPDATES_AVAILABLE}Pi-hole: ${PIHOLE_CURRENT} → ${PIHOLE_LATEST}\n"
+          fi
+        fi
+        
+        # Check Home Assistant
+        HOMEASSISTANT_LATEST=$(get_ghcr_version "ghcr.io/home-assistant" "$HOMEASSISTANT_CURRENT")
+        if [ ! -z "$HOMEASSISTANT_LATEST" ] && [ "$HOMEASSISTANT_LATEST" != "$HOMEASSISTANT_CURRENT" ]; then
+          if [ $(printf '%s\n' "$HOMEASSISTANT_CURRENT" "$HOMEASSISTANT_LATEST" | sort -V | tail -1) = "$HOMEASSISTANT_LATEST" ]; then
+            echo "✨ Home Assistant update available: $HOMEASSISTANT_CURRENT -> $HOMEASSISTANT_LATEST"
+            UPDATES_AVAILABLE="${UPDATES_AVAILABLE}Home Assistant: ${HOMEASSISTANT_CURRENT} → ${HOMEASSISTANT_LATEST}\n"
+          fi
+        fi
+        
+        # Save results
+        if [ ! -z "$UPDATES_AVAILABLE" ]; then
+          echo "updates_available=true" >> $GITHUB_OUTPUT
+          echo -e "$UPDATES_AVAILABLE" > updates.txt
+          
+          # Create issue body
+          cat > issue_body.txt << 'EOF'
+        Container updates are available:
+
+        EOF
+          echo -e "$UPDATES_AVAILABLE" >> issue_body.txt
+          cat >> issue_body.txt << 'EOF'
+
+        Please update the container versions in `docker-compose.yml` to the latest LTS versions.
+
+        ## Action Required
+        
+        @copilot please update these container versions in docker-compose.yml and create a PR for review.
+
+        ---
+        *This issue was automatically created by the Container Version Check workflow.*
+        EOF
+          
+          echo "Issue body created successfully"
+        else
+          echo "updates_available=false" >> $GITHUB_OUTPUT
+          echo "✅ All containers are up to date!"
+        fi
+        
+    - name: Create issue for updates
+      if: steps.check.outputs.updates_available == 'true'
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const fs = require('fs');
+          const issueBody = fs.readFileSync('issue_body.txt', 'utf8');
+          
+          // Check if there's already an open issue for container updates
+          const issues = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            labels: 'dependencies,docker,auto-update'
+          });
+          
+          // Filter for container update issues
+          const existingIssue = issues.data.find(issue => 
+            issue.title.includes('Container Updates Available')
+          );
+          
+          if (existingIssue) {
+            // Update existing issue with new information
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: existingIssue.number,
+              body: `## Updated Container Versions Available\n\n${issueBody}\n\n*Updated: ${new Date().toISOString()}*`
+            });
+            console.log(`Updated existing issue #${existingIssue.number}`);
+          } else {
+            // Create new issue and assign to copilot
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Container Updates Available',
+              body: issueBody,
+              labels: ['dependencies', 'docker', 'auto-update'],
+              assignees: ['copilot']
+            });
+            console.log(`Created new issue #${issue.data.number}`);
+          }
+          
+    - name: Summary
+      if: always()
+      run: |
+        echo "## Container Version Check Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ steps.check.outputs.updates_available }}" == "true" ]; then
+          echo "### 🔔 Updates Available" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat updates.txt >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "An issue has been created and assigned to @copilot for automatic PR creation." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### ✅ All containers are up to date!" >> $GITHUB_STEP_SUMMARY
+        fi
