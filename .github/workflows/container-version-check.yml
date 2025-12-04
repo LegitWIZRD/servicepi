@@ -82,7 +82,7 @@ jobs:
         PORTAINER_CURRENT=$(grep "portainer/portainer-ce:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+)-alpine.*/\1/')
         N8N_CURRENT=$(grep "n8nio/n8n:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
         PIHOLE_CURRENT=$(grep "pihole/pihole:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-        HOMEASSISTANT_CURRENT=$(grep "home-assistant/home-assistant:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+        HOMEASSISTANT_CURRENT=$(grep "ghcr.io/home-assistant/home-assistant:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
         
         echo "Current versions:"
         echo "  Portainer: $PORTAINER_CURRENT"
@@ -146,10 +146,6 @@ jobs:
 
         Please update the container versions in `docker-compose.yml` to the latest LTS versions.
 
-        ## Action Required
-        
-        @copilot please update these container versions in docker-compose.yml and create a PR for review.
-
         ---
         *This issue was automatically created by the Container Version Check workflow.*
         EOF
@@ -192,14 +188,13 @@ jobs:
             });
             console.log(`Updated existing issue #${existingIssue.number}`);
           } else {
-            // Create new issue and assign to copilot
+            // Create new issue (no assignee as 'copilot' is not a valid username)
             const issue = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: 'Container Updates Available',
               body: issueBody,
-              labels: ['dependencies', 'docker', 'auto-update'],
-              assignees: ['copilot']
+              labels: ['dependencies', 'docker', 'auto-update']
             });
             console.log(`Created new issue #${issue.data.number}`);
           }
