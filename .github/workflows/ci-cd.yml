@@ -385,6 +385,7 @@ jobs:
   notify-deployment:
     name: Notify Pi for Deployment
     runs-on: ubuntu-latest
+    permissions: {}
     needs: [validate, security-scan, test-deployment]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
