@@ -111,6 +111,8 @@ jobs:
 
   test-deployment:
     name: Test Deployment
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     needs: validate
     
