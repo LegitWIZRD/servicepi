@@ -12,7 +12,7 @@ from flask import Flask, jsonify, request
 from flask_wtf.csrf import CSRFProtect
 from flask_cors import CORS
 import requests
-
+import traceback
 app = Flask(__name__)
 
 # Configure CSRF protection
@@ -190,9 +190,10 @@ def communicate_with_services():
             'timestamp': datetime.utcnow().isoformat()
         })
     except Exception as e:
+        app.logger.error("Exception in /api/system/communicate: %s\n%s", e, traceback.format_exc())
         return jsonify({
             'error': 'Communication failed',
-            'details': str(e),
+            'details': 'Internal server error',
             'timestamp': datetime.utcnow().isoformat()
         }), 500
 
