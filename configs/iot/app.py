@@ -62,7 +62,8 @@ def root():
             '/api/sensors',
             '/api/sensors/data',
             '/api/devices',
-            '/api/system/info'
+            '/api/system/info',
+            '/api/system/update'
         ]
     })
 
@@ -193,6 +194,41 @@ def communicate_with_services():
         app.logger.error("Exception in /api/system/communicate: %s\n%s", e, traceback.format_exc())
         return jsonify({
             'error': 'Communication failed',
+            'details': 'Internal server error',
+            'timestamp': datetime.utcnow().isoformat()
+        }), 500
+
+@app.route('/api/system/update', methods=['POST'])
+def trigger_system_update():
+    """
+    Trigger system update by executing the update script.
+    Note: This requires the container to have access to the host's Docker socket
+    and proper permissions. In production, this should be properly secured.
+    """
+    try:
+        data = request.get_json() or {}
+        app.logger.info("Update request received: %s", data)
+        
+        # In a real deployment, this would trigger the update script
+        # For security, this should be restricted to authenticated admin users
+        # and should run with proper permissions
+        
+        # Since we're in a container, we'll return a response indicating
+        # that the update should be triggered manually or via a proper
+        # orchestration system
+        
+        return jsonify({
+            'status': 'accepted',
+            'message': 'Update request received. Please run the update script on the host system.',
+            'command': 'sudo /opt/servicepi/scripts/update-pi.sh',
+            'note': 'For security reasons, automated updates must be configured separately.',
+            'timestamp': datetime.utcnow().isoformat()
+        }), 202
+        
+    except Exception as e:
+        app.logger.error("Exception in /api/system/update: %s\n%s", e, traceback.format_exc())
+        return jsonify({
+            'error': 'Update request failed',
             'details': 'Internal server error',
             'timestamp': datetime.utcnow().isoformat()
         }), 500
