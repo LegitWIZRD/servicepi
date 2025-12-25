@@ -67,6 +67,8 @@ services:
       - servicepi-network
     environment:
       - API_PORT=8080
+      - ADMIN_TOKEN=${ADMIN_TOKEN:-}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost,http://localhost:80,http://127.0.0.1,http://127.0.0.1:80}
     # No exposed ports - accessed via nginx-proxy at :8080
     # Uncomment for GPIO access on Pi
     # privileged: true
@@ -76,8 +78,8 @@ services:
   # Home Assistant
   homeassistant:
     # Using stable tag with specific version for reproducibility
-    # Home Assistant 2025.12 includes new features and improvements
-    image: ghcr.io/home-assistant/home-assistant:2025.12.3
+    # Home Assistant 2025.12.4 includes bug fixes and improvements
+    image: ghcr.io/home-assistant/home-assistant:2025.12.4
     container_name: servicepi-homeassistant
     volumes:
       - homeassistant_data:/config

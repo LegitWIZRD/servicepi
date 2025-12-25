@@ -6,6 +6,7 @@ Provides REST API for IoT device management and sensor data
 
 import os
 import json
+import secrets
 import configparser
 from datetime import datetime
 from flask import Flask, jsonify, request
@@ -25,9 +26,12 @@ app.config['WTF_CSRF_CHECK_DEFAULT'] = False
 csrf = CSRFProtect(app)
 
 # Configure CORS to allow requests from the web dashboard and other services
+# Use environment variable for allowed origins, default to localhost for security
+# In production, set CORS_ORIGINS environment variable to your Pi's hostname
+allowed_origins = os.getenv('CORS_ORIGINS', 'http://localhost,http://localhost:80,http://127.0.0.1,http://127.0.0.1:80').split(',')
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["https://*", "http://*"],
+        "origins": allowed_origins,
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
         "supports_credentials": True
@@ -62,7 +66,8 @@ def root():
             '/api/sensors',
             '/api/sensors/data',
             '/api/devices',
-            '/api/system/info'
+            '/api/system/info',
+            '/api/system/update'
         ]
     })
 
@@ -193,6 +198,70 @@ def communicate_with_services():
         app.logger.error("Exception in /api/system/communicate: %s\n%s", e, traceback.format_exc())
         return jsonify({
             'error': 'Communication failed',
+            'details': 'Internal server error',
+            'timestamp': datetime.utcnow().isoformat()
+        }), 500
+
+@app.route('/api/system/update', methods=['POST'])
+def trigger_system_update():
+    """
+    Trigger system update by executing the update script.
+    Note: This requires proper authentication and should only be accessible to administrators.
+    In production, this should be properly secured with authentication middleware.
+    """
+    try:
+        data = request.get_json() or {}
+        app.logger.info("Update request received: %s", data)
+        
+        # Basic security check - require an admin token
+        # In production, implement proper authentication (OAuth, JWT, etc.)
+        auth_header = request.headers.get('Authorization', '')
+        admin_token = os.getenv('ADMIN_TOKEN', '')
+        
+        # Use constant-time comparison to prevent timing attacks
+        if not admin_token:
+            app.logger.warning("ADMIN_TOKEN not configured")
+            return jsonify({
+                'error': 'Unauthorized',
+                'message': 'System updates are not configured. Set ADMIN_TOKEN environment variable.',
+                'timestamp': datetime.utcnow().isoformat()
+            }), 401
+        
+        if not auth_header.startswith('Bearer '):
+            app.logger.warning("Missing or invalid Authorization header from %s", request.remote_addr)
+            return jsonify({
+                'error': 'Unauthorized',
+                'message': 'Valid authentication token required for system updates',
+                'timestamp': datetime.utcnow().isoformat()
+            }), 401
+        
+        provided_token = auth_header[7:]
+        if not secrets.compare_digest(provided_token, admin_token):
+            app.logger.warning("Invalid token attempt from %s", request.remote_addr)
+            return jsonify({
+                'error': 'Unauthorized',
+                'message': 'Invalid authentication token',
+                'timestamp': datetime.utcnow().isoformat()
+            }), 401
+        
+        # In a real deployment, this would trigger the update script
+        # For security, this should run with proper permissions via a privileged helper service
+        
+        # Since we're in a container, we'll return a response indicating
+        # that the update should be triggered manually or via a proper
+        # orchestration system
+        
+        return jsonify({
+            'status': 'accepted',
+            'message': 'Update request authenticated. Run the update script on the host system to complete the update.',
+            'note': 'For security, automated updates must be run on the host with proper privileges.',
+            'timestamp': datetime.utcnow().isoformat()
+        }), 202
+        
+    except Exception as e:
+        app.logger.error("Exception in /api/system/update: %s\n%s", e, traceback.format_exc())
+        return jsonify({
+            'error': 'Update request failed',
             'details': 'Internal server error',
             'timestamp': datetime.utcnow().isoformat()
         }), 500

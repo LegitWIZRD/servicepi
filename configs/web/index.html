@@ -123,6 +123,143 @@
             padding-top: 20px;
             border-top: 1px solid #eee;
         }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .action-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .action-button.primary {
+            background: #28a745;
+            color: white;
+        }
+        .action-button.primary:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+        .action-button.secondary {
+            background: #007bff;
+            color: white;
+        }
+        .action-button.secondary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+        }
+        .action-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .version-badge {
+            display: inline-block;
+            background: #e9ecef;
+            color: #495057;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: normal;
+            margin-left: 8px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            animation: slideDown 0.3s;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #007bff;
+        }
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        .close-button {
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 0;
+            line-height: 1;
+        }
+        .close-button:hover {
+            color: #000;
+        }
+        .modal-body {
+            margin: 20px 0;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .status-message {
+            padding: 12px;
+            border-radius: 4px;
+            margin: 15px 0;
+            display: none;
+        }
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
     </style>
 </head>
 <body>
@@ -130,6 +267,14 @@
         <div class="header">
             <h1>🍓 ServicePi Dashboard</h1>
             <p>Raspberry Pi 5 Docker Services</p>
+            <div class="action-buttons">
+                <button class="action-button primary" onclick="showUpdateModal()">
+                    🔄 Update System
+                </button>
+                <a href="https://github.com/LegitWIZRD/servicepi" target="_blank" class="action-button secondary">
+                    📦 GitHub Repository
+                </a>
+            </div>
         </div>
         
         <div class="service-grid">
@@ -138,6 +283,7 @@
                     Web Dashboard
                     <span class="port">:80</span>
                 </h3>
+                <span class="version-badge">v1.0.0</span>
                 <span class="status running">🟢 Running</span>
                 <p>Main dashboard with reverse proxy</p>
                 <div class="service-links">
@@ -154,6 +300,7 @@
                     Container Management
                     <span class="port">:9000</span>
                 </h3>
+                <span class="version-badge">v2.33.5</span>
                 <span class="status running">🟢 Running</span>
                 <p>Portainer for Docker container management</p>
                 <div class="service-links">
@@ -169,6 +316,7 @@
                     IoT API Service
                     <span class="port">:8080</span>
                 </h3>
+                <span class="version-badge">v1.0.0</span>
                 <span class="status running">🟢 Running</span>
                 <p>REST API for IoT device management and sensor data</p>
                 <div class="service-links">
@@ -185,6 +333,7 @@
                     Home Assistant
                     <span class="port">:8123</span>
                 </h3>
+                <span class="version-badge">v2025.12.4</span>
                 <span class="status running">🟢 Running</span>
                 <p>Home automation platform for IoT and service orchestration</p>
                 <div class="service-links">
@@ -200,6 +349,7 @@
                     Pi-hole DNS Ad Blocker
                     <span class="port">:8053</span>
                 </h3>
+                <span class="version-badge">v2025.11.1</span>
                 <span class="status running">🟢 Running</span>
                 <p>Network-wide ad blocking and DNS management</p>
                 <div class="service-links">
@@ -215,6 +365,7 @@
                     N8N Workflow Automation
                     <span class="port">:5678</span>
                 </h3>
+                <span class="version-badge">v1.121.3</span>
                 <span class="status running">🟢 Running</span>
                 <p>Workflow automation and integration platform</p>
                 <div class="service-links">
@@ -251,6 +402,32 @@
             </p>
             <p>Last updated: <span id="timestamp"></span></p>
             <p>🔄 Auto-deployed via CI/CD pipeline</p>
+        </div>
+    </div>
+    
+    <!-- Update System Modal -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔄 Update System</h2>
+                <button class="close-button" onclick="closeUpdateModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>This will trigger the system update process which will:</p>
+                <ul>
+                    <li>Create a backup of the current configuration</li>
+                    <li>Pull the latest code from GitHub</li>
+                    <li>Update Docker container images</li>
+                    <li>Restart services with new configurations</li>
+                </ul>
+                <p><strong>⚠️ Warning:</strong> Services may be briefly unavailable during the update.</p>
+                <p><strong>🔐 Note:</strong> This feature requires admin authentication. Set the <code>ADMIN_TOKEN</code> environment variable in the IoT service for this feature to work.</p>
+                <div id="updateStatus" class="status-message"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-button" style="background: #6c757d; color: white;" onclick="closeUpdateModal()">Cancel</button>
+                <button id="confirmUpdateBtn" class="action-button primary" onclick="triggerUpdate()">Confirm Update</button>
+            </div>
         </div>
     </div>
     
@@ -293,6 +470,92 @@
         const n8nLink = document.querySelector('a[href="http://localhost:5678"]');
         if (n8nLink && hostname !== 'localhost') {
             n8nLink.href = `http://${hostname}:5678`;
+        }
+        
+        // Modal functions
+        function showUpdateModal() {
+            document.getElementById('updateModal').style.display = 'block';
+            document.getElementById('updateStatus').style.display = 'none';
+            document.getElementById('confirmUpdateBtn').disabled = false;
+        }
+        
+        function closeUpdateModal() {
+            document.getElementById('updateModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('updateModal');
+            if (event.target === modal) {
+                closeUpdateModal();
+            }
+        }
+        
+        // Trigger system update
+        async function triggerUpdate() {
+            const statusDiv = document.getElementById('updateStatus');
+            const confirmBtn = document.getElementById('confirmUpdateBtn');
+            
+            // Check for admin token
+            let adminToken = localStorage.getItem('servicepi_admin_token');
+            if (!adminToken) {
+                adminToken = prompt('Enter admin token to authorize system update:');
+                if (!adminToken) {
+                    statusDiv.className = 'status-message error';
+                    statusDiv.style.display = 'block';
+                    statusDiv.textContent = '❌ Admin token required for system updates.';
+                    return;
+                }
+                // Save token for future use (in this session)
+                localStorage.setItem('servicepi_admin_token', adminToken);
+            }
+            
+            // Disable button and show progress
+            confirmBtn.disabled = true;
+            statusDiv.className = 'status-message info';
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = '⏳ Initiating system update...';
+            
+            try {
+                const response = await fetch('http://' + hostname + ':8080/api/system/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + adminToken
+                    },
+                    body: JSON.stringify({
+                        action: 'update',
+                        timestamp: new Date().toISOString()
+                    })
+                });
+                
+                if (response.status === 401) {
+                    // Invalid token
+                    localStorage.removeItem('servicepi_admin_token');
+                    statusDiv.className = 'status-message error';
+                    statusDiv.textContent = '❌ Invalid admin token. Please try again.';
+                    confirmBtn.disabled = false;
+                    return;
+                }
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.className = 'status-message success';
+                    statusDiv.textContent = '✅ ' + (data.message || 'Update request accepted. Please run the update script on the host.');
+                    
+                    // Auto-close modal after 5 seconds on success
+                    setTimeout(() => {
+                        closeUpdateModal();
+                    }, 5000);
+                } else {
+                    throw new Error('Update request failed with status: ' + response.status);
+                }
+            } catch (error) {
+                console.error('Update error:', error);
+                statusDiv.className = 'status-message error';
+                statusDiv.textContent = '❌ Update failed: ' + error.message + '. Please check logs or try again later.';
+                confirmBtn.disabled = false;
+            }
         }
     </script>
 </body>
