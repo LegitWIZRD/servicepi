@@ -25,9 +25,12 @@ app.config['WTF_CSRF_CHECK_DEFAULT'] = False
 csrf = CSRFProtect(app)
 
 # Configure CORS to allow requests from the web dashboard and other services
+# Use environment variable for allowed origins, default to localhost for security
+# In production, set CORS_ORIGINS environment variable to your Pi's hostname
+allowed_origins = os.getenv('CORS_ORIGINS', 'http://localhost,http://localhost:80,http://127.0.0.1,http://127.0.0.1:80').split(',')
 CORS(app, resources={
     r"/api/*": {
-        "origins": ["https://*", "http://*"],
+        "origins": allowed_origins,
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
         "supports_credentials": True
@@ -202,16 +205,28 @@ def communicate_with_services():
 def trigger_system_update():
     """
     Trigger system update by executing the update script.
-    Note: This requires the container to have access to the host's Docker socket
-    and proper permissions. In production, this should be properly secured.
+    Note: This requires proper authentication and should only be accessible to administrators.
+    In production, this should be properly secured with authentication middleware.
     """
     try:
         data = request.get_json() or {}
         app.logger.info("Update request received: %s", data)
         
+        # Basic security check - require an admin token
+        # In production, implement proper authentication (OAuth, JWT, etc.)
+        auth_header = request.headers.get('Authorization', '')
+        admin_token = os.getenv('ADMIN_TOKEN', '')
+        
+        if not admin_token or not auth_header.startswith('Bearer ') or auth_header[7:] != admin_token:
+            app.logger.warning("Unauthorized update attempt from %s", request.remote_addr)
+            return jsonify({
+                'error': 'Unauthorized',
+                'message': 'Valid authentication token required for system updates',
+                'timestamp': datetime.utcnow().isoformat()
+            }), 401
+        
         # In a real deployment, this would trigger the update script
-        # For security, this should be restricted to authenticated admin users
-        # and should run with proper permissions
+        # For security, this should run with proper permissions via a privileged helper service
         
         # Since we're in a container, we'll return a response indicating
         # that the update should be triggered manually or via a proper
@@ -219,9 +234,9 @@ def trigger_system_update():
         
         return jsonify({
             'status': 'accepted',
-            'message': 'Update request received. Please run the update script on the host system.',
+            'message': 'Update request authenticated. To complete the update, run the script on the host system.',
             'command': 'sudo /opt/servicepi/scripts/update-pi.sh',
-            'note': 'For security reasons, automated updates must be configured separately.',
+            'note': 'For security, automated updates must be run on the host with proper privileges.',
             'timestamp': datetime.utcnow().isoformat()
         }), 202
         

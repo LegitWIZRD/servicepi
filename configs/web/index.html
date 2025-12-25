@@ -421,6 +421,7 @@
                     <li>Restart services with new configurations</li>
                 </ul>
                 <p><strong>⚠️ Warning:</strong> Services may be briefly unavailable during the update.</p>
+                <p><strong>🔐 Note:</strong> This feature requires admin authentication. Set the <code>ADMIN_TOKEN</code> environment variable in the IoT service for this feature to work.</p>
                 <div id="updateStatus" class="status-message"></div>
             </div>
             <div class="modal-footer">
@@ -495,6 +496,20 @@
             const statusDiv = document.getElementById('updateStatus');
             const confirmBtn = document.getElementById('confirmUpdateBtn');
             
+            // Check for admin token
+            let adminToken = localStorage.getItem('servicepi_admin_token');
+            if (!adminToken) {
+                adminToken = prompt('Enter admin token to authorize system update:');
+                if (!adminToken) {
+                    statusDiv.className = 'status-message error';
+                    statusDiv.style.display = 'block';
+                    statusDiv.textContent = '❌ Admin token required for system updates.';
+                    return;
+                }
+                // Save token for future use (in this session)
+                localStorage.setItem('servicepi_admin_token', adminToken);
+            }
+            
             // Disable button and show progress
             confirmBtn.disabled = true;
             statusDiv.className = 'status-message info';
@@ -506,6 +521,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + adminToken
                     },
                     body: JSON.stringify({
                         action: 'update',
@@ -513,19 +529,24 @@
                     })
                 });
                 
+                if (response.status === 401) {
+                    // Invalid token
+                    localStorage.removeItem('servicepi_admin_token');
+                    statusDiv.className = 'status-message error';
+                    statusDiv.textContent = '❌ Invalid admin token. Please try again.';
+                    confirmBtn.disabled = false;
+                    return;
+                }
+                
                 if (response.ok) {
                     const data = await response.json();
                     statusDiv.className = 'status-message success';
-                    statusDiv.textContent = '✅ Update initiated successfully! ' + (data.message || 'Please wait for services to restart.');
+                    statusDiv.textContent = '✅ ' + (data.message || 'Update request accepted. Please run the update script on the host.');
                     
-                    // Auto-close modal after 3 seconds on success
+                    // Auto-close modal after 5 seconds on success
                     setTimeout(() => {
                         closeUpdateModal();
-                        // Optionally reload page after 5 seconds to show updated versions
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 2000);
-                    }, 3000);
+                    }, 5000);
                 } else {
                     throw new Error('Update request failed with status: ' + response.status);
                 }
