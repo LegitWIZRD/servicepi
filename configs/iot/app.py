@@ -6,6 +6,7 @@ Provides REST API for IoT device management and sensor data
 
 import os
 import json
+import secrets
 import configparser
 from datetime import datetime
 from flask import Flask, jsonify, request
@@ -217,11 +218,29 @@ def trigger_system_update():
         auth_header = request.headers.get('Authorization', '')
         admin_token = os.getenv('ADMIN_TOKEN', '')
         
-        if not admin_token or not auth_header.startswith('Bearer ') or auth_header[7:] != admin_token:
-            app.logger.warning("Unauthorized update attempt from %s", request.remote_addr)
+        # Use constant-time comparison to prevent timing attacks
+        if not admin_token:
+            app.logger.warning("ADMIN_TOKEN not configured")
+            return jsonify({
+                'error': 'Unauthorized',
+                'message': 'System updates are not configured. Set ADMIN_TOKEN environment variable.',
+                'timestamp': datetime.utcnow().isoformat()
+            }), 401
+        
+        if not auth_header.startswith('Bearer '):
+            app.logger.warning("Missing or invalid Authorization header from %s", request.remote_addr)
             return jsonify({
                 'error': 'Unauthorized',
                 'message': 'Valid authentication token required for system updates',
+                'timestamp': datetime.utcnow().isoformat()
+            }), 401
+        
+        provided_token = auth_header[7:]
+        if not secrets.compare_digest(provided_token, admin_token):
+            app.logger.warning("Invalid token attempt from %s", request.remote_addr)
+            return jsonify({
+                'error': 'Unauthorized',
+                'message': 'Invalid authentication token',
                 'timestamp': datetime.utcnow().isoformat()
             }), 401
         
@@ -234,8 +253,7 @@ def trigger_system_update():
         
         return jsonify({
             'status': 'accepted',
-            'message': 'Update request authenticated. To complete the update, run the script on the host system.',
-            'command': 'sudo /opt/servicepi/scripts/update-pi.sh',
+            'message': 'Update request authenticated. Run the update script on the host system to complete the update.',
             'note': 'For security, automated updates must be run on the host with proper privileges.',
             'timestamp': datetime.utcnow().isoformat()
         }), 202
