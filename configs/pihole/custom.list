@@ -2,4 +2,22 @@
 # Format: IP_address domain.name
 # Example: 192.168.1.100 mydevice.local
 
+# ServicePi Local Domain Resolution
+# NOTE: Replace the IP addresses below with your Raspberry Pi's actual IP address
+# You can find your Pi's IP with: hostname -I
+
+# ServicePi services - uncomment and update IP address after installation
+# <YOUR_PI_IP> servicepi.local
+# <YOUR_PI_IP> portainer.local
+# <YOUR_PI_IP> iot.local
+# <YOUR_PI_IP> homeassistant.local
+# <YOUR_PI_IP> pihole.local
+# <YOUR_PI_IP> n8n.local
+
+# WordPress (uncomment when enabling WordPress)
+# <YOUR_PI_IP> wordpress.local
+
+# Wazuh (uncomment when enabling Wazuh)
+# <YOUR_PI_IP> wazuh.local
+
 # Add your custom DNS entries below

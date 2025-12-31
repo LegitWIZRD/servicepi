@@ -147,6 +147,10 @@ ufw allow 8080/tcp  # HTTP for IoT API
 ufw allow 8123/tcp  # HTTP for Home Assistant
 ufw allow 8053/tcp  # HTTP for Pi-hole Admin
 ufw allow 5678/tcp  # HTTP for N8N
+# ufw allow 8081/tcp  # HTTP for WordPress (uncomment when enabling WordPress)
+# ufw allow 8443/tcp  # HTTP for Wazuh Dashboard (uncomment when enabling Wazuh)
+# ufw allow 1514/tcp  # Wazuh agent events (uncomment when using Wazuh agents)
+# ufw allow 1515/tcp  # Wazuh agent enrollment (uncomment when using Wazuh agents)
 ufw --force enable
 
 # Initial deployment
@@ -174,11 +178,12 @@ if [ -f "/etc/docker/daemon.json" ] && grep -q "data-root.*docker-storage" /etc/
 else
     echo "  - Docker storage: Default location"
 fi
-echo "  - Web dashboard: http://$(hostname -I | awk '{print $1}')"
-echo "  - Portainer: http://$(hostname -I | awk '{print $1}'):9000"
-echo "  - IoT API: http://$(hostname -I | awk '{print $1}'):8080"
-echo "  - Home Assistant: http://$(hostname -I | awk '{print $1}'):8123"
-echo "  - Pi-hole Admin: http://$(hostname -I | awk '{print $1}'):8053/admin"
+echo "  - Web dashboard: http://$(hostname -I | awk '{print $1}') or http://servicepi.local"
+echo "  - Portainer: http://$(hostname -I | awk '{print $1}'):9000 or http://portainer.local:9000"
+echo "  - IoT API: http://$(hostname -I | awk '{print $1}'):8080 or http://iot.local:8080"
+echo "  - Home Assistant: http://$(hostname -I | awk '{print $1}'):8123 or http://homeassistant.local:8123"
+echo "  - Pi-hole Admin: http://$(hostname -I | awk '{print $1}'):8053/admin or http://pihole.local:8053/admin"
+echo "  - N8N: http://$(hostname -I | awk '{print $1}'):5678 or http://n8n.local:5678"
 echo ""
 echo "📝 Next steps:"
 echo "  1. Access the web dashboard to verify installation"
@@ -188,8 +193,11 @@ echo "  4. Configure Pi-hole admin (password: set via PIHOLE_PASSWORD or default
 echo "  5. Enable Pi-hole DNS by uncommenting ports in docker-compose.yml (lines 89-90)"
 echo "  6. After enabling, uncomment firewall rules for port 53 in this script and rerun"
 echo "  7. Set your device's DNS to $(hostname -I | awk '{print $1}') to use Pi-hole ad blocking"
-echo "  8. Customize services in docker-compose.yml as needed"
-echo "  9. Set up automatic updates with 'sudo systemctl enable --now servicepi-update.timer'"
+echo "  8. Update configs/pihole/custom.list with your Pi's IP for .local domain resolution"
+echo "  9. To enable WordPress: uncomment WordPress services in docker-compose.yml"
+echo "  10. To enable Wazuh: uncomment Wazuh services in docker-compose.yml (requires 4GB+ RAM)"
+echo "  11. Customize services in docker-compose.yml as needed"
+echo "  12. Set up automatic updates with 'sudo systemctl enable --now servicepi-update.timer'"
 echo ""
 echo "🔧 Useful commands:"
 echo "  - Manual update: sudo $INSTALL_DIR/scripts/update-pi.sh"
