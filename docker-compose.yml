@@ -12,6 +12,10 @@ services:
       - "8123:8123" # HTTP for Home Assistant
       - "8053:8053" # HTTP for Pi-hole Admin
       - "5678:5678" # HTTP for N8N
+      # Uncomment the ports below when enabling WordPress
+      # - "8081:8081" # HTTP for WordPress
+      # Uncomment the ports below when enabling Wazuh
+      # - "8443:8443" # HTTP for Wazuh Dashboard
     volumes:
       - ./configs/nginx/proxy:/etc/nginx/conf.d
       - ./configs/web:/usr/share/nginx/html/web
@@ -25,6 +29,10 @@ services:
       - homeassistant
       - pihole
       - n8n
+      # Uncomment when enabling WordPress
+      # - wordpress
+      # Uncomment when enabling Wazuh
+      # - wazuh-dashboard
 
   # Web Backend (internal only)
   web-backend:
@@ -146,6 +154,127 @@ services:
       - TZ=America/New_York
     # No exposed ports - accessed via nginx-proxy at :5678
 
+  # WordPress - User-friendly dashboard for service links
+  # Uncomment the wordpress and wordpress-db services below to enable WordPress
+  # wordpress:
+  #   # Using WordPress with PHP 8.2 and Apache
+  #   image: wordpress:6.7-php8.2-apache
+  #   container_name: servicepi-wordpress
+  #   volumes:
+  #     - wordpress_data:/var/www/html
+  #   restart: unless-stopped
+  #   networks:
+  #     - servicepi-network
+  #   environment:
+  #     - WORDPRESS_DB_HOST=wordpress-db:3306
+  #     - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:-wordpress}
+  #     - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD:-wordpress_password_change_me}
+  #     - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
+  #     - WORDPRESS_TABLE_PREFIX=${WORDPRESS_TABLE_PREFIX:-wp_}
+  #   depends_on:
+  #     - wordpress-db
+  #   # No exposed ports - accessed via nginx-proxy at :8081
+
+  # wordpress-db:
+  #   # MySQL 8.0 database for WordPress
+  #   image: mysql:8.0
+  #   container_name: servicepi-wordpress-db
+  #   volumes:
+  #     - wordpress_db:/var/lib/mysql
+  #   restart: unless-stopped
+  #   networks:
+  #     - servicepi-network
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=${WORDPRESS_DB_ROOT_PASSWORD:-root_password_change_me}
+  #     - MYSQL_DATABASE=${WORDPRESS_DB_NAME:-wordpress}
+  #     - MYSQL_USER=${WORDPRESS_DB_USER:-wordpress}
+  #     - MYSQL_PASSWORD=${WORDPRESS_DB_PASSWORD:-wordpress_password_change_me}
+  #   # No exposed ports - internal database only
+
+  # Wazuh Manager - Security monitoring and threat detection
+  # Uncomment the wazuh-manager, wazuh-indexer, and wazuh-dashboard services below to enable Wazuh
+  # NOTE: Wazuh requires significant resources (4GB+ RAM recommended)
+  # wazuh-manager:
+  #   # Wazuh Manager 4.9.2 for security event collection and analysis
+  #   image: wazuh/wazuh-manager:4.9.2
+  #   container_name: servicepi-wazuh-manager
+  #   hostname: wazuh-manager
+  #   volumes:
+  #     - wazuh_api_configuration:/var/ossec/api/configuration
+  #     - wazuh_etc:/var/ossec/etc
+  #     - wazuh_logs:/var/ossec/logs
+  #     - wazuh_queue:/var/ossec/queue
+  #     - wazuh_var_multigroups:/var/ossec/var/multigroups
+  #     - wazuh_integrations:/var/ossec/integrations
+  #     - wazuh_active_response:/var/ossec/active-response/bin
+  #     - wazuh_agentless:/var/ossec/agentless
+  #     - wazuh_wodles:/var/ossec/wodles
+  #   restart: unless-stopped
+  #   networks:
+  #     - servicepi-network
+  #   environment:
+  #     - INDEXER_URL=https://wazuh-indexer:9200
+  #     - INDEXER_USERNAME=${WAZUH_INDEXER_USERNAME:-admin}
+  #     - INDEXER_PASSWORD=${WAZUH_INDEXER_PASSWORD:-SecretPassword}
+  #     - FILEBEAT_SSL_VERIFICATION_MODE=full
+  #     - SSL_CERTIFICATE_AUTHORITIES=/etc/ssl/root-ca.pem
+  #     - SSL_CERTIFICATE=/etc/ssl/filebeat.pem
+  #     - SSL_KEY=/etc/ssl/filebeat.key
+  #     - API_USERNAME=${WAZUH_API_USERNAME:-wazuh-wui}
+  #     - API_PASSWORD=${WAZUH_API_PASSWORD:-MyS3cr37P450r.*-}
+  #   depends_on:
+  #     - wazuh-indexer
+  #   # Ports 1514, 1515 for agent communication (uncomment if using agents)
+  #   # ports:
+  #   #   - "1514:1514"  # Agent events
+  #   #   - "1515:1515"  # Agent enrollment
+
+  # wazuh-indexer:
+  #   # OpenSearch-based indexer for Wazuh (replaces Elasticsearch)
+  #   image: wazuh/wazuh-indexer:4.9.2
+  #   container_name: servicepi-wazuh-indexer
+  #   hostname: wazuh-indexer
+  #   volumes:
+  #     - wazuh_indexer_data:/var/lib/wazuh-indexer
+  #   restart: unless-stopped
+  #   networks:
+  #     - servicepi-network
+  #   environment:
+  #     - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+  #     - "bootstrap.memory_lock=true"
+  #     - "discovery.type=single-node"
+  #     - "network.host=0.0.0.0"
+  #     - "INDEXER_USERNAME=${WAZUH_INDEXER_USERNAME:-admin}"
+  #     - "INDEXER_PASSWORD=${WAZUH_INDEXER_PASSWORD:-SecretPassword}"
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #     nofile:
+  #       soft: 65536
+  #       hard: 65536
+  #   # No exposed ports - internal indexer only
+
+  # wazuh-dashboard:
+  #   # Wazuh Dashboard for security event visualization
+  #   image: wazuh/wazuh-dashboard:4.9.2
+  #   container_name: servicepi-wazuh-dashboard
+  #   hostname: wazuh-dashboard
+  #   restart: unless-stopped
+  #   networks:
+  #     - servicepi-network
+  #   environment:
+  #     - INDEXER_USERNAME=${WAZUH_INDEXER_USERNAME:-admin}
+  #     - INDEXER_PASSWORD=${WAZUH_INDEXER_PASSWORD:-SecretPassword}
+  #     - WAZUH_API_URL=https://wazuh-manager
+  #     - API_USERNAME=${WAZUH_API_USERNAME:-wazuh-wui}
+  #     - API_PASSWORD=${WAZUH_API_PASSWORD:-MyS3cr37P450r.*-}
+  #     - OPENSEARCH_HOSTS=https://wazuh-indexer:9200
+  #   depends_on:
+  #     - wazuh-indexer
+  #     - wazuh-manager
+  #   # No exposed ports - accessed via nginx-proxy at :8443
+
 volumes:
   portainer_data:
     driver: local
@@ -159,6 +288,32 @@ volumes:
     driver: local
   n8n_data:
     driver: local
+  # WordPress volumes (uncomment when enabling WordPress)
+  # wordpress_data:
+  #   driver: local
+  # wordpress_db:
+  #   driver: local
+  # Wazuh volumes (uncomment when enabling Wazuh)
+  # wazuh_api_configuration:
+  #   driver: local
+  # wazuh_etc:
+  #   driver: local
+  # wazuh_logs:
+  #   driver: local
+  # wazuh_queue:
+  #   driver: local
+  # wazuh_var_multigroups:
+  #   driver: local
+  # wazuh_integrations:
+  #   driver: local
+  # wazuh_active_response:
+  #   driver: local
+  # wazuh_agentless:
+  #   driver: local
+  # wazuh_wodles:
+  #   driver: local
+  # wazuh_indexer_data:
+  #   driver: local
 
 networks:
   servicepi-network:

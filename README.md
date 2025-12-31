@@ -16,10 +16,13 @@ ServicePi provides a complete infrastructure-as-code solution for running Docker
 - 🏠 **Home Assistant** for IoT automation and service orchestration
 - 🚫 **Pi-hole DNS ad blocker** with curated blocklists
 - 🔁 **N8N workflow automation** for integrations and automation
+- 📝 **WordPress** (optional) for user-friendly service directories
+- 🔐 **Wazuh SIEM** (optional) for security monitoring and threat detection
+- 🌐 **Domain name resolution** with .local domain support
 - 🚀 **One-command deployment** and updates
 - 📝 **Configuration management** for all services
 - 🔒 **Firewall configuration** and security hardening
-- 🌐 **Reverse proxy** for service routing
+- 🌐 **Reverse proxy** with domain-based routing
 - 🔗 **Inter-service communication** capabilities
 - 💾 **NVMe storage setup** for optimal container performance
 
@@ -61,19 +64,29 @@ For complete installation instructions with security best practices, see [INSTAL
 
 ### 2. Access Your Services
 
-After installation, access your services via HTTP:
+After installation, access your services via HTTP using IP addresses or local domain names:
 
-- **Web Dashboard**: `http://your-pi-ip/` (HTTP :80)
-- **Portainer**: `http://your-pi-ip:9000/` (HTTP :9000)
-- **IoT API**: `http://your-pi-ip:8080/` (HTTP :8080)
-- **Home Assistant**: `http://your-pi-ip:8123/` (HTTP :8123)
-- **Pi-hole Admin**: `http://your-pi-ip:8053/admin` (HTTP :8053)
-- **N8N Workflow Automation**: `http://your-pi-ip:5678/` (HTTP :5678)
+**Core Services:**
+- **Web Dashboard**: `http://your-pi-ip/` or `http://servicepi.local/` (HTTP :80)
+- **Portainer**: `http://your-pi-ip:9000/` or `http://portainer.local:9000/` (HTTP :9000)
+- **IoT API**: `http://your-pi-ip:8080/` or `http://iot.local:8080/` (HTTP :8080)
+- **Home Assistant**: `http://your-pi-ip:8123/` or `http://homeassistant.local:8123/` (HTTP :8123)
+- **Pi-hole Admin**: `http://your-pi-ip:8053/admin` or `http://pihole.local:8053/admin` (HTTP :8053)
+- **N8N Workflow Automation**: `http://your-pi-ip:5678/` or `http://n8n.local:5678/` (HTTP :5678)
 - **Health Check**: `http://your-pi-ip/health`
+
+**Optional Services** (see instructions below to enable):
+- **WordPress**: `http://your-pi-ip:8081/` or `http://wordpress.local:8081/` (HTTP :8081)
+- **Wazuh Dashboard**: `http://your-pi-ip:8443/` or `http://wazuh.local:8443/` (HTTP :8443)
 
 ⚠️ **Security Warning**: These services are HTTP-only and should ONLY be accessible on your trusted local network. Do NOT expose them directly to the internet. For remote access, use a VPN (WireGuard, Tailscale) or SSH tunnel.
 
-**Pi-hole DNS**: To enable network-wide ad blocking, uncomment the DNS ports in `docker-compose.yml` (lines 89-90) and point your devices to `your-pi-ip` as their DNS server.
+**Pi-hole DNS**: To enable network-wide ad blocking, uncomment the DNS ports in `docker-compose.yml` (lines 102-103) and point your devices to `your-pi-ip` as their DNS server.
+
+**Local Domain Names**: To use `.local` domain names:
+1. Edit `/opt/servicepi/configs/pihole/custom.list` and replace `<YOUR_PI_IP>` with your actual Pi IP address
+2. Restart Pi-hole: `docker-compose -f /opt/servicepi/docker-compose.yml restart pihole`
+3. Configure your devices to use your Pi as their DNS server (see Pi-hole section below)
 
 ### 3. Configure Services
 
@@ -108,31 +121,34 @@ servicepi/
 
 ## Services Included
 
-### Reverse Proxy (Nginx)
+### Core Services
+
+#### Reverse Proxy (Nginx)
 - Centralized routing for all services
+- Domain name resolution support (.local domains)
 - Security headers and CORS support
 - CSRF token and cookie forwarding for Portainer and Home Assistant
 - WebSocket support for real-time updates
 
-### Web Dashboard
+#### Web Dashboard
 - Main dashboard
 - Service status monitoring
 - API access interface
 - Health monitoring endpoints
 
-### Container Management (Portainer)
+#### Container Management (Portainer)
 - Web-based Docker management interface
 - Monitor container status and logs
 - Manage Docker images and volumes
 - WebSocket support for real-time updates
 
-### IoT API Service
+#### IoT API Service
 - REST API for device management
 - Sensor data collection and retrieval
 - Inter-service communication capabilities
 - GPIO access configuration for Pi hardware
 
-### Home Assistant
+#### Home Assistant
 - Open-source home automation platform
 - Automate and control Portainer-hosted services
 - IoT device integration and management
@@ -140,18 +156,18 @@ servicepi/
 - Direct integration with IoT API service
 - Configured to work behind reverse proxy with trusted networks
 
-### Pi-hole DNS Ad Blocker
+#### Pi-hole DNS Ad Blocker
 - Network-wide ad and tracker blocking
 - DNS-level filtering for all devices
 - Curated blocklists automatically applied
 - Web-based admin interface for management
-- Custom DNS entries support
+- Custom DNS entries support for .local domain resolution
 - Query logging and statistics
 - Blacklist/whitelist management
 
-Access Pi-hole admin at `http://your-pi-ip:8053/admin`. To enable DNS blocking, uncomment port 53 mappings in `docker-compose.yml` and configure your devices to use your Pi's IP address as their DNS server.
+Access Pi-hole admin at `http://your-pi-ip:8053/admin` or `http://pihole.local:8053/admin`. To enable DNS blocking, uncomment port 53 mappings in `docker-compose.yml` and configure your devices to use your Pi's IP address as their DNS server.
 
-### N8N Workflow Automation
+#### N8N Workflow Automation
 - Powerful workflow automation and integration platform
 - Visual workflow editor with 400+ integrations
 - Connect and automate services (APIs, databases, IoT devices)
@@ -160,7 +176,103 @@ Access Pi-hole admin at `http://your-pi-ip:8053/admin`. To enable DNS blocking, 
 - WebSocket support for real-time updates
 - Integration with Home Assistant and IoT API service
 
-Access N8N at `http://your-pi-ip:5678/`. Create workflows to automate tasks between your ServicePi services and external platforms.
+Access N8N at `http://your-pi-ip:5678/` or `http://n8n.local:5678/`. Create workflows to automate tasks between your ServicePi services and external platforms.
+
+### Optional Services
+
+### WordPress (Optional)
+- User-friendly dashboard for creating service directories
+- Content management system (CMS) for custom pages
+- Easy-to-use interface for non-technical users
+- MySQL database backend for content storage
+- Extensive theme and plugin ecosystem
+
+**Enabling WordPress:**
+
+1. **Edit `.env` file** and uncomment/configure WordPress variables:
+   ```bash
+   sudo nano /opt/servicepi/.env
+   # Uncomment and change passwords for:
+   # WORDPRESS_DB_USER, WORDPRESS_DB_PASSWORD, WORDPRESS_DB_NAME, WORDPRESS_DB_ROOT_PASSWORD
+   ```
+
+2. **Uncomment WordPress services** in `docker-compose.yml`:
+   ```bash
+   sudo nano /opt/servicepi/docker-compose.yml
+   # Uncomment the wordpress, wordpress-db services and their volumes
+   ```
+
+3. **Uncomment WordPress configuration** in nginx and firewall:
+   ```bash
+   # In docker-compose.yml: uncomment WordPress port 8081 in nginx-proxy
+   # In configs/nginx/proxy/default.conf: uncomment WordPress server block
+   # In scripts/install.sh: uncomment firewall rule for port 8081
+   sudo ufw allow 8081/tcp
+   ```
+
+4. **Start services:**
+   ```bash
+   cd /opt/servicepi
+   sudo docker compose up -d wordpress wordpress-db
+   ```
+
+5. **Configure WordPress:** Access at `http://your-pi-ip:8081/` or `http://wordpress.local:8081/` and complete the initial setup.
+
+**Use Case:** Create a simple landing page with links to all your ServicePi services, making it easy for family members or team members to find and access services.
+
+### Wazuh Security Monitoring (Optional)
+- Security information and event management (SIEM)
+- Threat detection and incident response
+- Log data analysis and file integrity monitoring
+- Vulnerability detection and compliance management
+- Agent-based monitoring for endpoints
+
+⚠️ **Resource Requirements**: Wazuh requires significant resources - **minimum 4GB RAM recommended**. Only enable on Pi 5 with sufficient RAM.
+
+**Enabling Wazuh:**
+
+1. **Ensure sufficient resources** (4GB+ RAM recommended):
+   ```bash
+   free -h  # Check available memory
+   ```
+
+2. **Edit `.env` file** and uncomment/configure Wazuh variables:
+   ```bash
+   sudo nano /opt/servicepi/.env
+   # Uncomment and change passwords for:
+   # WAZUH_INDEXER_USERNAME, WAZUH_INDEXER_PASSWORD
+   # WAZUH_API_USERNAME, WAZUH_API_PASSWORD
+   ```
+
+3. **Uncomment Wazuh services** in `docker-compose.yml`:
+   ```bash
+   sudo nano /opt/servicepi/docker-compose.yml
+   # Uncomment: wazuh-manager, wazuh-indexer, wazuh-dashboard services and their volumes
+   ```
+
+4. **Uncomment Wazuh configuration** in nginx and firewall:
+   ```bash
+   # In docker-compose.yml: uncomment Wazuh port 8443 in nginx-proxy
+   # In configs/nginx/proxy/default.conf: uncomment Wazuh Dashboard server block
+   # In scripts/install.sh: uncomment firewall rules for Wazuh ports
+   sudo ufw allow 8443/tcp  # Dashboard
+   # Optionally for agents:
+   # sudo ufw allow 1514/tcp  # Agent events
+   # sudo ufw allow 1515/tcp  # Agent enrollment
+   ```
+
+5. **Start services** (this may take several minutes):
+   ```bash
+   cd /opt/servicepi
+   sudo docker compose up -d wazuh-indexer wazuh-manager wazuh-dashboard
+   ```
+
+6. **Access Dashboard:** Navigate to `http://your-pi-ip:8443/` or `http://wazuh.local:8443/`
+   - Default credentials: admin / SecretPassword (change in `.env`)
+
+7. **Install agents** (optional): To monitor other devices, install Wazuh agents and point them to your Pi's IP on port 1514.
+
+**Use Case:** Monitor security events across your network, detect intrusions, track file changes, and maintain compliance with security policies.
 
 ## CI/CD Pipeline
 
@@ -388,9 +500,9 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
    sudo systemctl status docker
    ```
 
-2. **Port conflicts**: Ensure ports 53, 80, 5678, 8053, 8080, 8123, and 9000 are available
+2. **Port conflicts**: Ensure ports 53, 80, 5678, 8053, 8080, 8081, 8123, 8443, and 9000 are available
    ```bash
-   sudo netstat -tlnp | grep -E ':(53|80|5678|8053|8080|8123|9000) '
+   sudo netstat -tlnp | grep -E ':(53|80|5678|8053|8080|8081|8123|8443|9000) '
    ```
 
 3. **Permission issues**: Verify ownership
@@ -459,6 +571,61 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
    ```
    See [docs/N8N_SECURE_COOKIE_FIX.md](docs/N8N_SECURE_COOKIE_FIX.md) for more details.
 
+8. **WordPress database connection errors**: Ensure the WordPress database is running and credentials match
+   ```bash
+   # Check WordPress and database status
+   docker logs servicepi-wordpress
+   docker logs servicepi-wordpress-db
+   
+   # Verify database connection
+   docker exec servicepi-wordpress-db mysql -u wordpress -p -e "SHOW DATABASES;"
+   
+   # Restart WordPress services
+   docker-compose -f /opt/servicepi/docker-compose.yml restart wordpress wordpress-db
+   
+   # Access WordPress setup
+   curl -I http://localhost:8081
+   ```
+
+9. **Wazuh services not starting**: Wazuh requires significant resources and proper configuration
+   ```bash
+   # Check Wazuh logs
+   docker logs servicepi-wazuh-manager
+   docker logs servicepi-wazuh-indexer
+   docker logs servicepi-wazuh-dashboard
+   
+   # Verify memory availability (Wazuh needs 4GB+ RAM)
+   free -h
+   
+   # Check indexer status
+   curl -k -u admin:SecretPassword https://localhost:9200
+   
+   # Restart Wazuh services (order matters)
+   docker-compose -f /opt/servicepi/docker-compose.yml restart wazuh-indexer
+   sleep 30
+   docker-compose -f /opt/servicepi/docker-compose.yml restart wazuh-manager
+   sleep 20
+   docker-compose -f /opt/servicepi/docker-compose.yml restart wazuh-dashboard
+   ```
+
+10. **Local domain names not resolving**: Ensure Pi-hole custom.list is configured and DNS is set
+    ```bash
+    # Edit Pi-hole custom DNS entries
+    sudo nano /opt/servicepi/configs/pihole/custom.list
+    # Replace <YOUR_PI_IP> with your actual Pi IP address
+    
+    # Restart Pi-hole to apply changes
+    docker-compose -f /opt/servicepi/docker-compose.yml restart pihole
+    
+    # Verify DNS resolution (requires Pi-hole DNS enabled)
+    dig @localhost servicepi.local
+    dig @localhost wordpress.local
+    
+    # Check your device's DNS settings - should point to Pi IP
+    # Alternatively, edit /etc/hosts on your device:
+    # <PI_IP> servicepi.local wordpress.local wazuh.local
+    ```
+
 ### Backup and Recovery
 
 Create backup:
@@ -493,6 +660,8 @@ For more information, see:
 - [Security Policy](SECURITY.md) - Vulnerability reporting and security guidelines
 - [Installation Guide](INSTALL.md) - Detailed installation instructions
 - [Dependency Management](docs/DEPENDENCY_MANAGEMENT.md) - How to update dependencies
+- [Optional Services Guide](docs/OPTIONAL_SERVICES.md) - WordPress and Wazuh setup
+- [Domain Name Resolution](docs/DOMAIN_NAME_RESOLUTION.md) - Configure .local domains
 
 ## Additional Documentation
 
@@ -502,6 +671,8 @@ For more information, see:
 - **[docs/PIHOLE_INTEGRATION.md](docs/PIHOLE_INTEGRATION.md)** - Pi-hole setup and configuration
 - **[docs/CSRF_PROXY_FIX.md](docs/CSRF_PROXY_FIX.md)** - Portainer CSRF configuration
 - **[docs/N8N_SECURE_COOKIE_FIX.md](docs/N8N_SECURE_COOKIE_FIX.md)** - N8N HTTP-only configuration
+- **[docs/OPTIONAL_SERVICES.md](docs/OPTIONAL_SERVICES.md)** - WordPress and Wazuh setup guide
+- **[docs/DOMAIN_NAME_RESOLUTION.md](docs/DOMAIN_NAME_RESOLUTION.md)** - Configure .local domain names
 
 ## License
 
