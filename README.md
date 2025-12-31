@@ -660,6 +660,8 @@ For more information, see:
 - [Security Policy](SECURITY.md) - Vulnerability reporting and security guidelines
 - [Installation Guide](INSTALL.md) - Detailed installation instructions
 - [Dependency Management](docs/DEPENDENCY_MANAGEMENT.md) - How to update dependencies
+- [Optional Services Guide](docs/OPTIONAL_SERVICES.md) - WordPress and Wazuh setup
+- [Domain Name Resolution](docs/DOMAIN_NAME_RESOLUTION.md) - Configure .local domains
 
 ## Additional Documentation
 
@@ -669,6 +671,8 @@ For more information, see:
 - **[docs/PIHOLE_INTEGRATION.md](docs/PIHOLE_INTEGRATION.md)** - Pi-hole setup and configuration
 - **[docs/CSRF_PROXY_FIX.md](docs/CSRF_PROXY_FIX.md)** - Portainer CSRF configuration
 - **[docs/N8N_SECURE_COOKIE_FIX.md](docs/N8N_SECURE_COOKIE_FIX.md)** - N8N HTTP-only configuration
+- **[docs/OPTIONAL_SERVICES.md](docs/OPTIONAL_SERVICES.md)** - WordPress and Wazuh setup guide
+- **[docs/DOMAIN_NAME_RESOLUTION.md](docs/DOMAIN_NAME_RESOLUTION.md)** - Configure .local domain names
 
 ## License
 
