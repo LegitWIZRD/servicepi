@@ -196,7 +196,7 @@ echo "  6. Enable Pi-hole DNS by uncommenting ports in docker-compose.yml (lines
 echo "  7. After enabling, uncomment firewall rules for port 53 in this script and rerun"
 echo "  8. Set your device's DNS to $(hostname -I | awk '{print $1}') to use Pi-hole ad blocking"
 echo "  9. Update configs/pihole/custom.list with your Pi's IP for .local domain resolution"
-echo "  10. To enable Wazuh: Set ENABLE_WAZUH=true in .env and uncomment Wazuh services in docker-compose.yml (requires 4GB+ RAM)"
+echo "  10. To enable Wazuh: Set ENABLE_WAZUH=true in .env, uncomment Wazuh services in docker-compose.yml, and configure firewall (requires 4GB+ RAM)"
 echo "  11. Customize services in docker-compose.yml as needed"
 echo "  12. Set up automatic updates with 'sudo systemctl enable --now servicepi-update.timer'"
 echo ""
