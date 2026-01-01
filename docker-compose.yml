@@ -12,9 +12,8 @@ services:
       - "8123:8123" # HTTP for Home Assistant
       - "8053:8053" # HTTP for Pi-hole Admin
       - "5678:5678" # HTTP for N8N
-      # Uncomment the ports below when enabling WordPress
-      # - "8081:8081" # HTTP for WordPress
-      # Uncomment the ports below when enabling Wazuh
+      - "8081:8081" # HTTP for WordPress
+      # Uncomment the port below when enabling Wazuh (set ENABLE_WAZUH=true in .env)
       # - "8443:8443" # HTTP for Wazuh Dashboard
     volumes:
       - ./configs/nginx/proxy:/etc/nginx/conf.d
@@ -29,9 +28,8 @@ services:
       - homeassistant
       - pihole
       - n8n
-      # Uncomment when enabling WordPress
-      # - wordpress
-      # Uncomment when enabling Wazuh
+      - wordpress
+      # Uncomment when enabling Wazuh (set ENABLE_WAZUH=true in .env)
       # - wazuh-dashboard
 
   # Web Backend (internal only)
@@ -155,41 +153,40 @@ services:
     # No exposed ports - accessed via nginx-proxy at :5678
 
   # WordPress - User-friendly dashboard for service links
-  # Uncomment the wordpress and wordpress-db services below to enable WordPress
-  # wordpress:
-  #   # Using WordPress with PHP 8.2 and Apache
-  #   image: wordpress:6.7-php8.2-apache
-  #   container_name: servicepi-wordpress
-  #   volumes:
-  #     - wordpress_data:/var/www/html
-  #   restart: unless-stopped
-  #   networks:
-  #     - servicepi-network
-  #   environment:
-  #     - WORDPRESS_DB_HOST=wordpress-db:3306
-  #     - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:-wordpress}
-  #     - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD:-wordpress_password_change_me}
-  #     - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
-  #     - WORDPRESS_TABLE_PREFIX=${WORDPRESS_TABLE_PREFIX:-wp_}
-  #   depends_on:
-  #     - wordpress-db
-  #   # No exposed ports - accessed via nginx-proxy at :8081
+  wordpress:
+    # Using WordPress with PHP 8.2 and Apache
+    image: wordpress:6.7-php8.2-apache
+    container_name: servicepi-wordpress
+    volumes:
+      - wordpress_data:/var/www/html
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+    environment:
+      - WORDPRESS_DB_HOST=wordpress-db:3306
+      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:-wordpress}
+      - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD:-wordpress_password_change_me}
+      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
+      - WORDPRESS_TABLE_PREFIX=${WORDPRESS_TABLE_PREFIX:-wp_}
+    depends_on:
+      - wordpress-db
+    # No exposed ports - accessed via nginx-proxy at :8081
 
-  # wordpress-db:
-  #   # MySQL 8.0 database for WordPress
-  #   image: mysql:8.0
-  #   container_name: servicepi-wordpress-db
-  #   volumes:
-  #     - wordpress_db:/var/lib/mysql
-  #   restart: unless-stopped
-  #   networks:
-  #     - servicepi-network
-  #   environment:
-  #     - MYSQL_ROOT_PASSWORD=${WORDPRESS_DB_ROOT_PASSWORD:-root_password_change_me}
-  #     - MYSQL_DATABASE=${WORDPRESS_DB_NAME:-wordpress}
-  #     - MYSQL_USER=${WORDPRESS_DB_USER:-wordpress}
-  #     - MYSQL_PASSWORD=${WORDPRESS_DB_PASSWORD:-wordpress_password_change_me}
-  #   # No exposed ports - internal database only
+  wordpress-db:
+    # MySQL 8.0 database for WordPress
+    image: mysql:8.0
+    container_name: servicepi-wordpress-db
+    volumes:
+      - wordpress_db:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+    environment:
+      - MYSQL_ROOT_PASSWORD=${WORDPRESS_DB_ROOT_PASSWORD:-root_password_change_me}
+      - MYSQL_DATABASE=${WORDPRESS_DB_NAME:-wordpress}
+      - MYSQL_USER=${WORDPRESS_DB_USER:-wordpress}
+      - MYSQL_PASSWORD=${WORDPRESS_DB_PASSWORD:-wordpress_password_change_me}
+    # No exposed ports - internal database only
 
   # Wazuh Manager - Security monitoring and threat detection
   # Uncomment the wazuh-manager, wazuh-indexer, and wazuh-dashboard services below to enable Wazuh
@@ -288,12 +285,12 @@ volumes:
     driver: local
   n8n_data:
     driver: local
-  # WordPress volumes (uncomment when enabling WordPress)
-  # wordpress_data:
-  #   driver: local
-  # wordpress_db:
-  #   driver: local
-  # Wazuh volumes (uncomment when enabling Wazuh)
+  # WordPress volumes
+  wordpress_data:
+    driver: local
+  wordpress_db:
+    driver: local
+  # Wazuh volumes (uncomment when enabling Wazuh - set ENABLE_WAZUH=true in .env)
   # wazuh_api_configuration:
   #   driver: local
   # wazuh_etc:
