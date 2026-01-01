@@ -189,8 +189,8 @@ services:
     # No exposed ports - internal database only
 
   # Wazuh Manager - Security monitoring and threat detection
-  # Uncomment the wazuh-manager, wazuh-indexer, and wazuh-dashboard services below to enable Wazuh
-  # NOTE: Wazuh requires significant resources (4GB+ RAM recommended)
+  # To enable: Set ENABLE_WAZUH=true in .env and uncomment all Wazuh services below
+  # NOTE: Wazuh requires significant resources (4GB+ RAM, 8GB recommended)
   # wazuh-manager:
   #   # Wazuh Manager 4.9.2 for security event collection and analysis
   #   image: wazuh/wazuh-manager:4.9.2
