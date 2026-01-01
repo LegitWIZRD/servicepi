@@ -33,6 +33,16 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
         fi
         
+        # Create test .env file for validation
+        cat > .env << 'EOF'
+        # Test environment variables for CI/CD validation
+        WORDPRESS_DB_USER=wordpress
+        WORDPRESS_DB_PASSWORD=test_password_for_ci_validation_only
+        WORDPRESS_DB_NAME=wordpress
+        WORDPRESS_DB_ROOT_PASSWORD=test_root_password_for_ci_validation_only
+        WORDPRESS_TABLE_PREFIX=wp_
+        EOF
+        
         # Validate docker-compose file
         docker-compose config
         
@@ -134,6 +144,16 @@ jobs:
       
     - name: Test Docker Compose deployment
       run: |
+        # Create test .env file for deployment testing
+        cat > .env << 'EOF'
+        # Test environment variables for CI/CD
+        WORDPRESS_DB_USER=wordpress
+        WORDPRESS_DB_PASSWORD=test_password_for_ci_validation_only
+        WORDPRESS_DB_NAME=wordpress
+        WORDPRESS_DB_ROOT_PASSWORD=test_root_password_for_ci_validation_only
+        WORDPRESS_TABLE_PREFIX=wp_
+        EOF
+        
         # Start services
         docker-compose up -d
         
