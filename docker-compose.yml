@@ -165,7 +165,7 @@ services:
     environment:
       - WORDPRESS_DB_HOST=wordpress-db:3306
       - WORDPRESS_DB_USER=${WORDPRESS_DB_USER:-wordpress}
-      - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD:?Error: WORDPRESS_DB_PASSWORD must be set in .env file}
+      - WORDPRESS_DB_PASSWORD=${WORDPRESS_DB_PASSWORD:?WORDPRESS_DB_PASSWORD_not_set_in_env_file}
       - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME:-wordpress}
       - WORDPRESS_TABLE_PREFIX=${WORDPRESS_TABLE_PREFIX:-wp_}
     depends_on:
@@ -182,10 +182,10 @@ services:
     networks:
       - servicepi-network
     environment:
-      - MYSQL_ROOT_PASSWORD=${WORDPRESS_DB_ROOT_PASSWORD:?Error: WORDPRESS_DB_ROOT_PASSWORD must be set in .env file}
+      - MYSQL_ROOT_PASSWORD=${WORDPRESS_DB_ROOT_PASSWORD:?WORDPRESS_DB_ROOT_PASSWORD_not_set_in_env_file}
       - MYSQL_DATABASE=${WORDPRESS_DB_NAME:-wordpress}
       - MYSQL_USER=${WORDPRESS_DB_USER:-wordpress}
-      - MYSQL_PASSWORD=${WORDPRESS_DB_PASSWORD:?Error: WORDPRESS_DB_PASSWORD must be set in .env file}
+      - MYSQL_PASSWORD=${WORDPRESS_DB_PASSWORD:?WORDPRESS_DB_PASSWORD_not_set_in_env_file}
     # No exposed ports - internal database only
 
   # Wazuh Manager - Security monitoring and threat detection
