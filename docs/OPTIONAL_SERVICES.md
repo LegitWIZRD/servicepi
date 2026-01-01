@@ -1,13 +1,12 @@
 # Optional Services Guide
 
-This guide provides detailed instructions for enabling and configuring optional ServicePi services: WordPress and Wazuh.
+This guide provides detailed instructions for configuring ServicePi's optional services: WordPress and Wazuh.
 
 ## Table of Contents
 
 - [WordPress](#wordpress)
   - [Overview](#wordpress-overview)
   - [Requirements](#wordpress-requirements)
-  - [Installation](#wordpress-installation)
   - [Configuration](#wordpress-configuration)
   - [Use Cases](#wordpress-use-cases)
 - [Wazuh](#wazuh)
@@ -23,7 +22,7 @@ This guide provides detailed instructions for enabling and configuring optional 
 
 ### WordPress Overview
 
-WordPress is a popular content management system (CMS) that can be used to create a user-friendly dashboard for your ServicePi services. Unlike the technical web dashboard, WordPress provides:
+WordPress is a popular content management system (CMS) that provides a user-friendly dashboard for your ServicePi services. Unlike the technical web dashboard, WordPress provides:
 
 - Visual page builder for creating custom layouts
 - Easy-to-use interface for non-technical users
@@ -31,32 +30,35 @@ WordPress is a popular content management system (CMS) that can be used to creat
 - Blog/documentation capabilities
 - Extensive theme and plugin ecosystem
 
+**WordPress is enabled by default** in ServicePi and is ready to use immediately after installation.
+
 **Example Use Case**: Create a landing page that displays all your ServicePi services with descriptions and clickable links, making it easy for family members to access Home Assistant, Portainer, etc.
 
 ### WordPress Requirements
 
 - **Storage**: ~500MB for WordPress + database
 - **RAM**: ~256MB minimum
-- **Database**: MySQL 8.0 (included in configuration)
-- **Network**: Port 8081 available
+- **Database**: MySQL 8.0 (included and configured)
+- **Network**: Port 8081 (configured in firewall)
 
-### WordPress Installation
+### WordPress Configuration
 
-#### Step 1: Configure Environment Variables
+WordPress services are **enabled by default** and start automatically with `docker compose up -d`.
 
-1. Copy and edit the environment file:
+#### Step 1: Update Passwords (IMPORTANT!)
+
+1. Edit the environment file:
    ```bash
-   sudo cp /opt/servicepi/.env.example /opt/servicepi/.env  # If not already done
    sudo nano /opt/servicepi/.env
    ```
 
-2. Uncomment and configure WordPress variables:
+2. Change the default WordPress passwords:
    ```bash
    # WordPress database configuration
    WORDPRESS_DB_USER=wordpress
-   WORDPRESS_DB_PASSWORD=your_secure_password_here
+   WORDPRESS_DB_PASSWORD=your_secure_password_here  # CHANGE THIS!
    WORDPRESS_DB_NAME=wordpress
-   WORDPRESS_DB_ROOT_PASSWORD=your_secure_root_password_here
+   WORDPRESS_DB_ROOT_PASSWORD=your_secure_root_password_here  # CHANGE THIS!
    WORDPRESS_TABLE_PREFIX=wp_
    ```
 
@@ -67,60 +69,13 @@ WordPress is a popular content management system (CMS) that can be used to creat
    openssl rand -hex 32
    ```
 
-#### Step 2: Enable WordPress Services
-
-1. Edit docker-compose.yml:
-   ```bash
-   sudo nano /opt/servicepi/docker-compose.yml
-   ```
-
-2. Find the WordPress section and uncomment these services:
-   - `wordpress` service (around line 150)
-   - `wordpress-db` service (around line 165)
-   - `wordpress_data` volume (around line 203)
-   - `wordpress_db` volume (around line 205)
-
-3. In the `nginx-proxy` service section, uncomment:
-   - WordPress dependency in `depends_on` section
-   - Port `8081:8081` in `ports` section
-
-#### Step 3: Enable Nginx Proxy Configuration
-
-1. Edit nginx proxy configuration:
-   ```bash
-   sudo nano /opt/servicepi/configs/nginx/proxy/default.conf
-   ```
-
-2. Find the commented WordPress server block (around line 260) and uncomment it.
-
-#### Step 4: Configure Firewall
-
-1. Allow WordPress port through firewall:
-   ```bash
-   sudo ufw allow 8081/tcp
-   sudo ufw reload
-   ```
-
-#### Step 5: Start WordPress
-
-1. Start WordPress and database services:
+3. Restart WordPress services:
    ```bash
    cd /opt/servicepi
-   sudo docker compose up -d wordpress wordpress-db
+   sudo docker compose restart wordpress wordpress-db
    ```
 
-2. Wait for services to initialize (30-60 seconds):
-   ```bash
-   sudo docker compose logs -f wordpress
-   # Press Ctrl+C when you see "WordPress ready"
-   ```
-
-3. Verify services are running:
-   ```bash
-   sudo docker compose ps | grep wordpress
-   ```
-
-#### Step 6: Complete WordPress Setup
+#### Step 2: Complete WordPress Setup
 
 1. Access WordPress setup wizard:
    - Via IP: `http://your-pi-ip:8081/`
@@ -138,8 +93,6 @@ WordPress is a popular content management system (CMS) that can be used to creat
 4. Click "Install WordPress"
 
 5. Log in with your credentials
-
-### WordPress Configuration
 
 #### Creating a Service Directory
 
@@ -222,6 +175,8 @@ Wazuh is a free, open-source security platform that provides:
 - **Compliance management** (PCI-DSS, HIPAA, etc.)
 - **Agent-based monitoring** for endpoints
 
+**Wazuh is optional** and disabled by default due to its high resource requirements.
+
 **Example Use Case**: Monitor security events across your Raspberry Pi and other devices on your network, detect intrusions, track file changes, and maintain security compliance.
 
 ### Wazuh Requirements
@@ -262,22 +217,25 @@ If you don't meet these requirements, consider:
 - Using external storage
 - Running Wazuh on a more powerful device
 
-#### Step 1: Configure Environment Variables
+#### Step 1: Enable Wazuh in Configuration
 
 1. Edit environment file:
    ```bash
    sudo nano /opt/servicepi/.env
    ```
 
-2. Uncomment and configure Wazuh variables:
+2. Set the Wazuh enable flag and configure credentials:
    ```bash
+   # Enable/disable optional services
+   ENABLE_WAZUH=true  # Change from false to true
+   
    # Wazuh Indexer (OpenSearch) credentials
    WAZUH_INDEXER_USERNAME=admin
-   WAZUH_INDEXER_PASSWORD=your_secure_indexer_password_here
+   WAZUH_INDEXER_PASSWORD=your_secure_indexer_password_here  # CHANGE THIS!
    
    # Wazuh API credentials for dashboard access
    WAZUH_API_USERNAME=wazuh-wui
-   WAZUH_API_PASSWORD=your_secure_api_password_here
+   WAZUH_API_PASSWORD=your_secure_api_password_here  # CHANGE THIS!
    ```
 
    **⚠️ Important**: Change ALL default passwords!
@@ -287,24 +245,24 @@ If you don't meet these requirements, consider:
    openssl rand -hex 32
    ```
 
-#### Step 2: Enable Wazuh Services
+#### Step 2: Enable Wazuh Services in docker-compose.yml
 
 1. Edit docker-compose.yml:
    ```bash
    sudo nano /opt/servicepi/docker-compose.yml
    ```
 
-2. Uncomment these services (around line 180):
-   - `wazuh-indexer` service
-   - `wazuh-manager` service
-   - `wazuh-dashboard` service
+2. Uncomment these services (search for "wazuh"):
+   - `wazuh-indexer` service (around line 232)
+   - `wazuh-manager` service (around line 197)
+   - `wazuh-dashboard` service (around line 258)
 
-3. Uncomment Wazuh volumes (around line 208):
+3. Uncomment Wazuh volumes (around line 295):
    - All `wazuh_*` volumes (10 total)
 
-4. In `nginx-proxy` service section, uncomment:
-   - Wazuh dependency in `depends_on`
-   - Port `8443:8443` in `ports` section
+4. In `nginx-proxy` service section:
+   - Uncomment `wazuh-dashboard` in `depends_on` section
+   - Uncomment port `8443:8443` in `ports` section
 
 #### Step 3: Enable Nginx Proxy Configuration
 
@@ -313,7 +271,7 @@ If you don't meet these requirements, consider:
    sudo nano /opt/servicepi/configs/nginx/proxy/default.conf
    ```
 
-2. Find the commented Wazuh server block (around line 305) and uncomment it.
+2. Find the commented Wazuh server block (search for "Wazuh Dashboard") and uncomment it.
 
 #### Step 4: Configure Firewall
 
