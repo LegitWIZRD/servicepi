@@ -73,11 +73,11 @@ After installation, access your services via HTTP using IP addresses or local do
 - **Home Assistant**: `http://your-pi-ip:8123/` or `http://homeassistant.local:8123/` (HTTP :8123)
 - **Pi-hole Admin**: `http://your-pi-ip:8053/admin` or `http://pihole.local:8053/admin` (HTTP :8053)
 - **N8N Workflow Automation**: `http://your-pi-ip:5678/` or `http://n8n.local:5678/` (HTTP :5678)
+- **WordPress**: `http://your-pi-ip:8081/` or `http://wordpress.local:8081/` (HTTP :8081)
 - **Health Check**: `http://your-pi-ip/health`
 
-**Optional Services** (see instructions below to enable):
-- **WordPress**: `http://your-pi-ip:8081/` or `http://wordpress.local:8081/` (HTTP :8081)
-- **Wazuh Dashboard**: `http://your-pi-ip:8443/` or `http://wazuh.local:8443/` (HTTP :8443)
+**Optional Services:**
+- **Wazuh Dashboard**: `http://your-pi-ip:8443/` or `http://wazuh.local:8443/` (HTTP :8443) - See [Enabling Wazuh](#enabling-wazuh-optional) below
 
 ⚠️ **Security Warning**: These services are HTTP-only and should ONLY be accessible on your trusted local network. Do NOT expose them directly to the internet. For remote access, use a VPN (WireGuard, Tailscale) or SSH tunnel.
 
@@ -180,43 +180,26 @@ Access N8N at `http://your-pi-ip:5678/` or `http://n8n.local:5678/`. Create work
 
 ### Optional Services
 
-### WordPress (Optional)
+### WordPress
 - User-friendly dashboard for creating service directories
 - Content management system (CMS) for custom pages
 - Easy-to-use interface for non-technical users
 - MySQL database backend for content storage
 - Extensive theme and plugin ecosystem
 
-**Enabling WordPress:**
+**WordPress is enabled by default** in ServicePi and ready to use at `http://your-pi-ip:8081/` or `http://wordpress.local:8081/`.
 
-1. **Edit `.env` file** and uncomment/configure WordPress variables:
+**Configuration:**
+
+1. **Update passwords in `.env` file** (IMPORTANT - change from defaults!):
    ```bash
    sudo nano /opt/servicepi/.env
-   # Uncomment and change passwords for:
-   # WORDPRESS_DB_USER, WORDPRESS_DB_PASSWORD, WORDPRESS_DB_NAME, WORDPRESS_DB_ROOT_PASSWORD
+   # Change: WORDPRESS_DB_PASSWORD, WORDPRESS_DB_ROOT_PASSWORD
    ```
 
-2. **Uncomment WordPress services** in `docker-compose.yml`:
-   ```bash
-   sudo nano /opt/servicepi/docker-compose.yml
-   # Uncomment the wordpress, wordpress-db services and their volumes
-   ```
+2. **Complete WordPress setup:** Access at `http://your-pi-ip:8081/` and follow the installation wizard.
 
-3. **Uncomment WordPress configuration** in nginx and firewall:
-   ```bash
-   # In docker-compose.yml: uncomment WordPress port 8081 in nginx-proxy
-   # In configs/nginx/proxy/default.conf: uncomment WordPress server block
-   # In scripts/install.sh: uncomment firewall rule for port 8081
-   sudo ufw allow 8081/tcp
-   ```
-
-4. **Start services:**
-   ```bash
-   cd /opt/servicepi
-   sudo docker compose up -d wordpress wordpress-db
-   ```
-
-5. **Configure WordPress:** Access at `http://your-pi-ip:8081/` or `http://wordpress.local:8081/` and complete the initial setup.
+3. **Create your dashboard:** Use WordPress to build a custom landing page with service links and documentation.
 
 **Use Case:** Create a simple landing page with links to all your ServicePi services, making it easy for family members or team members to find and access services.
 
@@ -227,52 +210,53 @@ Access N8N at `http://your-pi-ip:5678/` or `http://n8n.local:5678/`. Create work
 - Vulnerability detection and compliance management
 - Agent-based monitoring for endpoints
 
-⚠️ **Resource Requirements**: Wazuh requires significant resources - **minimum 4GB RAM recommended**. Only enable on Pi 5 with sufficient RAM.
+⚠️ **Resource Requirements**: Wazuh requires significant resources - **minimum 4GB RAM, 8GB recommended**. Only enable on Pi 5 with sufficient RAM.
 
 **Enabling Wazuh:**
 
-1. **Ensure sufficient resources** (4GB+ RAM recommended):
-   ```bash
-   free -h  # Check available memory
-   ```
-
-2. **Edit `.env` file** and uncomment/configure Wazuh variables:
+1. **Set environment flag in `.env` file**:
    ```bash
    sudo nano /opt/servicepi/.env
-   # Uncomment and change passwords for:
-   # WAZUH_INDEXER_USERNAME, WAZUH_INDEXER_PASSWORD
-   # WAZUH_API_USERNAME, WAZUH_API_PASSWORD
+   # Set: ENABLE_WAZUH=true
+   # Change all Wazuh passwords from defaults!
    ```
 
-3. **Uncomment Wazuh services** in `docker-compose.yml`:
+2. **Uncomment Wazuh services** in `docker-compose.yml`:
    ```bash
    sudo nano /opt/servicepi/docker-compose.yml
-   # Uncomment: wazuh-manager, wazuh-indexer, wazuh-dashboard services and their volumes
+   # Uncomment: wazuh-manager, wazuh-indexer, wazuh-dashboard services
+   # Uncomment: all wazuh_* volumes
+   # Uncomment: wazuh-dashboard in nginx-proxy depends_on
+   # Uncomment: port 8443:8443 in nginx-proxy ports
    ```
 
-4. **Uncomment Wazuh configuration** in nginx and firewall:
+3. **Uncomment Wazuh nginx configuration**:
    ```bash
-   # In docker-compose.yml: uncomment Wazuh port 8443 in nginx-proxy
-   # In configs/nginx/proxy/default.conf: uncomment Wazuh Dashboard server block
-   # In scripts/install.sh: uncomment firewall rules for Wazuh ports
-   sudo ufw allow 8443/tcp  # Dashboard
-   # Optionally for agents:
-   # sudo ufw allow 1514/tcp  # Agent events
-   # sudo ufw allow 1515/tcp  # Agent enrollment
+   sudo nano /opt/servicepi/configs/nginx/proxy/default.conf
+   # Uncomment the Wazuh Dashboard server block
    ```
 
-5. **Start services** (this may take several minutes):
+4. **Configure firewall**:
+   ```bash
+   sudo ufw allow 8443/tcp
+   # Optional for agents:
+   # sudo ufw allow 1514/tcp
+   # sudo ufw allow 1515/tcp
+   ```
+
+5. **Start services in order** (important!):
    ```bash
    cd /opt/servicepi
-   sudo docker compose up -d wazuh-indexer wazuh-manager wazuh-dashboard
+   sudo docker compose up -d wazuh-indexer
+   sleep 60  # Wait for indexer to start
+   sudo docker compose up -d wazuh-manager
+   sleep 30  # Wait for manager to start
+   sudo docker compose up -d wazuh-dashboard
    ```
 
-6. **Access Dashboard:** Navigate to `http://your-pi-ip:8443/` or `http://wazuh.local:8443/`
-   - Default credentials: admin / SecretPassword (change in `.env`)
+6. **Access Wazuh:** `http://your-pi-ip:8443/` or `http://wazuh.local:8443/` and log in with credentials from `.env`.
 
-7. **Install agents** (optional): To monitor other devices, install Wazuh agents and point them to your Pi's IP on port 1514.
-
-**Use Case:** Monitor security events across your network, detect intrusions, track file changes, and maintain compliance with security policies.
+For detailed setup instructions, see [docs/OPTIONAL_SERVICES.md](docs/OPTIONAL_SERVICES.md).
 
 ## CI/CD Pipeline
 

@@ -375,6 +375,39 @@
                     <span class="http-indicator">HTTP</span> | Automation Platform
                 </div>
             </div>
+            
+            <div class="service-card">
+                <h3>
+                    WordPress CMS
+                    <span class="port">:8081</span>
+                </h3>
+                <span class="version-badge">v6.7</span>
+                <span class="status running">🟢 Running</span>
+                <p>Content management system for custom dashboards and service directories</p>
+                <div class="service-links">
+                    <a href="http://localhost:8081" target="_blank">Access WordPress</a>
+                    <a href="http://localhost:8081/wp-admin" target="_blank">Admin</a>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                    <span class="http-indicator">HTTP</span> | PHP/MySQL CMS
+                </div>
+            </div>
+            
+            <div class="service-card" style="opacity: 0.7; border-left-color: #6c757d;">
+                <h3>
+                    Wazuh SIEM
+                    <span class="port">:8443</span>
+                </h3>
+                <span class="version-badge">v4.9.2</span>
+                <span class="status" style="background: #fff3cd; color: #856404;">⚠️ Optional</span>
+                <p>Security monitoring and threat detection (requires 4GB+ RAM, enable in .env)</p>
+                <div class="service-links">
+                    <a href="http://localhost:8443" target="_blank" style="background: #6c757d;">Access Wazuh</a>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                    <span class="http-indicator">HTTP</span> | Security Platform | Set ENABLE_WAZUH=true to enable
+                </div>
+            </div>
         </div>
         
         <div class="api-section">
@@ -398,7 +431,9 @@
                 🔧 IoT API: <span class="http-indicator">HTTP :8080</span> | 
                 🏠 Home Assistant: <span class="http-indicator">HTTP :8123</span> | 
                 🛡️ Pi-hole: <span class="http-indicator">HTTP :8053</span> | 
-                🔄 N8N: <span class="http-indicator">HTTP :5678</span>
+                🔄 N8N: <span class="http-indicator">HTTP :5678</span> | 
+                📝 WordPress: <span class="http-indicator">HTTP :8081</span> | 
+                🔐 Wazuh: <span class="http-indicator">HTTP :8443</span> (optional)
             </p>
             <p>Last updated: <span id="timestamp"></span></p>
             <p>🔄 Auto-deployed via CI/CD pipeline</p>
@@ -470,6 +505,23 @@
         const n8nLink = document.querySelector('a[href="http://localhost:5678"]');
         if (n8nLink && hostname !== 'localhost') {
             n8nLink.href = `http://${hostname}:5678`;
+        }
+        
+        // Update WordPress links
+        const wordpressLink = document.querySelector('a[href="http://localhost:8081"]');
+        if (wordpressLink && hostname !== 'localhost') {
+            wordpressLink.href = `http://${hostname}:8081`;
+        }
+        
+        const wordpressAdminLink = document.querySelector('a[href="http://localhost:8081/wp-admin"]');
+        if (wordpressAdminLink && hostname !== 'localhost') {
+            wordpressAdminLink.href = `http://${hostname}:8081/wp-admin`;
+        }
+        
+        // Update Wazuh link
+        const wazuhLink = document.querySelector('a[href="http://localhost:8443"]');
+        if (wazuhLink && hostname !== 'localhost') {
+            wazuhLink.href = `http://${hostname}:8443`;
         }
         
         // Modal functions

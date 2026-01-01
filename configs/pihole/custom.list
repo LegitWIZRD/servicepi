@@ -13,11 +13,9 @@
 # <YOUR_PI_IP> homeassistant.local
 # <YOUR_PI_IP> pihole.local
 # <YOUR_PI_IP> n8n.local
-
-# WordPress (uncomment when enabling WordPress)
 # <YOUR_PI_IP> wordpress.local
 
-# Wazuh (uncomment when enabling Wazuh)
+# Wazuh (uncomment when enabling Wazuh - set ENABLE_WAZUH=true in .env)
 # <YOUR_PI_IP> wazuh.local
 
 # Add your custom DNS entries below
