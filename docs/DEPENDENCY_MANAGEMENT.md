@@ -15,7 +15,7 @@ ServicePi uses Docker images from trusted sources. All images are pinned to spec
 | Portainer | portainer/portainer-ce | 2.33.2-alpine | Container management UI |
 | Home Assistant | ghcr.io/home-assistant/home-assistant | 2025.10.2 | Home automation platform |
 | Pi-hole | pihole/pihole | 2025.08.0 | DNS ad blocker |
-| N8N | n8nio/n8n | 1.114.3 | Workflow automation platform |
+| N8N | n8nio/n8n | 2.6.2 | Workflow automation platform |
 | IoT Service | (custom build) | Python 3.13-alpine | Built from local Dockerfile |
 
 ### Why Pin Versions?
@@ -266,7 +266,7 @@ trivy image nginx:1.27.3-alpine
 trivy image portainer/portainer-ce:2.33.2-alpine
 trivy image ghcr.io/home-assistant/home-assistant:2025.10.2
 trivy image pihole/pihole:2025.08.0
-trivy image n8nio/n8n:1.114.3
+trivy image n8nio/n8n:2.6.2
 
 # Scan with severity filtering
 trivy image --severity HIGH,CRITICAL nginx:1.27.3-alpine

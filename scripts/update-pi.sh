@@ -82,14 +82,47 @@ update_containers() {
     
     cd "$INSTALL_DIR"
     
-    # Pull latest images
-    docker-compose pull
+    # Clean up any corrupted or dangling images first
+    log "Cleaning up Docker cache to prevent corrupted layer issues..."
+    docker builder prune -f || true
+    docker image prune -f || true
+    
+    # Pull latest images with retry logic
+    log "Pulling latest Docker images..."
+    local max_retries=3
+    local retry_count=0
+    local pull_success=false
+    
+    while [ $retry_count -lt $max_retries ]; do
+        if docker-compose pull; then
+            pull_success=true
+            break
+        else
+            retry_count=$((retry_count + 1))
+            if [ $retry_count -lt $max_retries ]; then
+                warning "Docker pull failed (attempt $retry_count/$max_retries), cleaning cache and retrying..."
+                # Clean up potentially corrupted layers
+                docker system prune -f || true
+                sleep 5
+            else
+                error_exit "Failed to pull Docker images after $max_retries attempts. Please check your internet connection and Docker setup."
+            fi
+        fi
+    done
+    
+    if [ "$pull_success" = true ]; then
+        success "Docker images pulled successfully"
+    fi
     
     # Stop and recreate containers with new configurations
+    log "Stopping existing containers..."
     docker-compose down
+    
+    log "Starting updated containers..."
     docker-compose up -d
     
     # Clean up old images
+    log "Cleaning up unused Docker images..."
     docker image prune -f
     
     success "Docker containers updated successfully"
