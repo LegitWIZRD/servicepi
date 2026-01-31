@@ -3,7 +3,7 @@ services:
   nginx-proxy:
     # Using nginx:alpine with version tag for ARM64 compatibility
     # Alpine images are lightweight and well-suited for Raspberry Pi
-    image: nginx:1.27.3-alpine
+    image: nginx:1.28.1-alpine
     container_name: servicepi-proxy
     ports:
       - "80:80"    # HTTP for web dashboard
@@ -35,7 +35,7 @@ services:
   # Web Backend (internal only)
   web-backend:
     # Using nginx:alpine with version tag for ARM64 compatibility
-    image: nginx:1.27.3-alpine
+    image: nginx:1.28.1-alpine
     container_name: servicepi-web-backend
     volumes:
       - ./configs/nginx/backend:/etc/nginx/conf.d
@@ -48,8 +48,8 @@ services:
   # Container Management (Portainer)
   portainer:
     # Using specific version tag instead of :latest for reproducibility
-    # Portainer CE 2.33.5 includes bug fixes and improvements
-    image: portainer/portainer-ce:2.33.5-alpine
+    # Portainer CE 2.38.0 includes bug fixes, security updates, and improvements
+    image: portainer/portainer-ce:2.38.0-alpine
     container_name: servicepi-portainer
     command: --host unix:///var/run/docker.sock
     volumes:
@@ -84,8 +84,8 @@ services:
   # Home Assistant
   homeassistant:
     # Using stable tag with specific version for reproducibility
-    # Home Assistant 2025.12.4 includes bug fixes and improvements
-    image: ghcr.io/home-assistant/home-assistant:2025.12.4
+    # Home Assistant 2026.1.3 includes bug fixes and improvements
+    image: ghcr.io/home-assistant/home-assistant:2026.1.3
     container_name: servicepi-homeassistant
     volumes:
       - homeassistant_data:/config
@@ -134,8 +134,8 @@ services:
   # N8N Workflow Automation
   n8n:
     # Using specific version tag for reproducibility
-    # n8n 1.121.3 includes workflow improvements and bug fixes
-    image: n8nio/n8n:1.121.3
+    # n8n 2.4.8 includes workflow improvements, bug fixes, and new features
+    image: n8nio/n8n:2.4.8
     container_name: servicepi-n8n
     volumes:
       - n8n_data:/home/node/.n8n
@@ -173,8 +173,8 @@ services:
     # No exposed ports - accessed via nginx-proxy at :8081
 
   wordpress-db:
-    # MySQL 8.0 database for WordPress
-    image: mysql:8.0
+    # MySQL 8.0 database for WordPress (using latest 8.0.x for stability)
+    image: mysql:8.0.45
     container_name: servicepi-wordpress-db
     volumes:
       - wordpress_db:/var/lib/mysql
