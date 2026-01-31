@@ -393,6 +393,22 @@
                 </div>
             </div>
             
+            <div class="service-card">
+                <h3>
+                    OpenWebUI
+                    <span class="port">:3000</span>
+                </h3>
+                <span class="version-badge">latest</span>
+                <span class="status running">🟢 Running</span>
+                <p>LLM web interface for AI chat and model management</p>
+                <div class="service-links">
+                    <a href="http://localhost:3000" target="_blank">Access OpenWebUI</a>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                    <span class="http-indicator">HTTP</span> | AI Interface
+                </div>
+            </div>
+            
             <div class="service-card" style="opacity: 0.7; border-left-color: #6c757d;">
                 <h3>
                     Wazuh SIEM
@@ -433,6 +449,7 @@
                 🛡️ Pi-hole: <span class="http-indicator">HTTP :8053</span> | 
                 🔄 N8N: <span class="http-indicator">HTTP :5678</span> | 
                 📝 WordPress: <span class="http-indicator">HTTP :8081</span> | 
+                🤖 OpenWebUI: <span class="http-indicator">HTTP :3000</span> | 
                 🔐 Wazuh: <span class="http-indicator">HTTP :8443</span> (optional)
             </p>
             <p>Last updated: <span id="timestamp"></span></p>
@@ -522,6 +539,12 @@
         const wazuhLink = document.querySelector('a[href="http://localhost:8443"]');
         if (wazuhLink && hostname !== 'localhost') {
             wazuhLink.href = `http://${hostname}:8443`;
+        }
+        
+        // Update OpenWebUI link
+        const openwebuiLink = document.querySelector('a[href="http://localhost:3000"]');
+        if (openwebuiLink && hostname !== 'localhost') {
+            openwebuiLink.href = `http://${hostname}:3000`;
         }
         
         // Modal functions
