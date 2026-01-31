@@ -13,6 +13,7 @@ services:
       - "8053:8053" # HTTP for Pi-hole Admin
       - "5678:5678" # HTTP for N8N
       - "8081:8081" # HTTP for WordPress
+      - "3000:3000" # HTTP for OpenWebUI
       # Uncomment the port below when enabling Wazuh (set ENABLE_WAZUH=true in .env)
       # - "8443:8443" # HTTP for Wazuh Dashboard
     volumes:
@@ -29,6 +30,7 @@ services:
       - pihole
       - n8n
       - wordpress
+      - openwebui
       # Uncomment when enabling Wazuh (set ENABLE_WAZUH=true in .env)
       # - wazuh-dashboard
 
@@ -172,6 +174,21 @@ services:
       - wordpress-db
     # No exposed ports - accessed via nginx-proxy at :8081
 
+  # OpenWebUI - LLM Web Interface
+  openwebui:
+    # Using latest stable version of OpenWebUI
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: servicepi-openwebui
+    volumes:
+      - openwebui_data:/app/backend/data
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - WEBUI_SECRET_KEY=${OPENWEBUI_SECRET_KEY:-}
+    # No exposed ports - accessed via nginx-proxy at :3000
+
   wordpress-db:
     # MySQL 8.0 database for WordPress (using latest 8.0.x for stability)
     image: mysql:8.0.45
@@ -289,6 +306,9 @@ volumes:
   wordpress_data:
     driver: local
   wordpress_db:
+    driver: local
+  # OpenWebUI volume
+  openwebui_data:
     driver: local
   # Wazuh volumes (uncomment when enabling Wazuh - set ENABLE_WAZUH=true in .env)
   # wazuh_api_configuration:
