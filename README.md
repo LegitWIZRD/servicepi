@@ -16,6 +16,7 @@ ServicePi provides a complete infrastructure-as-code solution for running Docker
 - 🏠 **Home Assistant** for IoT automation and service orchestration
 - 🚫 **Pi-hole DNS ad blocker** with curated blocklists
 - 🔁 **N8N workflow automation** for integrations and automation
+- 🤖 **OpenWebUI** for Large Language Model (LLM) interactions
 - 📝 **WordPress** (optional) for user-friendly service directories
 - 🔐 **Wazuh SIEM** (optional) for security monitoring and threat detection
 - 🌐 **Domain name resolution** with .local domain support
@@ -73,6 +74,7 @@ After installation, access your services via HTTP using IP addresses or local do
 - **Home Assistant**: `http://your-pi-ip:8123/` or `http://homeassistant.local:8123/` (HTTP :8123)
 - **Pi-hole Admin**: `http://your-pi-ip:8053/admin` or `http://pihole.local:8053/admin` (HTTP :8053)
 - **N8N Workflow Automation**: `http://your-pi-ip:5678/` or `http://n8n.local:5678/` (HTTP :5678)
+- **OpenWebUI**: `http://your-pi-ip:3000/` or `http://openwebui.local:3000/` (HTTP :3000)
 - **WordPress**: `http://your-pi-ip:8081/` or `http://wordpress.local:8081/` (HTTP :8081)
 - **Health Check**: `http://your-pi-ip/health`
 
@@ -177,6 +179,34 @@ Access Pi-hole admin at `http://your-pi-ip:8053/admin` or `http://pihole.local:8
 - Integration with Home Assistant and IoT API service
 
 Access N8N at `http://your-pi-ip:5678/` or `http://n8n.local:5678/`. Create workflows to automate tasks between your ServicePi services and external platforms.
+
+#### OpenWebUI
+- Modern web interface for Large Language Models (LLMs)
+- Connects to Ollama for local LLM inference
+- Chat interface similar to ChatGPT
+- Support for multiple models and conversations
+- File upload and document analysis capabilities
+- Markdown rendering and code syntax highlighting
+- Configurable backend URL for flexible deployment
+
+**Configuration:**
+
+OpenWebUI connects to an Ollama instance to provide LLM capabilities. You can configure the Ollama server location in your `.env` file:
+
+```bash
+# For Ollama running on the Pi host (default)
+OLLAMA_BASE_URL=http://host.docker.internal:11434
+
+# For Ollama running on another machine on your network
+OLLAMA_BASE_URL=http://192.168.1.100:11434
+
+# For Ollama running in another Docker container
+OLLAMA_BASE_URL=http://ollama:11434
+```
+
+Access OpenWebUI at `http://your-pi-ip:3000/` or `http://openwebui.local:3000/`. 
+
+**Prerequisites:** OpenWebUI requires an Ollama instance to be running. Install Ollama on your Pi or another server before using OpenWebUI. Visit [https://ollama.ai](https://ollama.ai) for installation instructions.
 
 ### Optional Services
 

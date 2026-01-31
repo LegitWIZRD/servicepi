@@ -13,6 +13,7 @@
 # <YOUR_PI_IP> homeassistant.local
 # <YOUR_PI_IP> pihole.local
 # <YOUR_PI_IP> n8n.local
+# <YOUR_PI_IP> openwebui.local
 # <YOUR_PI_IP> wordpress.local
 
 # Wazuh (uncomment when enabling Wazuh - set ENABLE_WAZUH=true in .env)
