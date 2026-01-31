@@ -136,8 +136,8 @@ services:
   # N8N Workflow Automation
   n8n:
     # Using specific version tag for reproducibility
-    # n8n 2.4.8 includes workflow improvements, bug fixes, and new features
-    image: n8nio/n8n:2.4.8
+    # n8n 2.6.2 includes workflow improvements, bug fixes, and stability enhancements
+    image: n8nio/n8n:2.6.2
     container_name: servicepi-n8n
     volumes:
       - n8n_data:/home/node/.n8n
