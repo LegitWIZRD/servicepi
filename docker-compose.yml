@@ -136,8 +136,9 @@ services:
   # N8N Workflow Automation
   n8n:
     # Using specific version tag for reproducibility
-    # n8n 2.6.2 includes workflow improvements, bug fixes, and stability enhancements
-    image: n8nio/n8n:2.6.2
+    # n8n 2.4.8 is the latest stable LTS version (rolled back from 2.6.2 due to breaking changes)
+    # Version 2.6.x had major release issues causing update failures
+    image: n8nio/n8n:2.4.8
     container_name: servicepi-n8n
     volumes:
       - n8n_data:/home/node/.n8n
