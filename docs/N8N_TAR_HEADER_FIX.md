@@ -23,23 +23,25 @@ The error "invalid tar header" during Docker image pull typically occurs due to:
 
 The fix involves two key changes:
 
-### 1. Upgrade N8N to Latest Stable Version
+### 1. Roll Back N8N to Stable LTS Version
 
 **File**: `docker-compose.yml`
 
-Updated n8n from version 2.4.8 to 2.6.2 (latest stable release):
+Rolled back n8n from version 2.6.2 to 2.4.8 (latest stable LTS release):
 
 ```yaml
 n8n:
   # Using specific version tag for reproducibility
-  # n8n 2.6.2 includes workflow improvements, bug fixes, and stability enhancements
-  image: n8nio/n8n:2.6.2
+  # n8n 2.4.8 is the latest stable LTS version (rolled back from 2.6.2 due to breaking changes)
+  # Version 2.6.x had major release issues causing update failures
+  image: n8nio/n8n:2.4.8
 ```
 
 **Why This Helps**:
-- Newer versions often have improved build processes and fewer layer issues
-- Version 2.6.2 has better ARM64 support and stability
-- Reduces likelihood of corrupted layer issues in the specific version
+- Version 2.6.x (released Jan 26-28, 2026) introduced breaking changes
+- Version 2.4.8 is the stable LTS branch with better compatibility
+- Avoids update failures and stack startup issues
+- Version 2.4.8 has proven ARM64 support and stability on Raspberry Pi
 
 ### 2. Enhanced Update Script with Retry Logic
 
