@@ -13,10 +13,23 @@ NC='\033[0m' # No Color
 echo "Testing N8N Configuration..."
 echo ""
 
+# Expected version
+EXPECTED_VERSION="2.6.2"
+
 # Check if docker-compose.yml exists
 if [ ! -f "docker-compose.yml" ]; then
     echo -e "${RED}✗${NC} docker-compose.yml not found"
     exit 1
+fi
+
+# Verify N8N version is correct
+echo "Checking N8N version..."
+ACTUAL_VERSION=$(grep -B 3 "container_name: servicepi-n8n" docker-compose.yml | grep "image:" | sed 's/.*n8nio\/n8n://' | tr -d ' ')
+if [ "$ACTUAL_VERSION" = "$EXPECTED_VERSION" ]; then
+    echo -e "${GREEN}✓${NC} N8N is using version $EXPECTED_VERSION"
+else
+    echo -e "${YELLOW}⚠${NC} N8N version may not be $EXPECTED_VERSION"
+    echo -e "${YELLOW}  Current version: $ACTUAL_VERSION${NC}"
 fi
 
 # Verify N8N_SECURE_COOKIE is set to false

@@ -569,7 +569,22 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
    docker exec servicepi-pihole pihole -g
    ```
 
-7. **N8N secure cookie error**: If you see "Your n8n server is configured to use a secure cookie" error, ensure the N8N_SECURE_COOKIE environment variable is properly configured:
+7. **N8N Docker image tar header error**: If you encounter "failed to register layer: Error processing tar file(exit status 1): invalid tar header" during updates:
+   ```bash
+   # Clean Docker cache
+   docker system prune -a -f
+   
+   # Pull n8n image specifically
+   docker pull n8nio/n8n:2.6.2
+   
+   # Run update script (now has automatic retry logic)
+   sudo /opt/servicepi/scripts/update-pi.sh
+   
+   # See full documentation
+   cat /opt/servicepi/docs/N8N_TAR_HEADER_FIX.md
+   ```
+
+8. **N8N secure cookie error**: If you see "Your n8n server is configured to use a secure cookie" error, ensure the N8N_SECURE_COOKIE environment variable is properly configured:
    ```bash
    # Verify N8N configuration
    /opt/servicepi/scripts/test-n8n-config.sh
