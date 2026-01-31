@@ -14,7 +14,7 @@ echo "Testing N8N Configuration..."
 echo ""
 
 # Expected version
-EXPECTED_VERSION="2.4.8"
+EXPECTED_VERSION="2.3.0"
 
 # Check if docker-compose.yml exists
 if [ ! -f "docker-compose.yml" ]; then

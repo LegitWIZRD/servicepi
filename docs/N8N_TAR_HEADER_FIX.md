@@ -23,25 +23,25 @@ The error "invalid tar header" during Docker image pull typically occurs due to:
 
 The fix involves two key changes:
 
-### 1. Roll Back N8N to Stable LTS Version
+### 1. Roll Back N8N to Stable Version
 
 **File**: `docker-compose.yml`
 
-Rolled back n8n from version 2.6.2 to 2.4.8 (latest stable LTS release):
+Rolled back n8n to version 2.3.0 to avoid tar header issues:
 
 ```yaml
 n8n:
   # Using specific version tag for reproducibility
-  # n8n 2.4.8 is the latest stable LTS version (rolled back from 2.6.2 due to breaking changes)
-  # Version 2.6.x had major release issues causing update failures
-  image: n8nio/n8n:2.4.8
+  # n8n 2.3.0 is a stable version that avoids tar header issues with later versions
+  # Later versions (2.4.x, 2.6.x) had issues with tar headers and update failures
+  image: n8nio/n8n:2.3.0
 ```
 
 **Why This Helps**:
-- Version 2.6.x (released Jan 26-28, 2026) introduced breaking changes
-- Version 2.4.8 is the stable LTS branch with better compatibility
+- Version 2.3.0 is known to be stable without tar header issues
+- Later versions (2.4.x, 2.6.x) had problems with tar headers during image pulls
 - Avoids update failures and stack startup issues
-- Version 2.4.8 has proven ARM64 support and stability on Raspberry Pi
+- Version 2.3.0 has proven ARM64 support and stability on Raspberry Pi
 
 ### 2. Enhanced Update Script with Retry Logic
 
@@ -156,7 +156,7 @@ The update script will now:
 - Clean the Docker cache before pulling
 - Retry up to 3 times if the pull fails
 - Clean corrupted layers between retries
-- Pull the new n8n 2.6.2 image
+- Pull the new n8n 2.3.0 image
 
 3. Verify n8n is running:
    ```bash
@@ -199,7 +199,7 @@ If the automatic retry logic fails, you can manually fix the issue:
 ```bash
 cd /opt/servicepi
 docker system prune -a -f
-docker pull n8nio/n8n:2.6.2
+docker pull n8nio/n8n:2.3.0
 docker-compose up -d n8n
 ```
 
