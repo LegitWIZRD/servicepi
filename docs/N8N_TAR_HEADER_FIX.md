@@ -206,7 +206,8 @@ docker-compose up -d n8n
 cd /opt/servicepi
 docker-compose stop n8n
 docker-compose rm -f n8n
-docker rmi n8nio/n8n:2.4.8 || true
+# Remove old n8n image (replace with your current version if different)
+docker rmi n8nio/n8n:<old-version> || true
 docker-compose pull n8n
 docker-compose up -d n8n
 ```
