@@ -136,8 +136,9 @@ services:
   # N8N Workflow Automation
   n8n:
     # Using specific version tag for reproducibility
-    # n8n 2.8.2 is the latest stable version with bug fixes and improvements
-    image: n8nio/n8n:2.8.2
+    # n8n 2.3.0 is a stable version that avoids tar header issues with later versions
+    # Later versions (2.4.x+) have issues with tar headers during image pulls on ARM64
+    image: n8nio/n8n:2.3.0
     container_name: servicepi-n8n
     volumes:
       - n8n_data:/home/node/.n8n

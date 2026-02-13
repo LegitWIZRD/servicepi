@@ -2,13 +2,15 @@
 
 ## Issue Summary
 
-Users were experiencing a Docker image pull error when updating ServicePi:
+Users experience a Docker image pull error when updating ServicePi with newer n8n versions:
 
 ```
 for n8n failed to register layer: Error processing tar file(exit status 1): invalid tar header
 ```
 
 This error occurs during the `docker-compose pull` operation in the update script and prevents the n8n service from updating correctly.
+
+**Recent Occurrence**: This issue was reported again with n8n version 2.8.2 (February 2026), confirming that newer versions continue to have compatibility issues with ARM64 architecture on Raspberry Pi.
 
 ## Root Cause
 
@@ -39,9 +41,10 @@ n8n:
 
 **Why This Helps**:
 - Version 2.3.0 is known to be stable without tar header issues
-- Later versions (2.4.x, 2.6.x) had problems with tar headers during image pulls
+- Later versions (2.4.x, 2.6.x, 2.7.x, 2.8.x) have recurring problems with tar headers during image pulls on ARM64
 - Avoids update failures and stack startup issues
 - Version 2.3.0 has proven ARM64 support and stability on Raspberry Pi
+- Until n8n resolves ARM64-specific issues in their Docker build process, we maintain 2.3.0 for reliability
 
 ### 2. Enhanced Update Script with Retry Logic
 
