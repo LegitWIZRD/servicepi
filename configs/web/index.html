@@ -327,7 +327,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle between light and dark mode">
                 <span id="theme-icon">🌙</span>
             </button>
             <h1>🍓 ServicePi Dashboard</h1>
@@ -579,8 +579,10 @@
             }
         }
         
-        // Initialize theme on page load
-        loadTheme();
+        // Initialize theme and other elements on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+        });
         
         document.getElementById('timestamp').textContent = new Date().toLocaleString();
         
