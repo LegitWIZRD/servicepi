@@ -5,26 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ServicePi Dashboard</title>
     <style>
+        :root {
+            --bg-primary: #f5f5f5;
+            --bg-secondary: white;
+            --bg-card: #f8f9fa;
+            --bg-api-section: #e9ecef;
+            --bg-api-endpoint: white;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-muted: #495057;
+            --border-color: #eee;
+            --border-primary: #007bff;
+            --shadow: rgba(0,0,0,0.1);
+            --shadow-hover: rgba(0,0,0,0.1);
+            --modal-bg: rgba(0,0,0,0.5);
+        }
+
+        body.dark-mode {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-card: #3a3a3a;
+            --bg-api-section: #2a2a2a;
+            --bg-api-endpoint: #3a3a3a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --text-muted: #a0a0a0;
+            --border-color: #404040;
+            --border-primary: #0d6efd;
+            --shadow: rgba(0,0,0,0.3);
+            --shadow-hover: rgba(0,0,0,0.5);
+            --modal-bg: rgba(0,0,0,0.7);
+        }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: var(--bg-primary);
+            transition: background-color 0.3s ease;
         }
         .container {
             max-width: 1000px;
             margin: 0 auto;
-            background: white;
+            background: var(--bg-secondary);
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px var(--shadow);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
         .header {
             text-align: center;
-            color: #333;
-            border-bottom: 2px solid #007bff;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-primary);
             padding-bottom: 20px;
             margin-bottom: 30px;
+            position: relative;
+            transition: color 0.3s ease, border-color 0.3s ease;
+        }
+        .theme-toggle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: var(--bg-card);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px var(--shadow);
+        }
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px var(--shadow-hover);
         }
         .service-grid {
             display: grid;
@@ -33,22 +86,23 @@
             margin-bottom: 30px;
         }
         .service-card {
-            background: #f8f9fa;
+            background: var(--bg-card);
             padding: 20px;
             border-radius: 6px;
-            border-left: 4px solid #007bff;
-            transition: transform 0.2s;
+            border-left: 4px solid var(--border-primary);
+            transition: transform 0.2s, background-color 0.3s ease, box-shadow 0.3s ease;
         }
         .service-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px var(--shadow-hover);
         }
         .service-card h3 {
             margin: 0 0 10px 0;
-            color: #333;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            transition: color 0.3s ease;
         }
         .service-card .port {
             background: #007bff;
@@ -89,14 +143,16 @@
             background: #0056b3;
         }
         .api-section {
-            background: #e9ecef;
+            background: var(--bg-api-section);
             padding: 20px;
             border-radius: 6px;
             margin-top: 20px;
+            transition: background-color 0.3s ease;
         }
         .api-section h3 {
             margin-top: 0;
-            color: #495057;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
         }
         .api-endpoints {
             display: grid;
@@ -105,12 +161,13 @@
             margin-top: 15px;
         }
         .api-endpoint {
-            background: white;
+            background: var(--bg-api-endpoint);
             padding: 10px;
             border-radius: 4px;
             border-left: 3px solid #28a745;
             font-family: monospace;
             font-size: 13px;
+            transition: background-color 0.3s ease;
         }
         .http-indicator {
             color: #28a745;
@@ -118,10 +175,11 @@
         }
         .footer-info {
             text-align: center;
-            color: #666;
+            color: var(--text-secondary);
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid var(--border-color);
+            transition: color 0.3s ease, border-color 0.3s ease;
         }
         .action-buttons {
             display: flex;
@@ -184,15 +242,16 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background-color: var(--modal-bg);
             animation: fadeIn 0.3s;
+            transition: background-color 0.3s ease;
         }
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
         .modal-content {
-            background-color: white;
+            background-color: var(--bg-secondary);
             margin: 10% auto;
             padding: 30px;
             border-radius: 8px;
@@ -200,6 +259,7 @@
             max-width: 500px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
             animation: slideDown 0.3s;
+            transition: background-color 0.3s ease;
         }
         @keyframes slideDown {
             from { transform: translateY(-50px); opacity: 0; }
@@ -211,11 +271,13 @@
             align-items: center;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 2px solid #007bff;
+            border-bottom: 2px solid var(--border-primary);
+            transition: border-color 0.3s ease;
         }
         .modal-header h2 {
             margin: 0;
-            color: #333;
+            color: var(--text-primary);
+            transition: color 0.3s ease;
         }
         .close-button {
             font-size: 28px;
@@ -265,6 +327,9 @@
 <body>
     <div class="container">
         <div class="header">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode">
+                <span id="theme-icon">🌙</span>
+            </button>
             <h1>🍓 ServicePi Dashboard</h1>
             <p>Raspberry Pi 5 Docker Services</p>
             <div class="action-buttons">
@@ -484,6 +549,39 @@
     </div>
     
     <script>
+        // Theme management
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (body.classList.contains('dark-mode')) {
+                body.classList.remove('dark-mode');
+                themeIcon.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.add('dark-mode');
+                themeIcon.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        // Load saved theme on page load
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-mode');
+                themeIcon.textContent = '☀️';
+            } else {
+                themeIcon.textContent = '🌙';
+            }
+        }
+        
+        // Initialize theme on page load
+        loadTheme();
+        
         document.getElementById('timestamp').textContent = new Date().toLocaleString();
         
         // Update Portainer and IoT API links with current hostname
