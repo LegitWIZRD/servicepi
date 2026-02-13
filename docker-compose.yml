@@ -176,8 +176,9 @@ services:
 
   # OpenWebUI - LLM Web Interface
   openwebui:
-    # Using latest stable version of OpenWebUI
-    image: ghcr.io/open-webui/open-webui:main
+    # Using specific version tag for reproducibility
+    # OpenWebUI v0.8.0 is the latest stable release
+    image: ghcr.io/open-webui/open-webui:v0.8.0
     container_name: servicepi-openwebui
     volumes:
       - openwebui_data:/app/backend/data
@@ -209,8 +210,8 @@ services:
   # To enable: Set ENABLE_WAZUH=true in .env and uncomment all Wazuh services below
   # NOTE: Wazuh requires significant resources (4GB+ RAM, 8GB recommended)
   # wazuh-manager:
-  #   # Wazuh Manager 4.9.2 for security event collection and analysis
-  #   image: wazuh/wazuh-manager:4.9.2
+  #   # Wazuh Manager 4.14.3 for security event collection and analysis
+  #   image: wazuh/wazuh-manager:4.14.3
   #   container_name: servicepi-wazuh-manager
   #   hostname: wazuh-manager
   #   volumes:
@@ -245,7 +246,7 @@ services:
 
   # wazuh-indexer:
   #   # OpenSearch-based indexer for Wazuh (replaces Elasticsearch)
-  #   image: wazuh/wazuh-indexer:4.9.2
+  #   image: wazuh/wazuh-indexer:4.14.3
   #   container_name: servicepi-wazuh-indexer
   #   hostname: wazuh-indexer
   #   volumes:
@@ -271,7 +272,7 @@ services:
 
   # wazuh-dashboard:
   #   # Wazuh Dashboard for security event visualization
-  #   image: wazuh/wazuh-dashboard:4.9.2
+  #   image: wazuh/wazuh-dashboard:4.14.3
   #   container_name: servicepi-wazuh-dashboard
   #   hostname: wazuh-dashboard
   #   restart: unless-stopped
