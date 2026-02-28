@@ -86,8 +86,8 @@ services:
   # Home Assistant
   homeassistant:
     # Using stable tag with specific version for reproducibility
-    # Home Assistant 2026.2.1 includes bug fixes and improvements
-    image: ghcr.io/home-assistant/home-assistant:2026.2.1
+    # Home Assistant 2026.2.2 includes bug fixes and improvements
+    image: ghcr.io/home-assistant/home-assistant:2026.2.2
     container_name: servicepi-homeassistant
     volumes:
       - homeassistant_data:/config
