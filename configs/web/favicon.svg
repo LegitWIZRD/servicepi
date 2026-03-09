@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Outer dashed circle (navy) -->
+  <circle cx="100" cy="100" r="92" fill="none" stroke="#1a2e5a" stroke-width="6"
+    stroke-dasharray="28 14" stroke-linecap="round"/>
+  <!-- Inner dashed circle (green) -->
+  <circle cx="100" cy="100" r="76" fill="none" stroke="#5cb85c" stroke-width="4"
+    stroke-dasharray="14 16" stroke-linecap="round"/>
+
+  <!-- Raspberry body -->
+  <ellipse cx="100" cy="118" rx="52" ry="56" fill="#8b1a3a"/>
+  <!-- Raspberry drupelets -->
+  <circle cx="100" cy="108" r="13" fill="#a82050"/>
+  <circle cx="82" cy="118" r="12" fill="#a82050"/>
+  <circle cx="118" cy="118" r="12" fill="#a82050"/>
+  <circle cx="91" cy="134" r="11" fill="#a82050"/>
+  <circle cx="109" cy="134" r="11" fill="#a82050"/>
+  <circle cx="100" cy="150" r="10" fill="#a82050"/>
+  <circle cx="82" cy="148" r="9" fill="#7a1530"/>
+  <circle cx="118" cy="148" r="9" fill="#7a1530"/>
+  <!-- Highlight dots -->
+  <circle cx="97" cy="104" r="3" fill="#c9365e" opacity="0.7"/>
+  <circle cx="79" cy="115" r="3" fill="#c9365e" opacity="0.7"/>
+  <circle cx="115" cy="115" r="3" fill="#c9365e" opacity="0.7"/>
+  <circle cx="88" cy="130" r="3" fill="#c9365e" opacity="0.7"/>
+  <circle cx="106" cy="130" r="3" fill="#c9365e" opacity="0.7"/>
+
+  <!-- Leaves -->
+  <ellipse cx="85" cy="67" rx="18" ry="9" fill="#4a9e4a" transform="rotate(-30 85 67)"/>
+  <ellipse cx="115" cy="67" rx="18" ry="9" fill="#5cb85c" transform="rotate(30 115 67)"/>
+  <ellipse cx="100" cy="63" rx="14" ry="8" fill="#4a9e4a"/>
+  <rect x="97" y="55" width="6" height="18" rx="3" fill="#3a7a3a"/>
+
+  <!-- Pi symbol -->
+  <text x="100" y="88" text-anchor="middle" font-family="Georgia, serif" font-size="32"
+    font-weight="bold" fill="#5cb85c" stroke="#ffffff" stroke-width="1.5">π</text>
+</svg>
