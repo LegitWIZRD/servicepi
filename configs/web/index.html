@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ServicePi Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <style>
         :root {
             --bg-primary: #f5f5f5;
@@ -61,6 +62,12 @@
             margin-bottom: 30px;
             position: relative;
             transition: color 0.3s ease, border-color 0.3s ease;
+        }
+        .header-logo {
+            display: block;
+            margin: 0 auto 12px;
+            height: 120px;
+            width: auto;
         }
         .theme-toggle {
             position: absolute;
@@ -330,7 +337,8 @@
             <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle between light and dark mode">
                 <span id="theme-icon">🌙</span>
             </button>
-            <h1>🍓 ServicePi Dashboard</h1>
+            <img src="/logo.svg" alt="ServicePi Logo" class="header-logo">
+            <h1>ServicePi Dashboard</h1>
             <p>Raspberry Pi 5 Docker Services</p>
             <div class="action-buttons">
                 <button class="action-button primary" onclick="showUpdateModal()">
