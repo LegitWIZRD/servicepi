@@ -892,7 +892,7 @@
         /** Fetch live status from the IoT API and update the UI */
         async function fetchServiceStatus() {
             try {
-                const resp = await fetch('http://' + hostname + ':8080/api/services/status', {
+                const resp = await fetch('/api/services/status', {
                     method: 'GET',
                     headers: { 'Accept': 'application/json' }
                 });
@@ -964,7 +964,7 @@
             statusDiv.innerHTML = '⏳ Initiating system update… monitoring service status.';
             
             try {
-                const response = await fetch('http://' + hostname + ':8080/api/system/update', {
+                const response = await fetch('/api/system/update', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
