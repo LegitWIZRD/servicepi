@@ -197,6 +197,9 @@ services:
       # Set SEARXNG_QUERY_URL in .env if you want to pre-configure SearXNG for OpenWebUI
       # Default points to the local SearXNG instance on the servicepi-network
       - SEARXNG_QUERY_URL=${SEARXNG_QUERY_URL:-http://searxng:8080/search?q=<query>&format=json}
+      # Enable RAG web search using SearXNG so search works out of the box
+      - ENABLE_RAG_WEB_SEARCH=${ENABLE_RAG_WEB_SEARCH:-True}
+      - RAG_WEB_SEARCH_ENGINE=${RAG_WEB_SEARCH_ENGINE:-searxng}
     # No exposed ports - accessed via nginx-proxy at :3000
 
   # SearXNG - Privacy-respecting metasearch engine
