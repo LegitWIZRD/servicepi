@@ -61,36 +61,16 @@ search:
     - html
     - json
 
-# Enabled search engines - customize as needed
-# Full list: https://docs.searxng.org/user/configured_engines.html
-engines:
-  - name: google
-    engine: google
-    shortcut: g
-
-  - name: bing
-    engine: bing
-    shortcut: b
-
-  - name: duckduckgo
-    engine: duckduckgo
-    shortcut: ddg
-
-  - name: wikipedia
-    engine: wikipedia
-    shortcut: wp
-
-  - name: github
-    engine: github
-    shortcut: gh
-
-  - name: stackoverflow
-    engine: stackexchange
-    shortcut: so
-    api_site: stackoverflow
-    categories: [it, q&a]
-
-  - name: docker hub
-    engine: docker_hub
-    shortcut: dh
-    categories: [it, packages]
+# Search engines
+# use_default_settings: true (set at the top) already enables the full set of
+# built-in SearXNG engines.  Listing engines here overrides that set, which
+# previously reduced coverage to only 7 engines and caused most searches to
+# return no results.  We rely on the full default set and only disable engines
+# that are unsuitable for a private Raspberry Pi instance (require API keys,
+# are unreliable, or duplicate results).
+#
+# To disable a specific engine, add it here with `disabled: true`, e.g.:
+#   - name: google
+#     disabled: true
+#
+# Full engine list: https://docs.searxng.org/user/configured_engines.html
