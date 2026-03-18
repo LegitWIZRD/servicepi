@@ -22,6 +22,22 @@ server:
   base_url: false
   # Image proxy (proxies remote images through SearXNG for privacy)
   image_proxy: true
+  # Disable the rate limiter - no Redis is available in this stack and the
+  # limiter is only needed for public-facing instances
+  limiter: false
+
+outgoing:
+  # Per-engine request timeout in seconds.
+  # The SearXNG default (3-4 s) is too short for Raspberry Pi hardware and
+  # typical internet latency, causing every engine to show "timeout".
+  request_timeout: 10.0
+  # Absolute upper bound a single engine request may take.
+  max_request_timeout: 15.0
+  # HTTP connection pool sizing – keeps connections alive for faster retries.
+  pool_connections: 100
+  pool_maxsize: 20
+  # Enable HTTP/2 where supported for better multiplexing.
+  enable_http2: true
 
 ui:
   # Default theme
