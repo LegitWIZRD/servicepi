@@ -17,6 +17,7 @@ ServicePi provides a complete infrastructure-as-code solution for running Docker
 - 🚫 **Pi-hole DNS ad blocker** with curated blocklists
 - 🔁 **N8N workflow automation** for integrations and automation
 - 🤖 **OpenWebUI** for Large Language Model (LLM) interactions
+- 🔍 **SearXNG** privacy-respecting metasearch engine with OpenWebUI integration
 - 📝 **WordPress** (optional) for user-friendly service directories
 - 🔐 **Wazuh SIEM** (optional) for security monitoring and threat detection
 - 🌐 **Domain name resolution** with .local domain support
@@ -75,6 +76,7 @@ After installation, access your services via HTTP using IP addresses or local do
 - **Pi-hole Admin**: `http://your-pi-ip:8053/admin` or `http://pihole.local:8053/admin` (HTTP :8053)
 - **N8N Workflow Automation**: `http://your-pi-ip:5678/` or `http://n8n.local:5678/` (HTTP :5678)
 - **OpenWebUI**: `http://your-pi-ip:3000/` or `http://openwebui.local:3000/` (HTTP :3000)
+- **SearXNG**: `http://your-pi-ip:8888/` or `http://searxng.local:8888/` (HTTP :8888)
 - **WordPress**: `http://your-pi-ip:8081/` or `http://wordpress.local:8081/` (HTTP :8081)
 - **Health Check**: `http://your-pi-ip/health`
 
@@ -207,6 +209,39 @@ OLLAMA_BASE_URL=http://ollama:11434
 Access OpenWebUI at `http://your-pi-ip:3000/` or `http://openwebui.local:3000/`. 
 
 **Prerequisites:** OpenWebUI requires an Ollama instance to be running. Install Ollama on your Pi or another server before using OpenWebUI. Visit [https://ollama.ai](https://ollama.ai) for installation instructions.
+
+#### SearXNG
+- Privacy-respecting metasearch engine that aggregates results from multiple search engines
+- No user tracking or data collection
+- Supports dozens of search engines including Google, Bing, DuckDuckGo, Wikipedia, and more
+- Integrates natively with OpenWebUI to provide web search for LLM conversations
+- Configurable engine list and search preferences via `configs/searxng/settings.yml`
+
+**Configuration:**
+
+SearXNG is configured via `.env` variables and `configs/searxng/settings.yml`:
+
+```bash
+# Secret key for session encryption (CHANGE THIS!)
+SEARXNG_SECRET_KEY=your-random-secret-key
+
+# External base URL (optional - for proper link generation)
+SEARXNG_BASE_URL=http://192.168.1.100:8888/
+
+# Query URL used by OpenWebUI for web search integration
+# Default points to the local SearXNG instance on the Docker network
+SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>&format=json
+```
+
+**OpenWebUI Integration:**
+
+SearXNG is pre-configured as the web search provider for OpenWebUI. To enable web search in OpenWebUI:
+1. Open OpenWebUI at `http://your-pi-ip:3000/`
+2. Go to **Admin Panel → Settings → Web Search**
+3. Enable web search and verify the SearXNG URL is set to `http://searxng:8080/search?q=<query>&format=json`
+   (or the value of `SEARXNG_QUERY_URL` in your `.env` file)
+
+Access SearXNG directly at `http://your-pi-ip:8888/` or `http://searxng.local:8888/`.
 
 ### Optional Services
 

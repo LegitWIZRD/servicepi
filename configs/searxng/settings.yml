@@ -1,0 +1,80 @@
+# SearXNG Configuration for ServicePi
+# This file configures the SearXNG instance
+# For full documentation, see: https://docs.searxng.org/admin/settings/settings.html
+
+use_default_settings: true
+
+general:
+  # Instance title shown in the browser and UI
+  instance_title: "ServicePi Search"
+  # Set to false to disable instance statistics
+  enable_metrics: false
+
+server:
+  # Secret key for sessions - CHANGE THIS to a random string!
+  # Generate with: openssl rand -hex 32
+  secret_key: "${SEARXNG_SECRET_KEY}"
+  # Listening interface and port (internal Docker network)
+  bind_address: "0.0.0.0"
+  port: 8080
+  # Base URL - set this to your actual access URL for proper link generation
+  # Example: http://192.168.1.100:8888/ or http://searxng.local:8888/
+  base_url: false
+  # Image proxy (proxies remote images through SearXNG for privacy)
+  image_proxy: true
+
+ui:
+  # Default theme
+  default_theme: simple
+  # Show/hide advanced search options by default
+  default_locale: "en"
+  # Number of results per page
+  results_on_new_tab: false
+  theme_args:
+    simple_style: auto  # auto = follow system dark/light mode
+
+search:
+  # Safe search level: 0=off, 1=moderate, 2=strict
+  safe_search: 0
+  # Default search language
+  default_lang: "en"
+  # Number of results per page
+  max_page: 0
+  # Format of search results (json is needed for OpenWebUI integration)
+  formats:
+    - html
+    - json
+
+# Enabled search engines - customize as needed
+# Full list: https://docs.searxng.org/user/configured_engines.html
+engines:
+  - name: google
+    engine: google
+    shortcut: g
+
+  - name: bing
+    engine: bing
+    shortcut: b
+
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg
+
+  - name: wikipedia
+    engine: wikipedia
+    shortcut: wp
+
+  - name: github
+    engine: github
+    shortcut: gh
+
+  - name: stackoverflow
+    engine: stackexchange
+    shortcut: so
+    api_site: stackoverflow
+    categories: [it, q&a]
+
+  - name: docker hub
+    engine: docker_hub
+    shortcut: dh
+    categories: [it, packages]
