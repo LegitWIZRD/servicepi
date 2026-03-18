@@ -8,6 +8,7 @@ import os
 import json
 import secrets
 import configparser
+import concurrent.futures
 from datetime import datetime
 from flask import Flask, jsonify, request
 from flask_wtf.csrf import CSRFProtect
@@ -67,7 +68,8 @@ def root():
             '/api/sensors/data',
             '/api/devices',
             '/api/system/info',
-            '/api/system/update'
+            '/api/system/update',
+            '/api/services/status'
         ]
     })
 
@@ -265,6 +267,55 @@ def trigger_system_update():
             'details': 'Internal server error',
             'timestamp': datetime.utcnow().isoformat()
         }), 500
+
+@app.route('/api/services/status', methods=['GET'])
+def get_services_status():
+    """Check and return live health status of all Docker services"""
+    services_to_check = [
+        {'id': 'nginx',          'url': 'http://web-backend:80/health',           'timeout': 3},
+        {'id': 'portainer',      'url': 'http://portainer:9000/api/system/status', 'timeout': 5},
+        {'id': 'iot-api',        'url': 'http://localhost:8080/health',            'timeout': 3},
+        {'id': 'homeassistant',  'url': 'http://homeassistant:8123/',              'timeout': 5},
+        {'id': 'pihole',         'url': 'http://pihole:80/',                       'timeout': 3},
+        {'id': 'n8n',            'url': 'http://n8n:5678/',                        'timeout': 5},
+        {'id': 'wordpress',      'url': 'http://wordpress:80/',                    'timeout': 5},
+        {'id': 'openwebui',      'url': 'http://openwebui:8080/',                  'timeout': 5},
+        {'id': 'searxng',        'url': 'http://searxng:8080/',                    'timeout': 5},
+    ]
+
+    def check_service(service):
+        try:
+            resp = requests.get(
+                service['url'],
+                timeout=service['timeout'],
+                allow_redirects=True
+            )
+            status = 'running' if resp.status_code < 500 else 'degraded'  # any response means container is up
+            return service['id'], {
+                'status': status,
+                'http_status': resp.status_code,
+                'response_time_ms': int(resp.elapsed.total_seconds() * 1000)
+            }
+        except requests.exceptions.ConnectionError:
+            return service['id'], {'status': 'down'}
+        except requests.exceptions.Timeout:
+            return service['id'], {'status': 'timeout'}
+        except Exception as exc:
+            app.logger.warning("Status check failed for %s: %s", service['id'], exc)
+            return service['id'], {'status': 'unknown'}
+
+    results = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        futures = {executor.submit(check_service, svc): svc for svc in services_to_check}
+        for future in concurrent.futures.as_completed(futures):
+            service_id, result = future.result()
+            results[service_id] = result
+
+    return jsonify({
+        'services': results,
+        'timestamp': datetime.utcnow().isoformat()
+    })
+
 
 if __name__ == '__main__':
     print(f"Starting {SERVICE_NAME} API on port {API_PORT}")

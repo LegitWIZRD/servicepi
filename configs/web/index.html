@@ -329,6 +329,85 @@
             color: #0c5460;
             border: 1px solid #bee5eb;
         }
+        /* Live status states */
+        @keyframes spin {
+            0%   { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .status-spinner {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-top-color: #007bff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 3px;
+        }
+        .status.checking {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .status.down {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.degraded {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.timeout {
+            background: #ffe0b2;
+            color: #7d4e00;
+        }
+        .status.unknown {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .status-bar button {
+            background: none;
+            border: 1px solid var(--border-color);
+            padding: 4px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .status-bar button:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+        /* Modal service status table */
+        .modal-status-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 12px;
+        }
+        .modal-status-table th,
+        .modal-status-table td {
+            padding: 6px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-status-table th {
+            color: var(--text-secondary);
+            font-weight: bold;
+        }
+        .modal-status-table tr:last-child td {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
@@ -344,20 +423,27 @@
                 <button class="action-button primary" onclick="showUpdateModal()">
                     🔄 Update System
                 </button>
+                <button class="action-button secondary" onclick="refreshStatus()">
+                    📡 Refresh Status
+                </button>
                 <a href="https://github.com/LegitWIZRD/servicepi" target="_blank" class="action-button secondary">
                     📦 GitHub Repository
                 </a>
             </div>
+            <div class="status-bar">
+                <span>Last checked: <span id="lastChecked">—</span></span>
+                <button onclick="refreshStatus()" title="Refresh service statuses">↻ Refresh</button>
+            </div>
         </div>
         
         <div class="service-grid">
-            <div class="service-card">
+            <div class="service-card" data-service="nginx">
                 <h3>
                     Web Dashboard
                     <span class="port">:80</span>
                 </h3>
                 <span class="version-badge">v1.0.0</span>
-                <span class="status running">🟢 Running</span>
+                <span id="status-nginx" class="status checking"><span class="status-spinner"></span> Checking...</span>
                 <p>Main dashboard with reverse proxy</p>
                 <div class="service-links">
                     <a href="/health">Health Check</a>
@@ -368,13 +454,13 @@
                 </div>
             </div>
             
-            <div class="service-card">
+            <div class="service-card" data-service="portainer">
                 <h3>
                     Container Management
                     <span class="port">:9000</span>
                 </h3>
-                <span class="version-badge">v2.33.5</span>
-                <span class="status running">🟢 Running</span>
+                <span class="version-badge">v2.38.1</span>
+                <span id="status-portainer" class="status checking"><span class="status-spinner"></span> Checking...</span>
                 <p>Portainer for Docker container management</p>
                 <div class="service-links">
                     <a href="http://localhost:9000" target="_blank">Access Portainer</a>
@@ -384,13 +470,13 @@
                 </div>
             </div>
             
-            <div class="service-card">
+            <div class="service-card" data-service="iot-api">
                 <h3>
                     IoT API Service
                     <span class="port">:8080</span>
                 </h3>
                 <span class="version-badge">v1.0.0</span>
-                <span class="status running">🟢 Running</span>
+                <span id="status-iot-api" class="status checking"><span class="status-spinner"></span> Checking...</span>
                 <p>REST API for IoT device management and sensor data</p>
                 <div class="service-links">
                     <a href="http://localhost:8080" target="_blank">API Root</a>
@@ -401,13 +487,13 @@
                 </div>
             </div>
             
-            <div class="service-card">
+            <div class="service-card" data-service="homeassistant">
                 <h3>
                     Home Assistant
                     <span class="port">:8123</span>
                 </h3>
-                <span class="version-badge">v2025.12.4</span>
-                <span class="status running">🟢 Running</span>
+                <span class="version-badge">v2026.2.3</span>
+                <span id="status-homeassistant" class="status checking"><span class="status-spinner"></span> Checking...</span>
                 <p>Home automation platform for IoT and service orchestration</p>
                 <div class="service-links">
                     <a href="http://localhost:8123" target="_blank">Access Home Assistant</a>
@@ -417,13 +503,13 @@
                 </div>
             </div>
             
-            <div class="service-card">
+            <div class="service-card" data-service="pihole">
                 <h3>
                     Pi-hole DNS Ad Blocker
                     <span class="port">:8053</span>
                 </h3>
                 <span class="version-badge">v2025.11.1</span>
-                <span class="status running">🟢 Running</span>
+                <span id="status-pihole" class="status checking"><span class="status-spinner"></span> Checking...</span>
                 <p>Network-wide ad blocking and DNS management</p>
                 <div class="service-links">
                     <a href="http://localhost:8053/admin" target="_blank">Access Pi-hole Admin</a>
@@ -433,13 +519,13 @@
                 </div>
             </div>
             
-            <div class="service-card">
+            <div class="service-card" data-service="n8n">
                 <h3>
                     N8N Workflow Automation
                     <span class="port">:5678</span>
                 </h3>
-                <span class="version-badge">v1.121.3</span>
-                <span class="status running">🟢 Running</span>
+                <span class="version-badge">v2.3.0</span>
+                <span id="status-n8n" class="status checking"><span class="status-spinner"></span> Checking...</span>
                 <p>Workflow automation and integration platform</p>
                 <div class="service-links">
                     <a href="http://localhost:5678" target="_blank">Access N8N</a>
@@ -449,13 +535,13 @@
                 </div>
             </div>
             
-            <div class="service-card">
+            <div class="service-card" data-service="wordpress">
                 <h3>
                     WordPress CMS
                     <span class="port">:8081</span>
                 </h3>
-                <span class="version-badge">v6.7</span>
-                <span class="status running">🟢 Running</span>
+                <span class="version-badge">v6.9</span>
+                <span id="status-wordpress" class="status checking"><span class="status-spinner"></span> Checking...</span>
                 <p>Content management system for custom dashboards and service directories</p>
                 <div class="service-links">
                     <a href="http://localhost:8081" target="_blank">Access WordPress</a>
@@ -466,13 +552,13 @@
                 </div>
             </div>
             
-            <div class="service-card">
+            <div class="service-card" data-service="openwebui">
                 <h3>
                     OpenWebUI
                     <span class="port">:3000</span>
                 </h3>
-                <span class="version-badge">latest</span>
-                <span class="status running">🟢 Running</span>
+                <span class="version-badge">v0.8.0</span>
+                <span id="status-openwebui" class="status checking"><span class="status-spinner"></span> Checking...</span>
                 <p>LLM web interface for AI chat and model management</p>
                 <div class="service-links">
                     <a href="http://localhost:3000" target="_blank">Access OpenWebUI</a>
@@ -482,13 +568,13 @@
                 </div>
             </div>
             
-            <div class="service-card">
+            <div class="service-card" data-service="searxng">
                 <h3>
                     SearXNG Search
                     <span class="port">:8888</span>
                 </h3>
                 <span class="version-badge">2026.3.17</span>
-                <span class="status running">🟢 Running</span>
+                <span id="status-searxng" class="status checking"><span class="status-spinner"></span> Checking...</span>
                 <p>Privacy-respecting metasearch engine with OpenWebUI integration</p>
                 <div class="service-links">
                     <a href="http://localhost:8888" target="_blank">Access SearXNG</a>
@@ -525,6 +611,7 @@
                 <div class="api-endpoint">GET/PUT /api/devices/{id}</div>
                 <div class="api-endpoint">GET /api/system/info</div>
                 <div class="api-endpoint">POST /api/system/communicate</div>
+                <div class="api-endpoint">GET /api/services/status</div>
             </div>
         </div>
         
@@ -565,6 +652,16 @@
                 <p><strong>⚠️ Warning:</strong> Services may be briefly unavailable during the update.</p>
                 <p><strong>🔐 Note:</strong> This feature requires admin authentication. Set the <code>ADMIN_TOKEN</code> environment variable in the IoT service for this feature to work.</p>
                 <div id="updateStatus" class="status-message"></div>
+                <!-- Live service status during update -->
+                <div id="modalServiceStatus" style="display:none;">
+                    <p><strong>📡 Live Service Status:</strong></p>
+                    <table class="modal-status-table">
+                        <thead>
+                            <tr><th>Service</th><th>Status</th><th>Response (ms)</th></tr>
+                        </thead>
+                        <tbody id="modalStatusBody"></tbody>
+                    </table>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="action-button" style="background: #6c757d; color: white;" onclick="closeUpdateModal()">Cancel</button>
@@ -607,6 +704,9 @@
         // Initialize theme and other elements on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadTheme();
+            // Start live status polling as soon as the page loads
+            fetchServiceStatus();
+            startStatusPolling();
         });
         
         document.getElementById('timestamp').textContent = new Date().toLocaleString();
@@ -682,6 +782,7 @@
         function showUpdateModal() {
             document.getElementById('updateModal').style.display = 'block';
             document.getElementById('updateStatus').style.display = 'none';
+            document.getElementById('modalServiceStatus').style.display = 'none';
             document.getElementById('confirmUpdateBtn').disabled = false;
         }
         
@@ -696,7 +797,139 @@
                 closeUpdateModal();
             }
         }
-        
+
+        // ── Live service status ──────────────────────────────────────────────
+
+        const SERVICE_LABELS = {
+            'nginx':         '🌐 Web Dashboard',
+            'portainer':     '🐳 Portainer',
+            'iot-api':       '🔧 IoT API',
+            'homeassistant': '🏠 Home Assistant',
+            'pihole':        '🛡️ Pi-hole',
+            'n8n':           '🔄 N8N',
+            'wordpress':     '📝 WordPress',
+            'openwebui':     '🤖 OpenWebUI',
+            'searxng':       '🔍 SearXNG',
+        };
+
+        const STATUS_CONFIG = {
+            running:  { cls: 'running',  icon: '🟢', label: 'Running'  },
+            checking: { cls: 'checking', icon: '',    label: 'Checking…' },
+            down:     { cls: 'down',     icon: '🔴', label: 'Down'     },
+            degraded: { cls: 'degraded', icon: '🟡', label: 'Degraded' },
+            timeout:  { cls: 'timeout',  icon: '🟠', label: 'Timeout'  },
+            unknown:  { cls: 'unknown',  icon: '⚪', label: 'Unknown'  },
+        };
+
+        let statusPollInterval = null;
+        const FAST_POLL_MS = 5000;           // interval while an update is in progress
+        const NORMAL_POLL_MS = 30000;        // normal background polling interval
+        const UPDATE_FAST_POLL_DURATION_MS = 120000; // revert to normal after 2 min
+
+        /** Render a status badge for a given state */
+        function renderStatus(state) {
+            const cfg = STATUS_CONFIG[state] || STATUS_CONFIG.unknown;
+            if (state === 'checking') {
+                return `<span class="status checking"><span class="status-spinner"></span> Checking…</span>`;
+            }
+            return `<span class="status ${cfg.cls}">${cfg.icon} ${cfg.label}</span>`;
+        }
+
+        /** Update a single service card badge and (optionally) the modal table row */
+        function applyServiceResult(id, info) {
+            // Update main card badge
+            const badge = document.getElementById('status-' + id);
+            if (badge) {
+                const cfg = STATUS_CONFIG[info.status] || STATUS_CONFIG.unknown;
+                badge.className = 'status ' + cfg.cls;
+                if (info.status === 'checking') {
+                    badge.innerHTML = '<span class="status-spinner"></span> Checking…';
+                } else {
+                    badge.textContent = cfg.icon + ' ' + cfg.label;
+                }
+            }
+
+            // Update modal table row (if visible)
+            const row = document.getElementById('modal-row-' + id);
+            if (row) {
+                const cfg = STATUS_CONFIG[info.status] || STATUS_CONFIG.unknown;
+                const statusCell = row.querySelector('.modal-status-cell');
+                const rtCell = row.querySelector('.modal-rt-cell');
+                if (statusCell) {
+                    if (info.status === 'checking') {
+                        statusCell.innerHTML = '<span class="status-spinner"></span> Checking…';
+                    } else {
+                        statusCell.textContent = cfg.icon + ' ' + cfg.label;
+                    }
+                }
+                if (rtCell) {
+                    rtCell.textContent = info.response_time_ms != null ? info.response_time_ms + ' ms' : '—';
+                }
+            }
+        }
+
+        /** Set all tracked services to the "checking" spinner state */
+        function setAllChecking() {
+            Object.keys(SERVICE_LABELS).forEach(id => {
+                applyServiceResult(id, { status: 'checking' });
+            });
+        }
+
+        /** Build the modal service status table rows */
+        function buildModalTable() {
+            const tbody = document.getElementById('modalStatusBody');
+            tbody.innerHTML = '';
+            Object.entries(SERVICE_LABELS).forEach(([id, label]) => {
+                const tr = document.createElement('tr');
+                tr.id = 'modal-row-' + id;
+                tr.innerHTML = `<td>${label}</td>
+                    <td class="modal-status-cell"><span class="status-spinner"></span> Checking…</td>
+                    <td class="modal-rt-cell">—</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        /** Fetch live status from the IoT API and update the UI */
+        async function fetchServiceStatus() {
+            try {
+                const resp = await fetch('http://' + hostname + ':8080/api/services/status', {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!resp.ok) { return; }
+                const data = await resp.json();
+                if (data.services) {
+                    Object.entries(data.services).forEach(([id, info]) => {
+                        applyServiceResult(id, info);
+                    });
+                }
+                document.getElementById('lastChecked').textContent =
+                    new Date().toLocaleTimeString();
+            } catch (err) {
+                console.warn('Status fetch failed:', err);
+            }
+        }
+
+        /** Public: manual refresh button handler */
+        function refreshStatus() {
+            setAllChecking();
+            fetchServiceStatus();
+        }
+
+        function startStatusPolling(intervalMs = NORMAL_POLL_MS) {
+            stopStatusPolling();
+            statusPollInterval = setInterval(fetchServiceStatus, intervalMs);
+        }
+
+        function stopStatusPolling() {
+            if (statusPollInterval) {
+                clearInterval(statusPollInterval);
+                statusPollInterval = null;
+            }
+        }
+
+        // ── Update flow ──────────────────────────────────────────────────────
+
         // Trigger system update
         async function triggerUpdate() {
             const statusDiv = document.getElementById('updateStatus');
@@ -712,15 +945,23 @@
                     statusDiv.textContent = '❌ Admin token required for system updates.';
                     return;
                 }
-                // Save token for future use (in this session)
                 localStorage.setItem('servicepi_admin_token', adminToken);
             }
             
+            // Show live status table in modal and set all to checking
+            buildModalTable();
+            document.getElementById('modalServiceStatus').style.display = 'block';
+            setAllChecking();
+
+            // Switch to fast polling during update
+            stopStatusPolling();
+            startStatusPolling(FAST_POLL_MS);
+
             // Disable button and show progress
             confirmBtn.disabled = true;
             statusDiv.className = 'status-message info';
             statusDiv.style.display = 'block';
-            statusDiv.textContent = '⏳ Initiating system update...';
+            statusDiv.innerHTML = '⏳ Initiating system update… monitoring service status.';
             
             try {
                 const response = await fetch('http://' + hostname + ':8080/api/system/update', {
@@ -736,23 +977,26 @@
                 });
                 
                 if (response.status === 401) {
-                    // Invalid token
                     localStorage.removeItem('servicepi_admin_token');
                     statusDiv.className = 'status-message error';
                     statusDiv.textContent = '❌ Invalid admin token. Please try again.';
                     confirmBtn.disabled = false;
+                    // Revert to normal polling on auth failure
+                    stopStatusPolling();
+                    startStatusPolling(NORMAL_POLL_MS);
                     return;
                 }
                 
                 if (response.ok) {
                     const data = await response.json();
                     statusDiv.className = 'status-message success';
-                    statusDiv.textContent = '✅ ' + (data.message || 'Update request accepted. Please run the update script on the host.');
-                    
-                    // Auto-close modal after 5 seconds on success
+                    statusDiv.textContent = '✅ ' + (data.message || 'Update request accepted. Monitoring service status…');
+                    // Keep fast polling active so the user can see services restart.
+                    // Revert to normal polling after UPDATE_FAST_POLL_DURATION_MS.
                     setTimeout(() => {
-                        closeUpdateModal();
-                    }, 5000);
+                        stopStatusPolling();
+                        startStatusPolling(NORMAL_POLL_MS);
+                    }, UPDATE_FAST_POLL_DURATION_MS);
                 } else {
                     throw new Error('Update request failed with status: ' + response.status);
                 }
@@ -761,6 +1005,8 @@
                 statusDiv.className = 'status-message error';
                 statusDiv.textContent = '❌ Update failed: ' + error.message + '. Please check logs or try again later.';
                 confirmBtn.disabled = false;
+                stopStatusPolling();
+                startStatusPolling(NORMAL_POLL_MS);
             }
         }
     </script>
