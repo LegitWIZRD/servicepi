@@ -200,9 +200,9 @@ services:
   # SearXNG - Privacy-respecting metasearch engine
   searxng:
     # Using specific version tag for reproducibility
-    # SearXNG uses date-based versioning; update to a newer tag as needed
+    # SearXNG uses date+commit versioning (YYYY.M.D-<commit>); update to a newer tag as needed
     # See: https://hub.docker.com/r/searxng/searxng/tags
-    image: searxng/searxng:2025.7.6-0
+    image: searxng/searxng:2026.3.17-2bb8ac17c
     container_name: servicepi-searxng
     volumes:
       - ./configs/searxng:/etc/searxng
