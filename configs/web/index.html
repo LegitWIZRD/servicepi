@@ -482,6 +482,22 @@
                 </div>
             </div>
             
+            <div class="service-card">
+                <h3>
+                    SearXNG Search
+                    <span class="port">:8888</span>
+                </h3>
+                <span class="version-badge">2025.7.6</span>
+                <span class="status running">🟢 Running</span>
+                <p>Privacy-respecting metasearch engine with OpenWebUI integration</p>
+                <div class="service-links">
+                    <a href="http://localhost:8888" target="_blank">Access SearXNG</a>
+                </div>
+                <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                    <span class="http-indicator">HTTP</span> | Privacy Search
+                </div>
+            </div>
+            
             <div class="service-card" style="opacity: 0.7; border-left-color: #6c757d;">
                 <h3>
                     Wazuh SIEM
@@ -523,6 +539,7 @@
                 🔄 N8N: <span class="http-indicator">HTTP :5678</span> | 
                 📝 WordPress: <span class="http-indicator">HTTP :8081</span> | 
                 🤖 OpenWebUI: <span class="http-indicator">HTTP :3000</span> | 
+                🔍 SearXNG: <span class="http-indicator">HTTP :8888</span> | 
                 🔐 Wazuh: <span class="http-indicator">HTTP :8443</span> (optional)
             </p>
             <p>Last updated: <span id="timestamp"></span></p>
@@ -653,6 +670,12 @@
         const openWebUILink = document.querySelector('a[href="http://localhost:3000"]');
         if (openWebUILink && hostname !== 'localhost') {
             openWebUILink.href = `http://${hostname}:3000`;
+        }
+        
+        // Update SearXNG link
+        const searxngLink = document.querySelector('a[href="http://localhost:8888"]');
+        if (searxngLink && hostname !== 'localhost') {
+            searxngLink.href = `http://${hostname}:8888`;
         }
         
         // Modal functions

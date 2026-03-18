@@ -149,6 +149,7 @@ ufw allow 8053/tcp  # HTTP for Pi-hole Admin
 ufw allow 5678/tcp  # HTTP for N8N
 ufw allow 3000/tcp  # HTTP for OpenWebUI
 ufw allow 8081/tcp  # HTTP for WordPress
+ufw allow 8888/tcp  # HTTP for SearXNG
 # ufw allow 8443/tcp  # HTTP for Wazuh Dashboard (uncomment when enabling Wazuh)
 # ufw allow 1514/tcp  # Wazuh agent events (uncomment when using Wazuh agents)
 # ufw allow 1515/tcp  # Wazuh agent enrollment (uncomment when using Wazuh agents)
@@ -187,6 +188,7 @@ echo "  - Pi-hole Admin: http://$(hostname -I | awk '{print $1}'):8053/admin or 
 echo "  - N8N: http://$(hostname -I | awk '{print $1}'):5678 or http://n8n.local:5678"
 echo "  - OpenWebUI: http://$(hostname -I | awk '{print $1}'):3000 or http://openwebui.local:3000"
 echo "  - WordPress: http://$(hostname -I | awk '{print $1}'):8081 or http://wordpress.local:8081"
+echo "  - SearXNG: http://$(hostname -I | awk '{print $1}'):8888 or http://searxng.local:8888"
 echo ""
 echo "📝 Next steps:"
 echo "  1. Access the web dashboard to verify installation"

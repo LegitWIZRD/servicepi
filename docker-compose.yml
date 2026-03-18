@@ -14,6 +14,7 @@ services:
       - "5678:5678" # HTTP for N8N
       - "8081:8081" # HTTP for WordPress
       - "3000:3000" # HTTP for OpenWebUI
+      - "8888:8888" # HTTP for SearXNG
       # Uncomment the port below when enabling Wazuh (set ENABLE_WAZUH=true in .env)
       # - "8443:8443" # HTTP for Wazuh Dashboard
     volumes:
@@ -31,6 +32,7 @@ services:
       - n8n
       - wordpress
       - openwebui
+      - searxng
       # Uncomment when enabling Wazuh (set ENABLE_WAZUH=true in .env)
       # - wazuh-dashboard
 
@@ -189,10 +191,38 @@ services:
     environment:
       - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       - WEBUI_SECRET_KEY=${OPENWEBUI_SECRET_KEY:-}
+      # SearXNG integration - enables web search from within OpenWebUI
+      # Set SEARXNG_QUERY_URL in .env if you want to pre-configure SearXNG for OpenWebUI
+      # Default points to the local SearXNG instance on the servicepi-network
+      - SEARXNG_QUERY_URL=${SEARXNG_QUERY_URL:-http://searxng:8080/search?q=<query>&format=json}
     # No exposed ports - accessed via nginx-proxy at :3000
 
+  # SearXNG - Privacy-respecting metasearch engine
+  searxng:
+    # Using specific version tag for reproducibility
+    # SearXNG uses date-based versioning; update to a newer tag as needed
+    # See: https://hub.docker.com/r/searxng/searxng/tags
+    image: searxng/searxng:2025.7.6-0
+    container_name: servicepi-searxng
+    volumes:
+      - ./configs/searxng:/etc/searxng
+    restart: unless-stopped
+    networks:
+      - servicepi-network
+    environment:
+      - SEARXNG_SECRET_KEY=${SEARXNG_SECRET_KEY:-changeme-insecure-default}
+      # Base URL is optional; if set, SearXNG uses it for generating absolute links
+      # Example: http://192.168.1.100:8888/ or http://searxng.local:8888/
+      - SEARXNG_BASE_URL=${SEARXNG_BASE_URL:-}
+    # No exposed ports - accessed via nginx-proxy at :8888
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+
   wordpress-db:
-    # MySQL 8.0 database for WordPress (using latest 8.0.x for stability)
     image: mysql:8.0.45
     container_name: servicepi-wordpress-db
     volumes:
