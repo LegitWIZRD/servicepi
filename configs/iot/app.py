@@ -26,10 +26,15 @@ app.config['WTF_CSRF_CHECK_DEFAULT'] = False
 
 csrf = CSRFProtect(app)
 
-# Configure CORS to allow requests from the web dashboard and other services
-# Use environment variable for allowed origins, default to localhost for security
-# In production, set CORS_ORIGINS environment variable to your Pi's hostname
-allowed_origins = os.getenv('CORS_ORIGINS', 'http://localhost,http://localhost:80,http://127.0.0.1,http://127.0.0.1:80').split(',')
+# Configure CORS to allow requests from the web dashboard and other services.
+# Browser requests from the dashboard are proxied through Nginx (same-origin),
+# so CORS is not required for normal dashboard use.  The wildcard default
+# ensures direct API access (e.g. curl, automation tools, or other services)
+# works without additional configuration.  Set the CORS_ORIGINS environment
+# variable to a comma-separated list of explicit origins for tighter security
+# (e.g. "http://raspberrypi.local,http://192.168.1.100").
+_cors_origins_env = os.getenv('CORS_ORIGINS', '*')
+allowed_origins = _cors_origins_env if _cors_origins_env == '*' else _cors_origins_env.split(',')
 CORS(app, resources={
     r"/api/*": {
         "origins": allowed_origins,
