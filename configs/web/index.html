@@ -443,7 +443,7 @@
                     <span class="port">:80</span>
                 </h3>
                 <span class="version-badge">v1.0.0</span>
-                <span id="status-nginx" class="status checking"><span class="status-spinner"></span> Checking...</span>
+                <span id="status-nginx" class="status checking"><span class="status-spinner"></span> Checking…</span>
                 <p>Main dashboard with reverse proxy</p>
                 <div class="service-links">
                     <a href="/health">Health Check</a>
@@ -460,7 +460,7 @@
                     <span class="port">:9000</span>
                 </h3>
                 <span class="version-badge">v2.38.1</span>
-                <span id="status-portainer" class="status checking"><span class="status-spinner"></span> Checking...</span>
+                <span id="status-portainer" class="status checking"><span class="status-spinner"></span> Checking…</span>
                 <p>Portainer for Docker container management</p>
                 <div class="service-links">
                     <a href="http://localhost:9000" target="_blank">Access Portainer</a>
@@ -476,7 +476,7 @@
                     <span class="port">:8080</span>
                 </h3>
                 <span class="version-badge">v1.0.0</span>
-                <span id="status-iot-api" class="status checking"><span class="status-spinner"></span> Checking...</span>
+                <span id="status-iot-api" class="status checking"><span class="status-spinner"></span> Checking…</span>
                 <p>REST API for IoT device management and sensor data</p>
                 <div class="service-links">
                     <a href="http://localhost:8080" target="_blank">API Root</a>
@@ -493,7 +493,7 @@
                     <span class="port">:8123</span>
                 </h3>
                 <span class="version-badge">v2026.2.3</span>
-                <span id="status-homeassistant" class="status checking"><span class="status-spinner"></span> Checking...</span>
+                <span id="status-homeassistant" class="status checking"><span class="status-spinner"></span> Checking…</span>
                 <p>Home automation platform for IoT and service orchestration</p>
                 <div class="service-links">
                     <a href="http://localhost:8123" target="_blank">Access Home Assistant</a>
@@ -509,7 +509,7 @@
                     <span class="port">:8053</span>
                 </h3>
                 <span class="version-badge">v2025.11.1</span>
-                <span id="status-pihole" class="status checking"><span class="status-spinner"></span> Checking...</span>
+                <span id="status-pihole" class="status checking"><span class="status-spinner"></span> Checking…</span>
                 <p>Network-wide ad blocking and DNS management</p>
                 <div class="service-links">
                     <a href="http://localhost:8053/admin" target="_blank">Access Pi-hole Admin</a>
@@ -525,7 +525,7 @@
                     <span class="port">:5678</span>
                 </h3>
                 <span class="version-badge">v2.3.0</span>
-                <span id="status-n8n" class="status checking"><span class="status-spinner"></span> Checking...</span>
+                <span id="status-n8n" class="status checking"><span class="status-spinner"></span> Checking…</span>
                 <p>Workflow automation and integration platform</p>
                 <div class="service-links">
                     <a href="http://localhost:5678" target="_blank">Access N8N</a>
@@ -541,7 +541,7 @@
                     <span class="port">:8081</span>
                 </h3>
                 <span class="version-badge">v6.9</span>
-                <span id="status-wordpress" class="status checking"><span class="status-spinner"></span> Checking...</span>
+                <span id="status-wordpress" class="status checking"><span class="status-spinner"></span> Checking…</span>
                 <p>Content management system for custom dashboards and service directories</p>
                 <div class="service-links">
                     <a href="http://localhost:8081" target="_blank">Access WordPress</a>
@@ -558,7 +558,7 @@
                     <span class="port">:3000</span>
                 </h3>
                 <span class="version-badge">v0.8.0</span>
-                <span id="status-openwebui" class="status checking"><span class="status-spinner"></span> Checking...</span>
+                <span id="status-openwebui" class="status checking"><span class="status-spinner"></span> Checking…</span>
                 <p>LLM web interface for AI chat and model management</p>
                 <div class="service-links">
                     <a href="http://localhost:3000" target="_blank">Access OpenWebUI</a>
@@ -574,7 +574,7 @@
                     <span class="port">:8888</span>
                 </h3>
                 <span class="version-badge">2026.3.17</span>
-                <span id="status-searxng" class="status checking"><span class="status-spinner"></span> Checking...</span>
+                <span id="status-searxng" class="status checking"><span class="status-spinner"></span> Checking…</span>
                 <p>Privacy-respecting metasearch engine with OpenWebUI integration</p>
                 <div class="service-links">
                     <a href="http://localhost:8888" target="_blank">Access SearXNG</a>
@@ -875,6 +875,16 @@
             });
         }
 
+        /** Resolve any services still showing "checking" to "unknown" */
+        function setCheckingToUnknown() {
+            Object.keys(SERVICE_LABELS).forEach(id => {
+                const badge = document.getElementById('status-' + id);
+                if (badge && badge.classList.contains('checking')) {
+                    applyServiceResult(id, { status: 'unknown' });
+                }
+            });
+        }
+
         /** Build the modal service status table rows */
         function buildModalTable() {
             const tbody = document.getElementById('modalStatusBody');
@@ -891,12 +901,19 @@
 
         /** Fetch live status from the IoT API and update the UI */
         async function fetchServiceStatus() {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
             try {
                 const resp = await fetch('/api/services/status', {
                     method: 'GET',
-                    headers: { 'Accept': 'application/json' }
+                    headers: { 'Accept': 'application/json' },
+                    signal: controller.signal
                 });
-                if (!resp.ok) { return; }
+                clearTimeout(timeoutId);
+                if (!resp.ok) {
+                    setCheckingToUnknown();
+                    return;
+                }
                 const data = await resp.json();
                 if (data.services) {
                     Object.entries(data.services).forEach(([id, info]) => {
@@ -906,7 +923,9 @@
                 document.getElementById('lastChecked').textContent =
                     new Date().toLocaleTimeString();
             } catch (err) {
+                clearTimeout(timeoutId);
                 console.warn('Status fetch failed:', err);
+                setCheckingToUnknown();
             }
         }
 
@@ -964,6 +983,8 @@
             statusDiv.innerHTML = '⏳ Initiating system update… monitoring service status.';
             
             try {
+                const updateController = new AbortController();
+                const updateTimeoutId = setTimeout(() => updateController.abort(), 30000);
                 const response = await fetch('/api/system/update', {
                     method: 'POST',
                     headers: {
@@ -973,17 +994,20 @@
                     body: JSON.stringify({
                         action: 'update',
                         timestamp: new Date().toISOString()
-                    })
+                    }),
+                    signal: updateController.signal
                 });
+                clearTimeout(updateTimeoutId);
                 
                 if (response.status === 401) {
                     localStorage.removeItem('servicepi_admin_token');
                     statusDiv.className = 'status-message error';
                     statusDiv.textContent = '❌ Invalid admin token. Please try again.';
                     confirmBtn.disabled = false;
-                    // Revert to normal polling on auth failure
+                    // Revert to normal polling on auth failure and resolve any stuck spinners
                     stopStatusPolling();
                     startStatusPolling(NORMAL_POLL_MS);
+                    fetchServiceStatus();
                     return;
                 }
                 
@@ -1007,6 +1031,7 @@
                 confirmBtn.disabled = false;
                 stopStatusPolling();
                 startStatusPolling(NORMAL_POLL_MS);
+                fetchServiceStatus();
             }
         }
     </script>
