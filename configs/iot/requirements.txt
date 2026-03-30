@@ -3,4 +3,4 @@ werkzeug==3.1.6
 flask-wtf==1.2.2
 flask-cors==6.0.2
 configparser==7.2.0
-requests==2.32.5
+requests==2.33.0
