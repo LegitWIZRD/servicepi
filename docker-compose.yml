@@ -88,10 +88,8 @@ services:
   # Home Assistant
   homeassistant:
     # Using specific version tag for reproducibility
-    # Pinned to 2026.2.3 - the last known-good version without tar header issues
-    # 2026.3.x produces "invalid tar header" errors during image pull on ARM64
-    # (same class of issue as n8n 2.4.x+; see n8n service comment for context)
-    image: ghcr.io/home-assistant/home-assistant:2026.2.3
+    # Updated to 2026.4.2 - latest stable release
+    image: ghcr.io/home-assistant/home-assistant:2026.4.2
     container_name: servicepi-homeassistant
     volumes:
       - homeassistant_data:/config
