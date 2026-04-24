@@ -10,13 +10,17 @@ ServicePi uses Docker images from trusted sources. All images are pinned to spec
 
 | Service | Image | Version | Notes |
 |---------|-------|---------|-------|
-| Nginx Proxy | nginx:alpine | 1.27.3-alpine | Reverse proxy for all services |
-| Web Backend | nginx:alpine | 1.27.3-alpine | Static content server |
-| Portainer | portainer/portainer-ce | 2.33.2-alpine | Container management UI |
-| Home Assistant | ghcr.io/home-assistant/home-assistant | 2025.10.2 | Home automation platform |
-| Pi-hole | pihole/pihole | 2025.08.0 | DNS ad blocker |
-| N8N | n8nio/n8n | 2.6.2 | Workflow automation platform |
-| IoT Service | (custom build) | Python 3.13-alpine | Built from local Dockerfile |
+| Nginx Proxy | nginx:alpine | 1.29.8-alpine | Reverse proxy for all services |
+| Web Backend | nginx:alpine | 1.29.8-alpine | Static content server |
+| Portainer | portainer/portainer-ce | 2.39.1-alpine | Container management UI |
+| Home Assistant | ghcr.io/home-assistant/home-assistant | 2026.4.3 | Home automation platform |
+| Pi-hole | pihole/pihole | 2026.04.0 | DNS ad blocker |
+| N8N | n8nio/n8n | 2.3.0 | Workflow automation (pinned due to ARM64 tar issues in 2.4.x+) |
+| WordPress | wordpress | 6.9.2-php8.2-apache | Blog/dashboard |
+| MySQL | mysql | 8.0.46 | WordPress database |
+| Open WebUI | ghcr.io/open-webui/open-webui | v0.9.1 | LLM web interface |
+| SearXNG | searxng/searxng | 2026.4.22-74f1ca203 | Privacy-respecting metasearch |
+| IoT Service | (custom build) | Python 3.13.13-alpine | Built from local Dockerfile |
 
 ### Why Pin Versions?
 
@@ -156,12 +160,12 @@ The IoT service uses Python with Flask. Dependencies are managed in `configs/iot
 ### Current Dependencies
 
 ```
-Flask==3.1.1
-Werkzeug==3.1.3
-flask-wtf==1.2.2
-flask-cors==5.0.0
+flask==3.1.3
+werkzeug==3.1.8
+flask-wtf==1.3.0
+flask-cors==6.0.2
 configparser==7.2.0
-requests==2.32.3
+requests==2.33.1
 ```
 
 ### Updating Python Dependencies
@@ -177,12 +181,12 @@ pip list --outdated
 Update version numbers in `configs/iot/requirements.txt`:
 
 ```
-Flask==3.1.1
-Werkzeug==3.1.3
-flask-wtf==1.2.2
-flask-cors==5.0.0
+flask==3.1.3
+werkzeug==3.1.8
+flask-wtf==1.3.0
+flask-cors==6.0.2
 configparser==7.2.0
-requests==2.32.3
+requests==2.33.1
 ```
 
 #### 3. Rebuild the IoT Service
@@ -262,14 +266,14 @@ cd /opt/servicepi
 trivy fs .
 
 # Scan specific Docker images
-trivy image nginx:1.27.3-alpine
-trivy image portainer/portainer-ce:2.33.2-alpine
-trivy image ghcr.io/home-assistant/home-assistant:2025.10.2
-trivy image pihole/pihole:2025.08.0
-trivy image n8nio/n8n:2.6.2
+trivy image nginx:1.29.8-alpine
+trivy image portainer/portainer-ce:2.39.1-alpine
+trivy image ghcr.io/home-assistant/home-assistant:2026.4.3
+trivy image pihole/pihole:2026.04.0
+trivy image n8nio/n8n:2.3.0
 
 # Scan with severity filtering
-trivy image --severity HIGH,CRITICAL nginx:1.27.3-alpine
+trivy image --severity HIGH,CRITICAL nginx:1.29.8-alpine
 ```
 
 ### GitHub Security Alerts
