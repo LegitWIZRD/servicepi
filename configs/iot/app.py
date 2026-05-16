@@ -310,11 +310,16 @@ def get_services_status():
             return service['id'], {'status': 'unknown'}
 
     results = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(services_to_check)) as executor:
         futures = {executor.submit(check_service, svc): svc for svc in services_to_check}
         for future in concurrent.futures.as_completed(futures):
-            service_id, result = future.result()
-            results[service_id] = result
+            service = futures[future]
+            try:
+                service_id, result = future.result()
+                results[service_id] = result
+            except Exception as exc:
+                app.logger.warning("Unexpected status check failure for %s: %s", service['id'], exc)
+                results[service['id']] = {'status': 'unknown'}
 
     return jsonify({
         'services': results,
