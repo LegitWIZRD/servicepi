@@ -91,6 +91,49 @@ The script:
 
 > **Certificate renewal:** Tailscale certificates are valid for 90 days. Re-run the script before expiry to renew.
 
+### Automating certificate renewal
+
+#### Cron job (run as root)
+
+```bash
+sudo crontab -e
+# Add this line to renew monthly (well within the 90-day window):
+0 3 1 * * /opt/servicepi/scripts/setup-tailscale-certs.sh >> /var/log/servicepi-tailscale-cert.log 2>&1
+```
+
+#### systemd timer
+
+```ini
+# /etc/systemd/system/servicepi-tailscale-cert.service
+[Unit]
+Description=Renew ServicePi Tailscale TLS certificate
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/servicepi/scripts/setup-tailscale-certs.sh
+StandardOutput=journal
+StandardError=journal
+```
+
+```ini
+# /etc/systemd/system/servicepi-tailscale-cert.timer
+[Unit]
+Description=Monthly renewal of ServicePi Tailscale TLS certificate
+
+[Timer]
+OnCalendar=monthly
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now servicepi-tailscale-cert.timer
+```
+
 ---
 
 ## Environment Variable Reference
@@ -186,8 +229,9 @@ docker exec servicepi-proxy nginx -s reload
 ## Security Notes
 
 - All Tailscale traffic is end-to-end encrypted by WireGuard regardless of HTTP/HTTPS.
-- Services are NOT exposed to the public internet. Only devices in your tailnet can access them via the Tailscale IP.
-- The UFW firewall rules (`scripts/install.sh`) do not open port 443 to the public internet; Tailscale handles its own NAT traversal.
+- Services are accessible from the public internet only if a device has a routable public IP and no router-level firewall. Tailscale authentication still controls which Tailscale-network devices can connect via the `100.x.x.x` addresses.
+- UFW opens port 443 on all interfaces (same as all other service ports). Port 443 only responds with HTTPS after running `setup-tailscale-certs.sh`; before that, connections are refused. This is acceptable for a home LAN where inbound internet traffic is blocked at the router.
+- For stricter access control, you can restrict port 443 to the Tailscale subnet only by replacing the UFW rule with: `ufw allow from 100.64.0.0/10 to any port 443`
 - Keep `TAILSCALE_AUTH_KEY` secret. Do not commit your `.env` file to version control.
 - Private key (`tailscale.key`) is stored in `configs/nginx/certs/` with permissions `600`. Do not commit it.
 

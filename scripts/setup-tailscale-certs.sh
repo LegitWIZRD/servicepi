@@ -69,8 +69,14 @@ fi
 # Determine the Tailscale hostname/domain if not provided
 if [ -z "$DOMAIN" ]; then
     log "Detecting Tailscale hostname..."
-    DOMAIN=$(docker exec servicepi-tailscale tailscale status --json 2>/dev/null \
-        | grep -o '"DNSName":"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/\.$//' || true)
+    # Prefer jq for reliable JSON parsing; fall back to grep/sed if not available
+    if command -v jq &>/dev/null; then
+        DOMAIN=$(docker exec servicepi-tailscale tailscale status --json 2>/dev/null \
+            | jq -r '.Self.DNSName // empty' 2>/dev/null | sed 's/\.$//' || true)
+    else
+        DOMAIN=$(docker exec servicepi-tailscale tailscale status --json 2>/dev/null \
+            | grep -o '"DNSName":"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/\.$//' || true)
+    fi
 
     if [ -z "$DOMAIN" ]; then
         error "Could not auto-detect Tailscale domain. Ensure the Tailscale container is authenticated, or pass --domain <hostname.ts.net>."
