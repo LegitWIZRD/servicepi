@@ -63,13 +63,14 @@ fi
 
 # Check that tailscale is installed on the host
 if ! command -v tailscale &>/dev/null; then
-    error "Tailscale is not installed on this host. ServicePi can run without Tailscale, but HTTPS over tailnet requires host Tailscale. Install Tailscale, run 'tailscale up', then rerun this script."
+    echo "ServicePi can run without Tailscale."
+    error "Install host Tailscale and run 'sudo tailscale up' to enable HTTPS over tailnet."
 fi
 
 # Capture host tailscale status
 TS_STATUS_JSON="$(tailscale status --json 2>/dev/null || true)"
 if [ -z "$TS_STATUS_JSON" ]; then
-    error "Unable to read Tailscale status. Ensure Tailscale is running and authenticated on the host (try: sudo tailscale up)."
+    error "Unable to read Tailscale status. Ensure host Tailscale is running/authenticated and retry (for example: sudo tailscale status, sudo tailscale up)."
 fi
 
 # Determine the Tailscale hostname/domain if not provided
