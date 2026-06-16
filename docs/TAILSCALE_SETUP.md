@@ -128,6 +128,7 @@ sudo systemctl enable --now servicepi-tailscale-cert.timer
 
 - ServicePi does **not** run Tailscale in Docker.
 - You can skip Tailscale entirely and continue using ServicePi on your local network.
+- Install Tailscale on the host: https://tailscale.com/download
 - If you want tailnet access/HTTPS later, install Tailscale on the host and run:
 
 ```bash

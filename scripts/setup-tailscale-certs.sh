@@ -100,8 +100,11 @@ log "Requesting TLS certificate from Tailscale..."
 mkdir -p "$CERTS_DIR"
 TMP_CERT="$CERTS_DIR/tailscale.crt.tmp"
 TMP_KEY="$CERTS_DIR/tailscale.key.tmp"
+OLD_UMASK="$(umask)"
+umask 077
 
 if ! "${TAILSCALE_CMD[@]}" cert --cert-file "$TMP_CERT" --key-file "$TMP_KEY" "$DOMAIN"; then
+    umask "$OLD_UMASK"
     echo ""
     warning "Certificate request failed. Check that:"
     echo "  1. HTTPS Certificates are enabled in your tailnet:"
@@ -110,6 +113,7 @@ if ! "${TAILSCALE_CMD[@]}" cert --cert-file "$TMP_CERT" --key-file "$TMP_KEY" "$
     echo "  3. The domain '${DOMAIN}' matches your tailnet hostname."
     error "Certificate provisioning failed."
 fi
+umask "$OLD_UMASK"
 
 # Move certs into expected nginx filenames
 mv "$TMP_CERT" "$CERTS_DIR/tailscale.crt"
