@@ -17,7 +17,7 @@ ServicePi supports both access modes:
 ## Prerequisites
 
 1. A [Tailscale account](https://login.tailscale.com/start) (free tier is sufficient).
-2. An [Auth Key](https://login.tailscale.com/admin/settings/keys) from the Tailscale admin console.
+2. Tailscale installed on the host Raspberry Pi (`tailscale` CLI available).
 3. **HTTPS Certificates** enabled in your tailnet:
    - Navigate to **Admin Console → DNS → HTTPS Certificates** and enable it.
 
@@ -25,35 +25,23 @@ ServicePi supports both access modes:
 
 ## Quick Start
 
-### 1. Configure Environment Variables
-
-Add the following to your `.env` file (copy from `.env.example`):
-
-```dotenv
-# Tailscale Configuration
-TAILSCALE_AUTH_KEY=tskey-auth-xxxxxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-TAILSCALE_HOSTNAME=servicepi
-```
-
-> Generate an auth key at: https://login.tailscale.com/admin/settings/keys  
-> Use a **reusable** key for long-term operation, or an **ephemeral** key for temporary access.
-
-### 2. Start the Tailscale Container
+### 1. Install and authenticate Tailscale on the host
 
 ```bash
-cd /opt/servicepi
-docker compose up -d tailscale
+sudo tailscale up
 ```
 
-Verify the container is running and authenticated:
+Follow the URL printed in the terminal and complete sign-in in the Tailscale admin console.
+
+Verify host Tailscale is authenticated:
 
 ```bash
-docker exec servicepi-tailscale tailscale status
+tailscale status
 ```
 
-You should see your device listed as `servicepi` (or your configured hostname) with a `100.x.x.x` Tailscale IP.
+You should see this device listed with a `100.x.x.x` Tailscale IP and a MagicDNS name ending in `.ts.net`.
 
-### 3. Access Services over Tailscale (HTTP)
+### 2. Access Services over Tailscale (HTTP)
 
 All services are immediately accessible via HTTP over the encrypted Tailscale WireGuard tunnel using the Tailscale IP or MagicDNS hostname:
 
@@ -71,7 +59,7 @@ All services are immediately accessible via HTTP over the encrypted Tailscale Wi
 
 Replace `tailnet-name` with your actual Tailscale tailnet name (shown in the Tailscale admin console).
 
-### 4. Enable HTTPS on Port 443 (Optional)
+### 3. Enable HTTPS on Port 443 (Optional)
 
 For an `https://` entry-point to the web dashboard, run the certificate setup script:
 
@@ -136,60 +124,23 @@ sudo systemctl enable --now servicepi-tailscale-cert.timer
 
 ---
 
-## Environment Variable Reference
+## Host setup notes
 
-Add these to your `.env` file:
-
-```dotenv
-# ============================================================================
-# Tailscale Configuration
-# ============================================================================
-
-# Auth key from https://login.tailscale.com/admin/settings/keys
-# Required for the tailscale container to authenticate automatically.
-# Use a reusable key for long-term deployments, or leave empty to authenticate
-# manually with: docker exec -it servicepi-tailscale tailscale up
-TAILSCALE_AUTH_KEY=
-
-# Tailscale device hostname (shown in the admin console and used as MagicDNS name)
-# Default: servicepi
-TAILSCALE_HOSTNAME=servicepi
-
-# Whether to accept DNS settings pushed by the tailnet (default: false)
-# Set to true if you want Tailscale to manage DNS on the Pi.
-TAILSCALE_ACCEPT_DNS=false
-
-# Extra arguments to pass to tailscale up (optional)
-# Example: --accept-routes to accept advertised subnet routes
-TAILSCALE_EXTRA_ARGS=
-```
-
----
-
-## Manual Authentication
-
-If you prefer not to use an auth key, leave `TAILSCALE_AUTH_KEY` empty and authenticate manually after the container starts:
+- ServicePi does **not** run Tailscale in Docker.
+- You can skip Tailscale entirely and continue using ServicePi on your local network.
+- If you want tailnet access/HTTPS later, install Tailscale on the host and run:
 
 ```bash
-docker exec -it servicepi-tailscale tailscale up
+sudo tailscale up
+sudo bash /opt/servicepi/scripts/setup-tailscale-certs.sh
 ```
-
-Follow the URL printed in the terminal to authenticate via the Tailscale admin console.
-
----
 
 ## Troubleshooting
 
 ### Check Tailscale status
 
 ```bash
-docker exec servicepi-tailscale tailscale status
-```
-
-### View Tailscale logs
-
-```bash
-docker logs servicepi-tailscale
+tailscale status
 ```
 
 ### nginx HTTPS not working
@@ -232,7 +183,6 @@ docker exec servicepi-proxy nginx -s reload
 - Services are accessible from the public internet only if a device has a routable public IP and no router-level firewall. Tailscale authentication still controls which Tailscale-network devices can connect via the `100.x.x.x` addresses.
 - UFW opens port 443 on all interfaces (same as all other service ports). Port 443 only responds with HTTPS after running `setup-tailscale-certs.sh`; before that, connections are refused. This is acceptable for a home LAN where inbound internet traffic is blocked at the router.
 - For stricter access control, you can restrict port 443 to the Tailscale subnet only by replacing the UFW rule with: `ufw allow from 100.64.0.0/10 to any port 443`
-- Keep `TAILSCALE_AUTH_KEY` secret. Do not commit your `.env` file to version control.
 - Private key (`tailscale.key`) is stored in `configs/nginx/certs/` with permissions `600`. Do not commit it.
 
 ## Related Documentation
@@ -241,4 +191,3 @@ docker exec servicepi-proxy nginx -s reload
 - [INSTALL.md](../INSTALL.md) - Installation guide
 - [SECURITY.md](../SECURITY.md) - Security considerations
 - [Tailscale documentation](https://tailscale.com/kb/)
-- [Tailscale Docker guide](https://tailscale.com/kb/1282/docker)

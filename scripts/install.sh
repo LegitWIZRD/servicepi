@@ -169,6 +169,11 @@ sleep 10
 log "Checking service status..."
 docker-compose ps
 
+TAILSCALE_AVAILABLE=false
+if command -v tailscale &>/dev/null; then
+    TAILSCALE_AVAILABLE=true
+fi
+
 success "ServicePi installation completed!"
 echo ""
 echo "🎉 Installation Summary:"
@@ -204,8 +209,13 @@ echo "  9. Update configs/pihole/custom.list with your Pi's IP for .local domain
 echo "  10. To enable Wazuh: Set ENABLE_WAZUH=true in .env, uncomment Wazuh services in docker-compose.yml, and configure firewall (requires 4GB+ RAM)"
 echo "  11. Customize services in docker-compose.yml as needed"
 echo "  12. Set up automatic updates with 'sudo systemctl enable --now servicepi-update.timer'"
-echo "  13. Set up Tailscale for remote access: add TAILSCALE_AUTH_KEY to .env, restart, then"
-echo "      run: sudo $INSTALL_DIR/scripts/setup-tailscale-certs.sh  (see docs/TAILSCALE_SETUP.md)"
+if [ "$TAILSCALE_AVAILABLE" = true ]; then
+    echo "  13. Optional: Set up Tailscale remote access: run 'sudo tailscale up' (if needed), then"
+    echo "      run: sudo $INSTALL_DIR/scripts/setup-tailscale-certs.sh  (see docs/TAILSCALE_SETUP.md)"
+else
+    echo "  13. Optional: Install Tailscale later for remote access + HTTPS over tailnet"
+    echo "      (ServicePi works normally without Tailscale)"
+fi
 echo ""
 echo "🔧 Useful commands:"
 echo "  - Manual update: sudo $INSTALL_DIR/scripts/update-pi.sh"

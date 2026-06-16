@@ -4,7 +4,7 @@
 # Provisions Tailscale TLS certificates and activates HTTPS in nginx.
 #
 # This script:
-#   1. Checks that the Tailscale container is running and authenticated.
+#   1. Checks that host Tailscale is installed and authenticated.
 #   2. Requests a TLS certificate for the Tailscale MagicDNS hostname via 'tailscale cert'.
 #   3. Copies the certificate and key to configs/nginx/certs/.
 #   4. Activates the HTTPS nginx config (https.conf.template → https.conf).
@@ -12,7 +12,7 @@
 #
 # Prerequisites:
 #   - docker compose up -d (all services running)
-#   - TAILSCALE_AUTH_KEY set in .env and tailscale container authenticated
+#   - Tailscale installed on the host and authenticated (`tailscale up`)
 #   - Tailscale HTTPS Certificates enabled in your tailnet admin console:
 #       https://login.tailscale.com/admin/dns (enable "HTTPS Certificates")
 #
@@ -61,9 +61,15 @@ if ! command -v docker &>/dev/null; then
     error "Docker is not installed or not in PATH."
 fi
 
-# Check that the tailscale container is running
-if ! docker ps --format '{{.Names}}' | grep -q "^servicepi-tailscale$"; then
-    error "The servicepi-tailscale container is not running. Start it with: docker compose up -d tailscale"
+# Check that tailscale is installed on the host
+if ! command -v tailscale &>/dev/null; then
+    error "Tailscale is not installed on this host. ServicePi can run without Tailscale, but HTTPS over tailnet requires host Tailscale. Install Tailscale, run 'tailscale up', then rerun this script."
+fi
+
+# Capture host tailscale status
+TS_STATUS_JSON="$(tailscale status --json 2>/dev/null || true)"
+if [ -z "$TS_STATUS_JSON" ]; then
+    error "Unable to read Tailscale status. Ensure Tailscale is running and authenticated on the host (try: sudo tailscale up)."
 fi
 
 # Determine the Tailscale hostname/domain if not provided
@@ -71,15 +77,13 @@ if [ -z "$DOMAIN" ]; then
     log "Detecting Tailscale hostname..."
     # Prefer jq for reliable JSON parsing; fall back to grep/sed if not available
     if command -v jq &>/dev/null; then
-        DOMAIN=$(docker exec servicepi-tailscale tailscale status --json 2>/dev/null \
-            | jq -r '.Self.DNSName // empty' 2>/dev/null | sed 's/\.$//' || true)
+        DOMAIN=$(printf '%s' "$TS_STATUS_JSON" | jq -r '.Self.DNSName // empty' 2>/dev/null | sed 's/\.$//' || true)
     else
-        DOMAIN=$(docker exec servicepi-tailscale tailscale status --json 2>/dev/null \
-            | grep -o '"DNSName":"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/\.$//' || true)
+        DOMAIN=$(printf '%s' "$TS_STATUS_JSON" | grep -o '"DNSName":"[^"]*"' | head -1 | cut -d'"' -f4 | sed 's/\.$//' || true)
     fi
 
     if [ -z "$DOMAIN" ]; then
-        error "Could not auto-detect Tailscale domain. Ensure the Tailscale container is authenticated, or pass --domain <hostname.ts.net>."
+        error "Could not auto-detect Tailscale domain. Ensure host Tailscale is authenticated, or pass --domain <hostname.ts.net>."
     fi
 fi
 
@@ -87,22 +91,23 @@ log "Using Tailscale domain: ${DOMAIN}"
 
 # Ensure HTTPS Certificates are enabled in the tailnet
 log "Requesting TLS certificate from Tailscale..."
-if ! docker exec servicepi-tailscale tailscale cert --cert-file /tmp/tailscale.crt --key-file /tmp/tailscale.key "$DOMAIN"; then
+mkdir -p "$CERTS_DIR"
+TMP_CERT="$CERTS_DIR/tailscale.crt.tmp"
+TMP_KEY="$CERTS_DIR/tailscale.key.tmp"
+
+if ! tailscale cert --cert-file "$TMP_CERT" --key-file "$TMP_KEY" "$DOMAIN"; then
     echo ""
     warning "Certificate request failed. Check that:"
     echo "  1. HTTPS Certificates are enabled in your tailnet:"
     echo "       https://login.tailscale.com/admin/dns  →  'HTTPS Certificates'"
-    echo "  2. The Tailscale container is authenticated."
+    echo "  2. Host Tailscale is authenticated (run: sudo tailscale up)."
     echo "  3. The domain '${DOMAIN}' matches your tailnet hostname."
     error "Certificate provisioning failed."
 fi
 
-# Copy certs out of the container into the nginx certs directory
-log "Copying certificates to ${CERTS_DIR}..."
-mkdir -p "$CERTS_DIR"
-
-docker cp servicepi-tailscale:/tmp/tailscale.crt "$CERTS_DIR/tailscale.crt"
-docker cp servicepi-tailscale:/tmp/tailscale.key "$CERTS_DIR/tailscale.key"
+# Move certs into expected nginx filenames
+mv "$TMP_CERT" "$CERTS_DIR/tailscale.crt"
+mv "$TMP_KEY" "$CERTS_DIR/tailscale.key"
 
 # Secure the private key
 chmod 600 "$CERTS_DIR/tailscale.key"
