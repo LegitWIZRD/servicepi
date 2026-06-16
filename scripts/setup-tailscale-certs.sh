@@ -66,10 +66,16 @@ if ! command -v tailscale &>/dev/null; then
     error "Tailscale is not installed on the host. Install Tailscale, run 'sudo tailscale up' to authenticate, then rerun this script."
 fi
 
+# Use sudo for tailscale operations when available and not already root
+TAILSCALE_CMD=(tailscale)
+if [ "$EUID" -ne 0 ] && command -v sudo &>/dev/null; then
+    TAILSCALE_CMD=(sudo tailscale)
+fi
+
 # Capture host tailscale status
-TS_STATUS_JSON="$(tailscale status --json 2>/dev/null || true)"
+TS_STATUS_JSON="$("${TAILSCALE_CMD[@]}" status --json 2>/dev/null || true)"
 if [ -z "$TS_STATUS_JSON" ]; then
-    error "Unable to read Tailscale status. Ensure host Tailscale is running/authenticated and retry (for example: sudo tailscale status, sudo tailscale up)."
+    error "Unable to read Tailscale status. Ensure host Tailscale is running/authenticated and retry (for example: tailscale status, tailscale up)."
 fi
 
 # Determine the Tailscale hostname/domain if not provided
@@ -95,12 +101,12 @@ mkdir -p "$CERTS_DIR"
 TMP_CERT="$CERTS_DIR/tailscale.crt.tmp"
 TMP_KEY="$CERTS_DIR/tailscale.key.tmp"
 
-if ! tailscale cert --cert-file "$TMP_CERT" --key-file "$TMP_KEY" "$DOMAIN"; then
+if ! "${TAILSCALE_CMD[@]}" cert --cert-file "$TMP_CERT" --key-file "$TMP_KEY" "$DOMAIN"; then
     echo ""
     warning "Certificate request failed. Check that:"
     echo "  1. HTTPS Certificates are enabled in your tailnet:"
     echo "       https://login.tailscale.com/admin/dns  →  'HTTPS Certificates'"
-    echo "  2. Host Tailscale is authenticated (check: sudo tailscale status; if needed, run sudo tailscale up)."
+    echo "  2. Host Tailscale is authenticated (check: tailscale status; if needed, run tailscale up)."
     echo "  3. The domain '${DOMAIN}' matches your tailnet hostname."
     error "Certificate provisioning failed."
 fi
