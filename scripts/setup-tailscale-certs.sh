@@ -63,8 +63,7 @@ fi
 
 # Check that tailscale is installed on the host
 if ! command -v tailscale &>/dev/null; then
-    echo "ServicePi can run without Tailscale."
-    error "Install host Tailscale and run 'sudo tailscale up' to enable HTTPS over tailnet."
+    error "Tailscale is optional for ServicePi, but required for tailnet HTTPS. Install host Tailscale and run 'sudo tailscale up', then rerun this script."
 fi
 
 # Capture host tailscale status
