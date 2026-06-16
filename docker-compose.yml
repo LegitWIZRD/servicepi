@@ -1,12 +1,13 @@
 services:
-  # Reverse Proxy - HTTP only
+  # Reverse Proxy - HTTP (local) and HTTPS (Tailscale)
   nginx-proxy:
     # Using nginx:alpine with version tag for ARM64 compatibility
     # Alpine images are lightweight and well-suited for Raspberry Pi
     image: nginx:1.31.0-alpine
     container_name: servicepi-proxy
     ports:
-      - "80:80"    # HTTP for web dashboard
+      - "80:80"    # HTTP for web dashboard (local traffic)
+      - "443:443"  # HTTPS for Tailscale traffic (activated by scripts/setup-tailscale-certs.sh)
       - "9000:9000" # HTTP for Portainer
       - "8080:8080" # HTTP for IoT API
       - "8123:8123" # HTTP for Home Assistant
@@ -20,6 +21,7 @@ services:
     volumes:
       - ./configs/nginx/proxy:/etc/nginx/conf.d
       - ./configs/web:/usr/share/nginx/html/web
+      - ./configs/nginx/certs:/etc/nginx/certs:ro  # SSL certificates for HTTPS (populated by setup-tailscale-certs.sh)
     restart: unless-stopped
     networks:
       - servicepi-network
@@ -35,6 +37,29 @@ services:
       - searxng
       # Uncomment when enabling Wazuh (set ENABLE_WAZUH=true in .env)
       # - wazuh-dashboard
+
+  # Tailscale VPN - Provides secure remote access over Tailscale network
+  # Requires TAILSCALE_AUTH_KEY to be set in .env
+  # See docs/TAILSCALE_SETUP.md for full setup instructions
+  tailscale:
+    # Using Tailscale stable tag for ARM64 compatibility
+    image: tailscale/tailscale:stable
+    container_name: servicepi-tailscale
+    hostname: ${TAILSCALE_HOSTNAME:-servicepi}
+    network_mode: host
+    environment:
+      - TS_AUTHKEY=${TAILSCALE_AUTH_KEY:-}
+      - TS_HOSTNAME=${TAILSCALE_HOSTNAME:-servicepi}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_EXTRA_ARGS=${TAILSCALE_EXTRA_ARGS:-}
+      - TS_ACCEPT_DNS=${TAILSCALE_ACCEPT_DNS:-false}
+    volumes:
+      - tailscale_state:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    restart: unless-stopped
 
   # Web Backend (internal only)
   web-backend:
@@ -327,6 +352,8 @@ volumes:
     driver: local
     # Note: When NVMe storage is configured, this volume will be stored on the NVMe drive
     # via Docker's data-root configuration in /etc/docker/daemon.json
+  tailscale_state:
+    driver: local
   homeassistant_data:
     driver: local
   pihole_data:

@@ -1,0 +1,72 @@
+# HTTPS via Tailscale - serves all services over HTTPS for remote Tailscale access
+# This file is a TEMPLATE. It is activated by scripts/setup-tailscale-certs.sh.
+# See docs/TAILSCALE_SETUP.md for full setup instructions.
+#
+# Usage:
+#   1. Run: scripts/setup-tailscale-certs.sh
+#   2. The script copies this template to https.conf and provisions certificates.
+#   3. nginx is reloaded to pick up the new HTTPS configuration.
+#
+# Accessibility:
+#   - Local HTTP  : http://<pi-ip>/          (always available, port 80)
+#   - Tailscale HTTPS: https://<ts-hostname>.ts.net/  (after cert setup, port 443)
+#
+# All services remain accessible via HTTP on their individual ports over the
+# already-encrypted Tailscale WireGuard tunnel. Port 443 provides an additional
+# TLS layer and a single HTTPS entry-point for the web dashboard and API.
+
+# HTTPS - Web Dashboard and IoT API entry-point
+# Accessible via: https://<tailscale-hostname>.ts.net/
+server {
+    listen 443 ssl;
+    server_name _;
+
+    # SSL certificate - provisioned by Tailscale (see setup-tailscale-certs.sh)
+    ssl_certificate     /etc/nginx/certs/tailscale.crt;
+    ssl_certificate_key /etc/nginx/certs/tailscale.key;
+
+    # Modern TLS settings (TLSv1.2 and TLSv1.3 only)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256;
+    ssl_prefer_server_ciphers off;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_tickets off;
+
+    # Security headers
+    add_header X-Frame-Options DENY always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+
+    # Web Dashboard
+    location / {
+        proxy_pass http://web-backend:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+
+    # Health check endpoint
+    location /health {
+        proxy_pass http://web-backend:80/health;
+        proxy_set_header Host $host;
+        access_log off;
+    }
+
+    # API proxy to IoT service
+    # Note: no trailing slash on proxy_pass so the /api/ prefix is preserved
+    location /api/ {
+        proxy_pass http://iot-service:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+
+        # WebSocket support
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+}

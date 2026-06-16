@@ -142,6 +142,7 @@ ufw allow ssh
 # ufw allow 53/tcp    # DNS for Pi-hole (uncomment if you enable DNS in docker-compose.yml)
 # ufw allow 53/udp    # DNS for Pi-hole (uncomment if you enable DNS in docker-compose.yml)
 ufw allow 80/tcp    # HTTP for web dashboard
+ufw allow 443/tcp   # HTTPS for Tailscale (activated by scripts/setup-tailscale-certs.sh)
 ufw allow 9000/tcp  # HTTP for Portainer
 ufw allow 8080/tcp  # HTTP for IoT API
 ufw allow 8123/tcp  # HTTP for Home Assistant
@@ -203,6 +204,8 @@ echo "  9. Update configs/pihole/custom.list with your Pi's IP for .local domain
 echo "  10. To enable Wazuh: Set ENABLE_WAZUH=true in .env, uncomment Wazuh services in docker-compose.yml, and configure firewall (requires 4GB+ RAM)"
 echo "  11. Customize services in docker-compose.yml as needed"
 echo "  12. Set up automatic updates with 'sudo systemctl enable --now servicepi-update.timer'"
+echo "  13. Set up Tailscale for remote access: add TAILSCALE_AUTH_KEY to .env, restart, then"
+echo "      run: sudo $INSTALL_DIR/scripts/setup-tailscale-certs.sh  (see docs/TAILSCALE_SETUP.md)"
 echo ""
 echo "🔧 Useful commands:"
 echo "  - Manual update: sudo $INSTALL_DIR/scripts/update-pi.sh"
