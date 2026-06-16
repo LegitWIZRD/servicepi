@@ -101,9 +101,11 @@ mkdir -p "$CERTS_DIR"
 TMP_CERT="$CERTS_DIR/tailscale.crt.tmp"
 TMP_KEY="$CERTS_DIR/tailscale.key.tmp"
 OLD_UMASK="$(umask)"
+if ! umask 077; then
+    error "Failed to set secure file permissions for certificate generation."
+fi
 restore_umask() { umask "$OLD_UMASK"; }
 trap restore_umask EXIT
-umask 077
 
 if ! "${TAILSCALE_CMD[@]}" cert --cert-file "$TMP_CERT" --key-file "$TMP_KEY" "$DOMAIN"; then
     echo ""
