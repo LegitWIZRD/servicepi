@@ -63,7 +63,7 @@ fi
 
 # Check that tailscale is installed on the host
 if ! command -v tailscale &>/dev/null; then
-    error "Tailscale is optional for ServicePi, but required for tailnet HTTPS. Install host Tailscale, run 'sudo tailscale up' and complete the auth link flow, then rerun this script."
+    error "Tailscale is not installed on the host. Install Tailscale, run 'sudo tailscale up' to authenticate, then rerun this script."
 fi
 
 # Capture host tailscale status
@@ -100,7 +100,7 @@ if ! tailscale cert --cert-file "$TMP_CERT" --key-file "$TMP_KEY" "$DOMAIN"; the
     warning "Certificate request failed. Check that:"
     echo "  1. HTTPS Certificates are enabled in your tailnet:"
     echo "       https://login.tailscale.com/admin/dns  →  'HTTPS Certificates'"
-    echo "  2. Host Tailscale is authenticated (run: sudo tailscale up)."
+    echo "  2. Host Tailscale is authenticated (check: sudo tailscale status; if needed, run sudo tailscale up)."
     echo "  3. The domain '${DOMAIN}' matches your tailnet hostname."
     error "Certificate provisioning failed."
 fi
