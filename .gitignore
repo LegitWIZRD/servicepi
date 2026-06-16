@@ -3,6 +3,10 @@
 docker-compose.override.yml
 *.log
 
+# Tailscale certificates (provisioned at runtime, never commit)
+configs/nginx/certs/*.crt
+configs/nginx/certs/*.key
+
 # Pi specific
 *.backup
 *.bak

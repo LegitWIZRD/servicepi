@@ -1,0 +1,10 @@
+# This directory holds SSL certificates used by nginx for HTTPS (Tailscale traffic).
+#
+# Files expected here:
+#   tailscale.crt  - Tailscale-provisioned TLS certificate (or self-signed placeholder)
+#   tailscale.key  - Corresponding private key
+#
+# Run scripts/setup-tailscale-certs.sh to provision certificates.
+# See docs/TAILSCALE_SETUP.md for full instructions.
+#
+# IMPORTANT: Do NOT commit real certificate or key files to version control.
