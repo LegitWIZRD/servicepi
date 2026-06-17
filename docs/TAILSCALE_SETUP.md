@@ -7,10 +7,10 @@ ServicePi supports both access modes:
 | Traffic source | Protocol | Port | Notes |
 |---|---|---|---|
 | Local network (LAN) | HTTP | 80, 9000, 8123, … | Unchanged from default |
-| Tailscale network | HTTPS | 443 (dashboard/API) | Activated by `setup-tailscale-certs.sh` |
-| Tailscale network | HTTP | 80, 9000, 8123, … | WireGuard-encrypted tunnel; no extra TLS needed |
+| Tailscale network | HTTP | 80, 9000, 8123, … | WireGuard-encrypted tunnel; works immediately |
+| Tailscale network | HTTPS | 443, 9000, 8080, … | Activated by `setup-tailscale-certs.sh` |
 
-> **Note:** All Tailscale traffic is already end-to-end encrypted by WireGuard. HTTP over Tailscale is private. The optional HTTPS on port 443 adds an additional TLS layer for the main web dashboard and provides a browser-friendly `https://` URL.
+> **Note:** All Tailscale traffic is already end-to-end encrypted by WireGuard. HTTP over Tailscale is private. The optional HTTPS (activated by `setup-tailscale-certs.sh`) adds browser-trusted TLS certificates so that all service links show a green padlock and mixed-content warnings are avoided.
 
 ---
 
@@ -59,23 +59,36 @@ All services are immediately accessible via HTTP over the encrypted Tailscale Wi
 
 Replace `tailnet-name` with your actual Tailscale tailnet name (shown in the Tailscale admin console).
 
-### 3. Enable HTTPS on Port 443 (Optional)
+### 3. Enable HTTPS for All Services (Optional)
 
-For an `https://` entry-point to the web dashboard, run the certificate setup script:
+For browser-trusted `https://` access to **all** services, run the certificate setup script:
 
 ```bash
 sudo bash /opt/servicepi/scripts/setup-tailscale-certs.sh
 ```
 
-After a successful run:
-- Web dashboard: `https://servicepi.tailnet-name.ts.net/`
-- IoT API: `https://servicepi.tailnet-name.ts.net/api/`
+After a successful run, every service is accessible over HTTPS using the Tailscale certificate:
+
+| Service | HTTPS URL |
+|---|---|
+| Web Dashboard | `https://servicepi.tailnet-name.ts.net/` |
+| IoT API | `https://servicepi.tailnet-name.ts.net/api/` |
+| Portainer | `https://servicepi.tailnet-name.ts.net:9000/` |
+| IoT API (direct) | `https://servicepi.tailnet-name.ts.net:8080/` |
+| Home Assistant | `https://servicepi.tailnet-name.ts.net:8123/` |
+| Pi-hole Admin | `https://servicepi.tailnet-name.ts.net:8053/` |
+| N8N | `https://servicepi.tailnet-name.ts.net:5678/` |
+| WordPress | `https://servicepi.tailnet-name.ts.net:8081/` |
+| OpenWebUI | `https://servicepi.tailnet-name.ts.net:3000/` |
+| SearXNG | `https://servicepi.tailnet-name.ts.net:8888/` |
 
 The script:
 1. Requests a TLS certificate from Tailscale's certificate authority.
 2. Saves the certificate and key to `configs/nginx/certs/`.
-3. Activates the HTTPS nginx configuration (`https.conf`).
+3. Activates the HTTPS nginx configuration (`https.conf`) which adds SSL listeners on all service ports.
 4. Reloads nginx.
+
+The web dashboard automatically detects when it is served over HTTPS and updates all service links to use `https://`, so you will never be redirected back to HTTP when clicking through from the dashboard.
 
 > **Certificate renewal:** Tailscale certificates are valid for 90 days. Re-run the script before expiry to renew.
 
@@ -163,6 +176,14 @@ tailscale status
    docker logs servicepi-proxy
    ```
 
+### Service HTTPS not working on a specific port
+
+Each service port (9000, 8080, 8123, etc.) has its own HTTPS server block in `https.conf`. If one service is not responding over HTTPS, check:
+
+1. The port is open in UFW: `sudo ufw status`
+2. nginx is listening on that port: `docker exec servicepi-proxy nginx -t`
+3. The relevant service container is running: `docker ps`
+
 ### Re-run certificate setup
 
 ```bash
@@ -182,8 +203,8 @@ docker exec servicepi-proxy nginx -s reload
 
 - All Tailscale traffic is end-to-end encrypted by WireGuard regardless of HTTP/HTTPS.
 - Services are accessible from the public internet only if a device has a routable public IP and no router-level firewall. Tailscale authentication still controls which Tailscale-network devices can connect via the `100.x.x.x` addresses.
-- UFW opens port 443 on all interfaces (same as all other service ports). Port 443 only responds with HTTPS after running `setup-tailscale-certs.sh`; before that, connections are refused. This is acceptable for a home LAN where inbound internet traffic is blocked at the router.
-- For stricter access control, you can restrict port 443 to the Tailscale subnet only by replacing the UFW rule with: `ufw allow from 100.64.0.0/10 to any port 443`
+- UFW opens all service ports on all interfaces. After running `setup-tailscale-certs.sh`, those ports respond over HTTPS; before that, they respond over HTTP.
+- For stricter access control, you can restrict HTTPS ports to the Tailscale subnet only: `ufw allow from 100.64.0.0/10 to any port 443`
 - Private key (`tailscale.key`) is stored in `configs/nginx/certs/` with permissions `600`. Do not commit it.
 
 ## Related Documentation

@@ -618,15 +618,15 @@
         <div class="footer-info">
             <p><strong>Service Ports:</strong></p>
             <p>
-                🌐 Web Dashboard: <span class="http-indicator">HTTP :80</span> | 
-                🐳 Portainer: <span class="http-indicator">HTTP :9000</span> | 
-                🔧 IoT API: <span class="http-indicator">HTTP :8080</span> | 
-                🏠 Home Assistant: <span class="http-indicator">HTTP :8123</span> | 
-                🛡️ Pi-hole: <span class="http-indicator">HTTP :8053</span> | 
-                🔄 N8N: <span class="http-indicator">HTTP :5678</span> | 
-                📝 WordPress: <span class="http-indicator">HTTP :8081</span> | 
-                🤖 OpenWebUI: <span class="http-indicator">HTTP :3000</span> | 
-                🔍 SearXNG: <span class="http-indicator">HTTP :8888</span> | 
+                🌐 Web Dashboard: <span class="http-indicator" id="proto-web">HTTP :80</span> | 
+                🐳 Portainer: <span class="http-indicator" id="proto-portainer">HTTP :9000</span> | 
+                🔧 IoT API: <span class="http-indicator" id="proto-iot">HTTP :8080</span> | 
+                🏠 Home Assistant: <span class="http-indicator" id="proto-homeassistant">HTTP :8123</span> | 
+                🛡️ Pi-hole: <span class="http-indicator" id="proto-pihole">HTTP :8053</span> | 
+                🔄 N8N: <span class="http-indicator" id="proto-n8n">HTTP :5678</span> | 
+                📝 WordPress: <span class="http-indicator" id="proto-wordpress">HTTP :8081</span> | 
+                🤖 OpenWebUI: <span class="http-indicator" id="proto-openwebui">HTTP :3000</span> | 
+                🔍 SearXNG: <span class="http-indicator" id="proto-searxng">HTTP :8888</span> | 
                 🔐 Wazuh: <span class="http-indicator">HTTP :8443</span> (optional)
             </p>
             <p>Last updated: <span id="timestamp"></span></p>
@@ -711,71 +711,95 @@
         
         document.getElementById('timestamp').textContent = new Date().toLocaleString();
         
-        // Update Portainer and IoT API links with current hostname
+        // Update service links with current hostname and protocol.
+        // When accessed over HTTPS (e.g. via Tailscale), use https:// for all
+        // service links so the browser does not block mixed content and users
+        // stay on encrypted connections end-to-end.
         const hostname = window.location.hostname;
+        const proto = window.location.protocol; // 'http:' or 'https:'
         
         // Update Portainer link
         const portainerLink = document.querySelector('a[href="http://localhost:9000"]');
         if (portainerLink && hostname !== 'localhost') {
-            portainerLink.href = `http://${hostname}:9000`;
+            portainerLink.href = `${proto}//${hostname}:9000`;
         }
         
         // Update IoT API links
         const iotRootLink = document.querySelector('a[href="http://localhost:8080"]');
         if (iotRootLink && hostname !== 'localhost') {
-            iotRootLink.href = `http://${hostname}:8080`;
+            iotRootLink.href = `${proto}//${hostname}:8080`;
         }
         
         const iotHealthLink = document.querySelector('a[href="http://localhost:8080/health"]');
         if (iotHealthLink && hostname !== 'localhost') {
-            iotHealthLink.href = `http://${hostname}:8080/health`;
+            iotHealthLink.href = `${proto}//${hostname}:8080/health`;
         }
         
         // Update Home Assistant link
         const homeAssistantLink = document.querySelector('a[href="http://localhost:8123"]');
         if (homeAssistantLink && hostname !== 'localhost') {
-            homeAssistantLink.href = `http://${hostname}:8123`;
+            homeAssistantLink.href = `${proto}//${hostname}:8123`;
         }
         
         // Update Pi-hole link
         const piholeLink = document.querySelector('a[href="http://localhost:8053/admin"]');
         if (piholeLink && hostname !== 'localhost') {
-            piholeLink.href = `http://${hostname}:8053/admin`;
+            piholeLink.href = `${proto}//${hostname}:8053/admin`;
         }
         
         // Update N8N link
         const n8nLink = document.querySelector('a[href="http://localhost:5678"]');
         if (n8nLink && hostname !== 'localhost') {
-            n8nLink.href = `http://${hostname}:5678`;
+            n8nLink.href = `${proto}//${hostname}:5678`;
         }
         
         // Update WordPress links
         const wordpressLink = document.querySelector('a[href="http://localhost:8081"]');
         if (wordpressLink && hostname !== 'localhost') {
-            wordpressLink.href = `http://${hostname}:8081`;
+            wordpressLink.href = `${proto}//${hostname}:8081`;
         }
         
         const wordpressAdminLink = document.querySelector('a[href="http://localhost:8081/wp-admin"]');
         if (wordpressAdminLink && hostname !== 'localhost') {
-            wordpressAdminLink.href = `http://${hostname}:8081/wp-admin`;
+            wordpressAdminLink.href = `${proto}//${hostname}:8081/wp-admin`;
         }
         
         // Update Wazuh link
         const wazuhLink = document.querySelector('a[href="http://localhost:8443"]');
         if (wazuhLink && hostname !== 'localhost') {
-            wazuhLink.href = `http://${hostname}:8443`;
+            wazuhLink.href = `${proto}//${hostname}:8443`;
         }
         
         // Update OpenWebUI link
         const openWebUILink = document.querySelector('a[href="http://localhost:3000"]');
         if (openWebUILink && hostname !== 'localhost') {
-            openWebUILink.href = `http://${hostname}:3000`;
+            openWebUILink.href = `${proto}//${hostname}:3000`;
         }
         
         // Update SearXNG link
         const searxngLink = document.querySelector('a[href="http://localhost:8888"]');
         if (searxngLink && hostname !== 'localhost') {
-            searxngLink.href = `http://${hostname}:8888`;
+            searxngLink.href = `${proto}//${hostname}:8888`;
+        }
+
+        // Update footer protocol indicators to reflect actual protocol (HTTP vs HTTPS)
+        if (proto === 'https:') {
+            const protoLabel = 'HTTPS';
+            const indicators = [
+                ['proto-web',           'HTTPS :443'],
+                ['proto-portainer',     'HTTPS :9000'],
+                ['proto-iot',           'HTTPS :8080'],
+                ['proto-homeassistant', 'HTTPS :8123'],
+                ['proto-pihole',        'HTTPS :8053'],
+                ['proto-n8n',           'HTTPS :5678'],
+                ['proto-wordpress',     'HTTPS :8081'],
+                ['proto-openwebui',     'HTTPS :3000'],
+                ['proto-searxng',       'HTTPS :8888'],
+            ];
+            indicators.forEach(([id, label]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = label;
+            });
         }
         
         // Modal functions
