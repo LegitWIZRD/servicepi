@@ -782,10 +782,12 @@
             searxngLink.href = `${proto}//${hostname}:8888`;
         }
 
-        // Update footer protocol indicators to reflect actual protocol (HTTP vs HTTPS)
+        // Update footer protocol indicators to reflect actual protocol (HTTP vs HTTPS).
+        // The HTML defaults show 'HTTP :PORT'; only update when served over HTTPS
+        // (e.g. via Tailscale with certificates enabled).
         if (proto === 'https:') {
-            const protoLabel = 'HTTPS';
             const indicators = [
+                // Web dashboard is at the default HTTPS port (443)
                 ['proto-web',           'HTTPS :443'],
                 ['proto-portainer',     'HTTPS :9000'],
                 ['proto-iot',           'HTTPS :8080'],
@@ -801,6 +803,7 @@
                 if (el) el.textContent = label;
             });
         }
+        // When proto === 'http:', the HTML defaults ('HTTP :PORT') already show the correct values.
         
         // Modal functions
         function showUpdateModal() {
