@@ -4,21 +4,6 @@
 version: '3.8'
 
 services:
-  # Example: Home Assistant for IoT automation
-  homeassistant:
-    image: ghcr.io/home-assistant/home-assistant:stable
-    container_name: servicepi-homeassistant
-    environment:
-      - TZ=America/New_York
-    volumes:
-      - ./configs/homeassistant:/config
-      - /etc/localtime:/etc/localtime:ro
-    restart: unless-stopped
-    network_mode: host
-    # Uncomment for USB device access
-    # devices:
-    #   - /dev/ttyUSB0:/dev/ttyUSB0
-    
   # Example: MQTT Broker for IoT communication
   mosquitto:
     image: eclipse-mosquitto:latest

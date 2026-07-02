@@ -487,22 +487,6 @@
                 </div>
             </div>
             
-            <div class="service-card" data-service="homeassistant">
-                <h3>
-                    Home Assistant
-                    <span class="port">:8123</span>
-                </h3>
-                <span class="version-badge">v2026.6.4</span>
-                <span id="status-homeassistant" class="status checking"><span class="status-spinner"></span> Checking…</span>
-                <p>Home automation platform for IoT and service orchestration</p>
-                <div class="service-links">
-                    <a href="http://localhost:8123" target="_blank">Access Home Assistant</a>
-                </div>
-                <div style="margin-top: 10px; font-size: 12px; color: #666;">
-                    HTTP | Automation Platform
-                </div>
-            </div>
-            
             <div class="service-card" data-service="pihole">
                 <h3>
                     Pi-hole DNS Ad Blocker
@@ -621,7 +605,6 @@
                 🌐 Web Dashboard: <span class="http-indicator" id="proto-web">HTTP :80</span> | 
                 🐳 Portainer: <span class="http-indicator" id="proto-portainer">HTTP :9000</span> | 
                 🔧 IoT API: <span class="http-indicator" id="proto-iot">HTTP :8080</span> | 
-                🏠 Home Assistant: <span class="http-indicator" id="proto-homeassistant">HTTP :8123</span> | 
                 🛡️ Pi-hole: <span class="http-indicator" id="proto-pihole">HTTP :8053</span> | 
                 🔄 N8N: <span class="http-indicator" id="proto-n8n">HTTP :5678</span> | 
                 📝 WordPress: <span class="http-indicator" id="proto-wordpress">HTTP :8081</span> | 
@@ -735,12 +718,6 @@
             iotHealthLink.href = `${proto}//${hostname}:8080/health`;
         }
         
-        // Update Home Assistant link
-        const homeAssistantLink = document.querySelector('a[href="http://localhost:8123"]');
-        if (homeAssistantLink && hostname !== 'localhost') {
-            homeAssistantLink.href = `${proto}//${hostname}:8123`;
-        }
-        
         // Update Pi-hole link
         const piholeLink = document.querySelector('a[href="http://localhost:8053/admin"]');
         if (piholeLink && hostname !== 'localhost') {
@@ -791,7 +768,6 @@
                 ['proto-web',           'HTTPS :443'],
                 ['proto-portainer',     'HTTPS :9000'],
                 ['proto-iot',           'HTTPS :8080'],
-                ['proto-homeassistant', 'HTTPS :8123'],
                 ['proto-pihole',        'HTTPS :8053'],
                 ['proto-n8n',           'HTTPS :5678'],
                 ['proto-wordpress',     'HTTPS :8081'],
@@ -831,7 +807,6 @@
             'nginx':         '🌐 Web Dashboard',
             'portainer':     '🐳 Portainer',
             'iot-api':       '🔧 IoT API',
-            'homeassistant': '🏠 Home Assistant',
             'pihole':        '🛡️ Pi-hole',
             'n8n':           '🔄 N8N',
             'wordpress':     '📝 WordPress',

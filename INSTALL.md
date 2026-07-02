@@ -50,7 +50,6 @@ ServicePi exposes several HTTP services on your local network:
 
 - Port 80: Web dashboard
 - Port 8080: IoT API
-- Port 8123: Home Assistant
 - Port 8053: Pi-hole Admin
 - Port 9000: Portainer
 
@@ -222,12 +221,6 @@ docker exec -it servicepi-pihole pihole -a -p
 2. Create an admin account on first access
 3. Use a strong password (12+ characters, mixed case, numbers, symbols)
 
-#### Home Assistant
-
-1. Access Home Assistant at `http://your-pi-ip:8123`
-2. Complete the onboarding process
-3. Create an admin account with a strong password
-
 ### 2. Configure Firewall Rules
 
 The installation script automatically configures UFW. Verify the rules:
@@ -240,7 +233,6 @@ sudo ufw status verbose
 # - Port 22/tcp (SSH)
 # - Port 80/tcp (HTTP)
 # - Port 8080/tcp (IoT API)
-# - Port 8123/tcp (Home Assistant)
 # - Port 8053/tcp (Pi-hole Admin)
 # - Port 9000/tcp (Portainer)
 # - Port 53 (DNS, if enabled)
@@ -337,9 +329,6 @@ curl http://localhost:8080/health
 # Check Portainer
 curl -I http://localhost:9000
 
-# Check Home Assistant
-curl -I http://localhost:8123
-
 # Check Pi-hole Admin
 curl -I http://localhost:8053/admin
 ```
@@ -351,7 +340,6 @@ From a computer on the same network:
 - **Web Dashboard**: http://your-pi-ip/
 - **Portainer**: http://your-pi-ip:9000/
 - **IoT API**: http://your-pi-ip:8080/
-- **Home Assistant**: http://your-pi-ip:8123/
 - **Pi-hole Admin**: http://your-pi-ip:8053/admin
 
 ### View Logs
@@ -364,7 +352,6 @@ sudo docker-compose -f /opt/servicepi/docker-compose.yml logs
 sudo docker-compose -f /opt/servicepi/docker-compose.yml logs web-backend
 sudo docker-compose -f /opt/servicepi/docker-compose.yml logs iot-service
 sudo docker-compose -f /opt/servicepi/docker-compose.yml logs portainer
-sudo docker-compose -f /opt/servicepi/docker-compose.yml logs homeassistant
 sudo docker-compose -f /opt/servicepi/docker-compose.yml logs pihole
 
 # Follow logs in real-time
@@ -424,7 +411,6 @@ sudo docker logs servicepi-proxy
 sudo docker logs servicepi-web-backend
 sudo docker logs servicepi-iot
 sudo docker logs servicepi-portainer
-sudo docker logs servicepi-homeassistant
 sudo docker logs servicepi-pihole
 
 # Inspect container
@@ -497,7 +483,6 @@ sudo rm -rf /var/lib/docker
 # Remove firewall rules (optional)
 sudo ufw delete allow 80/tcp
 sudo ufw delete allow 8080/tcp
-sudo ufw delete allow 8123/tcp
 sudo ufw delete allow 8053/tcp
 sudo ufw delete allow 9000/tcp
 sudo ufw delete allow 53/tcp
@@ -511,9 +496,8 @@ After installation, you can:
 1. **Customize the web dashboard**: Edit `/opt/servicepi/configs/web/index.html`
 2. **Configure IoT service**: Edit `/opt/servicepi/configs/iot/config.ini`
 3. **Add custom services**: Edit `/opt/servicepi/docker-compose.yml`
-4. **Set up Home Assistant automations**: Access Home Assistant and explore integrations
-5. **Configure Pi-hole blocklists**: Edit `/opt/servicepi/configs/pihole/adlists.list`
-6. **Set up VPN for remote access**: Consider WireGuard or Tailscale
+4. **Configure Pi-hole blocklists**: Edit `/opt/servicepi/configs/pihole/adlists.list`
+5. **Set up VPN for remote access**: Consider WireGuard or Tailscale
 
 ## Additional Resources
 
@@ -522,7 +506,6 @@ After installation, you can:
 - [GitHub Repository](https://github.com/LegitWIZRD/servicepi)
 - [Docker Documentation](https://docs.docker.com/)
 - [Raspberry Pi Documentation](https://www.raspberrypi.com/documentation/)
-- [Home Assistant Documentation](https://www.home-assistant.io/docs/)
 - [Pi-hole Documentation](https://docs.pi-hole.net/)
 - [Portainer Documentation](https://docs.portainer.io/)
 

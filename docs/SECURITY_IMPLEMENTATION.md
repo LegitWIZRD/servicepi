@@ -190,7 +190,6 @@ All security concerns from the meta-issue have been addressed through code chang
    - File: `docker-compose.yml`
    - nginx:alpine → nginx:1.27.3-alpine
    - portainer/portainer-ce:latest → portainer/portainer-ce:2.33.2-alpine (updated)
-   - ghcr.io/home-assistant/home-assistant:stable → ghcr.io/home-assistant/home-assistant:2025.10.2 (updated)
    - pihole/pihole:latest → pihole/pihole:2025.08.0 (updated)
    - n8nio/n8n:latest → n8nio/n8n:2.6.2 (updated)
 

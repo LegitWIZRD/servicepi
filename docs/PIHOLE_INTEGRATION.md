@@ -191,7 +191,7 @@ docker exec -it servicepi-pihole pihole -a -p
 ## Compatibility
 
 The Pi-hole integration:
-- ✅ Works with existing services (Web Dashboard, Portainer, Home Assistant, IoT API)
+- ✅ Works with existing services (Web Dashboard, Portainer, IoT API)
 - ✅ Uses the same network (`servicepi-network`)
 - ✅ Follows the same patterns (nginx proxy, volumes, restart policies)
 - ✅ Includes firewall configuration

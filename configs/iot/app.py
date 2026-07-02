@@ -280,7 +280,6 @@ def get_services_status():
         {'id': 'nginx',          'url': 'http://web-backend:80/health',           'timeout': 3},
         {'id': 'portainer',      'url': 'http://portainer:9000/api/system/status', 'timeout': 5},
         {'id': 'iot-api',        'url': 'http://localhost:8080/health',            'timeout': 3},
-        {'id': 'homeassistant',  'url': 'http://homeassistant:8123/',              'timeout': 5},
         {'id': 'pihole',         'url': 'http://pihole:80/',                       'timeout': 3},
         {'id': 'n8n',            'url': 'http://n8n:5678/',                        'timeout': 5},
         {'id': 'wordpress',      'url': 'http://wordpress:80/',                    'timeout': 5},

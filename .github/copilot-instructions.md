@@ -105,7 +105,6 @@ servicepi/
   - 80 (HTTP for Web dashboard)
   - 9000 (HTTP for Portainer)
   - 8080 (HTTP for IoT API)
-  - 8123 (HTTP for Home Assistant)
 
 ## Common Tasks
 

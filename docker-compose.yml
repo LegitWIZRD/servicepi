@@ -10,7 +10,6 @@ services:
       - "443:443"  # Optional HTTPS for Tailscale traffic (activated by scripts/setup-tailscale-certs.sh)
       - "9000:9000" # HTTP for Portainer
       - "8080:8080" # HTTP for IoT API
-      - "8123:8123" # HTTP for Home Assistant
       - "8053:8053" # HTTP for Pi-hole Admin
       - "5678:5678" # HTTP for N8N
       - "8081:8081" # HTTP for WordPress
@@ -29,7 +28,6 @@ services:
       - web-backend
       - portainer
       - iot-service
-      - homeassistant
       - pihole
       - n8n
       - wordpress
@@ -86,21 +84,6 @@ services:
     # privileged: true
     # devices:
     #   - /dev/gpiomem:/dev/gpiomem
-
-  # Home Assistant
-  homeassistant:
-    # Using specific version tag for reproducibility
-    image: ghcr.io/home-assistant/home-assistant:2026.6.4
-    container_name: servicepi-homeassistant
-    volumes:
-      - homeassistant_data:/config
-      - ./configs/homeassistant/configuration.yaml:/config/configuration.yaml
-    restart: unless-stopped
-    networks:
-      - servicepi-network
-    environment:
-      - TZ=America/New_York
-    # No exposed ports - accessed via nginx-proxy at :8123
 
   # Pi-hole DNS Ad Blocker
   pihole:
@@ -329,8 +312,6 @@ volumes:
     driver: local
     # Note: When NVMe storage is configured, this volume will be stored on the NVMe drive
     # via Docker's data-root configuration in /etc/docker/daemon.json
-  homeassistant_data:
-    driver: local
   pihole_data:
     driver: local
   pihole_dnsmasq:
