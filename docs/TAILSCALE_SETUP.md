@@ -83,7 +83,7 @@ After a successful run, every service is accessible over HTTPS using the Tailsca
 The script:
 1. Requests a TLS certificate from Tailscale's certificate authority.
 2. Saves the certificate and key to `configs/nginx/certs/`.
-3. Activates the HTTPS nginx configuration (`https.conf`) which adds SSL listeners on all service ports.
+3. Activates the HTTPS nginx configuration (`00-https.conf`) which adds SSL listeners on all service ports.
 4. Reloads nginx.
 
 The web dashboard automatically detects when it is served over HTTPS and updates all service links to use `https://`, so you will never be redirected back to HTTP when clicking through from the dashboard.
@@ -163,7 +163,7 @@ tailscale status
    ```
 2. Verify HTTPS config is active:
    ```bash
-   ls /opt/servicepi/configs/nginx/proxy/https.conf
+   ls /opt/servicepi/configs/nginx/proxy/00-https.conf
    ```
 3. Check nginx config validity:
    ```bash
@@ -176,7 +176,7 @@ tailscale status
 
 ### Service HTTPS not working on a specific port
 
-Each service port (9000, 8080, etc.) has its own HTTPS server block in `https.conf`. If one service is not responding over HTTPS, check:
+Each service port (9000, 8080, etc.) has its own HTTPS server block in `00-https.conf`. If one service is not responding over HTTPS, check:
 
 1. The port is open in UFW: `sudo ufw status`
 2. nginx is listening on that port: `docker exec servicepi-proxy nginx -t`
@@ -191,7 +191,7 @@ sudo bash /opt/servicepi/scripts/setup-tailscale-certs.sh
 ### Disable HTTPS
 
 ```bash
-rm /opt/servicepi/configs/nginx/proxy/https.conf
+rm /opt/servicepi/configs/nginx/proxy/00-https.conf
 docker exec servicepi-proxy nginx -s reload
 ```
 

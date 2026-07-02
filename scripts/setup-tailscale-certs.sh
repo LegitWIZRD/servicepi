@@ -7,7 +7,7 @@
 #   1. Checks that host Tailscale is installed and authenticated.
 #   2. Requests a TLS certificate for the Tailscale MagicDNS hostname via 'tailscale cert'.
 #   3. Copies the certificate and key to configs/nginx/certs/.
-#   4. Activates the HTTPS nginx config (https.conf.template → https.conf).
+#   4. Activates the HTTPS nginx config (https.conf.template → 00-https.conf).
 #   5. Reloads nginx to apply the new configuration.
 #
 # Prerequisites:
@@ -129,7 +129,9 @@ success "Certificates saved to ${CERTS_DIR}/"
 
 # Activate the HTTPS nginx config by copying the template
 TEMPLATE="$PROXY_DIR/https.conf.template"
-HTTPS_CONF="$PROXY_DIR/https.conf"
+# Keep the HTTPS file name lexicographically before default.conf so SSL listeners
+# win for shared ports (9000, 8080, etc.) when both files are loaded by nginx.
+HTTPS_CONF="$PROXY_DIR/00-https.conf"
 
 if [ ! -f "$TEMPLATE" ]; then
     error "HTTPS nginx config template not found at: ${TEMPLATE}"
@@ -137,7 +139,9 @@ fi
 
 log "Activating HTTPS nginx configuration..."
 cp "$TEMPLATE" "$HTTPS_CONF"
-success "https.conf activated in ${PROXY_DIR}/"
+# Remove legacy file name if it exists from an earlier setup run.
+rm -f "$PROXY_DIR/https.conf"
+success "00-https.conf activated in ${PROXY_DIR}/"
 
 # Test and reload nginx
 log "Testing nginx configuration..."
@@ -164,7 +168,7 @@ echo "  SearXNG       (Tailscale HTTPS) : https://${DOMAIN}:8888/"
 echo ""
 echo "Notes:"
 echo "  - Certificate auto-renewal: re-run this script before the cert expires (90 days)."
-echo "  - To disable HTTPS, remove ${PROXY_DIR}/https.conf and reload nginx."
+echo "  - To disable HTTPS, remove ${PROXY_DIR}/00-https.conf and reload nginx."
 echo "  - All services above are served over HTTPS using the same Tailscale certificate."
 echo "  - Local LAN access continues to use HTTP on the original ports (unchanged)."
 echo ""
