@@ -156,7 +156,6 @@ echo "  Web dashboard (local HTTP)      : http://$(hostname -I | awk '{print $1}
 echo "  Web dashboard (Tailscale HTTPS) : https://${DOMAIN}/"
 echo "  Portainer     (Tailscale HTTPS) : https://${DOMAIN}:9000/"
 echo "  IoT API       (Tailscale HTTPS) : https://${DOMAIN}:8080/"
-echo "  Home Assistant (Tailscale HTTPS) : https://${DOMAIN}:8123/"
 echo "  Pi-hole Admin (Tailscale HTTPS) : https://${DOMAIN}:8053/"
 echo "  N8N           (Tailscale HTTPS) : https://${DOMAIN}:5678/"
 echo "  WordPress     (Tailscale HTTPS) : https://${DOMAIN}:8081/"

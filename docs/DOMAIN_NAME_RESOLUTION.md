@@ -1,12 +1,12 @@
 # Domain Name Resolution Setup for ServicePi
 
-This guide explains how to configure local domain name resolution (`.local` domains) for ServicePi services, making them accessible via friendly domain names like `homeassistant.local` instead of IP addresses with ports.
+This guide explains how to configure local domain name resolution (`.local` domains) for ServicePi services, making them accessible via friendly domain names like `portainer.local` instead of IP addresses with ports.
 
 ## Overview
 
 ServicePi supports two methods for accessing services:
-1. **IP Address + Port**: `http://192.168.1.100:8123/`
-2. **Local Domain Name**: `http://homeassistant.local:8123/`
+1. **IP Address + Port**: `http://192.168.1.100:9000/`
+2. **Local Domain Name**: `http://portainer.local:9000/`
 
 Both methods work simultaneously, providing flexibility for different use cases.
 
@@ -19,7 +19,6 @@ Once configured, the following domain names will be available:
 | Web Dashboard | servicepi.local | 80 | http://servicepi.local/ |
 | Portainer | portainer.local | 9000 | http://portainer.local:9000/ |
 | IoT API | iot.local | 8080 | http://iot.local:8080/ |
-| Home Assistant | homeassistant.local | 8123 | http://homeassistant.local:8123/ |
 | Pi-hole Admin | pihole.local | 8053 | http://pihole.local:8053/admin |
 | N8N | n8n.local | 5678 | http://n8n.local:5678/ |
 | WordPress* | wordpress.local | 8081 | http://wordpress.local:8081/ |
@@ -81,7 +80,6 @@ This is the recommended method as it provides network-wide domain resolution for
    192.168.1.100 servicepi.local
    192.168.1.100 portainer.local
    192.168.1.100 iot.local
-   192.168.1.100 homeassistant.local
    192.168.1.100 pihole.local
    192.168.1.100 n8n.local
    # If using WordPress:
@@ -152,7 +150,7 @@ This is the recommended method as it provides network-wide domain resolution for
 
 ```bash
 # From any device on your network:
-nslookup homeassistant.local
+nslookup portainer.local
 ping servicepi.local
 ```
 
@@ -174,7 +172,6 @@ This method doesn't require Pi-hole DNS to be enabled, but must be configured on
    192.168.1.100 servicepi.local
    192.168.1.100 portainer.local
    192.168.1.100 iot.local
-   192.168.1.100 homeassistant.local
    192.168.1.100 pihole.local
    192.168.1.100 n8n.local
    192.168.1.100 wordpress.local
@@ -268,7 +265,6 @@ WordPress is designed as a user-friendly dashboard for your services. After sett
 
 1. Enable and configure WordPress (see README.md)
 2. Create pages with links to services using domain names:
-   - `http://homeassistant.local:8123/` (easier to remember than IP)
    - `http://portainer.local:9000/`
    - etc.
 

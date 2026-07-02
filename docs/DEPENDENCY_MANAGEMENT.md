@@ -13,7 +13,6 @@ ServicePi uses Docker images from trusted sources. All images are pinned to spec
 | Nginx Proxy | nginx:alpine | 1.29.8-alpine | Reverse proxy for all services |
 | Web Backend | nginx:alpine | 1.29.8-alpine | Static content server |
 | Portainer | portainer/portainer-ce | 2.39.1-alpine | Container management UI |
-| Home Assistant | ghcr.io/home-assistant/home-assistant | 2026.2.3 | Home automation platform (pinned due to ARM64 tar issues in newer versions) |
 | Pi-hole | pihole/pihole | 2026.04.0 | DNS ad blocker |
 | N8N | n8nio/n8n | 2.3.0 | Workflow automation (pinned due to ARM64 tar issues in 2.4.x+) |
 | WordPress | wordpress | 6.9.2-php8.2-apache | Blog/dashboard |
@@ -37,7 +36,6 @@ Regularly check for new versions:
 
 - **Nginx**: https://hub.docker.com/_/nginx/tags?page=1&name=alpine
 - **Portainer**: https://hub.docker.com/r/portainer/portainer-ce/tags
-- **Home Assistant**: https://github.com/home-assistant/core/releases
 - **Pi-hole**: https://hub.docker.com/r/pihole/pihole/tags
 
 #### 2. Review Release Notes
@@ -268,7 +266,6 @@ trivy fs .
 # Scan specific Docker images
 trivy image nginx:1.29.8-alpine
 trivy image portainer/portainer-ce:2.39.1-alpine
-trivy image ghcr.io/home-assistant/home-assistant:2026.2.3
 trivy image pihole/pihole:2026.04.0
 trivy image n8nio/n8n:2.3.0
 

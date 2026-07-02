@@ -32,7 +32,7 @@ WordPress is a popular content management system (CMS) that provides a user-frie
 
 **WordPress is enabled by default** in ServicePi and is ready to use immediately after installation.
 
-**Example Use Case**: Create a landing page that displays all your ServicePi services with descriptions and clickable links, making it easy for family members to access Home Assistant, Portainer, etc.
+**Example Use Case**: Create a landing page that displays all your ServicePi services with descriptions and clickable links, making it easy for family members to access Portainer, Pi-hole, etc.
 
 ### WordPress Requirements
 
@@ -108,9 +108,6 @@ WordPress services are **enabled by default** and start automatically with `dock
 3. **Add service links** using blocks:
    ```
    ## ServicePi Services
-   
-   ### Home Automation
-   - [Home Assistant](http://homeassistant.local:8123) - Control your smart home
    
    ### Container Management
    - [Portainer](http://portainer.local:9000) - Manage Docker containers

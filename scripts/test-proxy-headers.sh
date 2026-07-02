@@ -27,20 +27,6 @@ else
   exit 1
 fi
 
-# Test Home Assistant proxy headers
-echo "Testing Home Assistant (port 8123)..."
-HA_TEST=$(curl -v -s -o /dev/null \
-  -H "Origin: http://test-origin.com" \
-  -H "Referer: http://test-referer.com" \
-  http://localhost:8123/ 2>&1 || true)
-
-if echo "$HA_TEST" | grep -q "< HTTP"; then
-  echo -e "${GREEN}✓${NC} Home Assistant proxy is responding"
-else
-  echo -e "${RED}✗${NC} Home Assistant proxy failed to respond"
-  exit 1
-fi
-
 # Test IoT API proxy headers
 echo "Testing IoT API (port 8080)..."
 IOT_TEST=$(curl -v -s -o /dev/null \

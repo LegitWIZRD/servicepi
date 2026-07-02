@@ -6,8 +6,8 @@ ServicePi supports both access modes:
 
 | Traffic source | Protocol | Port | Notes |
 |---|---|---|---|
-| Local network (LAN) | HTTP | 80, 9000, 8123, … | Unchanged from default |
-| Tailscale network | HTTP | 80, 9000, 8123, … | WireGuard-encrypted tunnel; works immediately |
+| Local network (LAN) | HTTP | 80, 9000, … | Unchanged from default |
+| Tailscale network | HTTP | 80, 9000, … | WireGuard-encrypted tunnel; works immediately |
 | Tailscale network | HTTPS | 443, 9000, 8080, … | Activated by `setup-tailscale-certs.sh` |
 
 > **Note:** All Tailscale traffic is already end-to-end encrypted by WireGuard. HTTP over Tailscale is private. The optional HTTPS (activated by `setup-tailscale-certs.sh`) adds browser-trusted TLS certificates so that all service links show a green padlock and mixed-content warnings are avoided.
@@ -49,7 +49,6 @@ All services are immediately accessible via HTTP over the encrypted Tailscale Wi
 |---|---|
 | Web Dashboard | `http://servicepi.tailnet-name.ts.net/` |
 | Portainer | `http://servicepi.tailnet-name.ts.net:9000/` |
-| Home Assistant | `http://servicepi.tailnet-name.ts.net:8123/` |
 | IoT API | `http://servicepi.tailnet-name.ts.net:8080/` |
 | Pi-hole Admin | `http://servicepi.tailnet-name.ts.net:8053/` |
 | N8N | `http://servicepi.tailnet-name.ts.net:5678/` |
@@ -75,7 +74,6 @@ After a successful run, every service is accessible over HTTPS using the Tailsca
 | IoT API | `https://servicepi.tailnet-name.ts.net/api/` |
 | Portainer | `https://servicepi.tailnet-name.ts.net:9000/` |
 | IoT API (direct) | `https://servicepi.tailnet-name.ts.net:8080/` |
-| Home Assistant | `https://servicepi.tailnet-name.ts.net:8123/` |
 | Pi-hole Admin | `https://servicepi.tailnet-name.ts.net:8053/` |
 | N8N | `https://servicepi.tailnet-name.ts.net:5678/` |
 | WordPress | `https://servicepi.tailnet-name.ts.net:8081/` |
@@ -178,7 +176,7 @@ tailscale status
 
 ### Service HTTPS not working on a specific port
 
-Each service port (9000, 8080, 8123, etc.) has its own HTTPS server block in `https.conf`. If one service is not responding over HTTPS, check:
+Each service port (9000, 8080, etc.) has its own HTTPS server block in `https.conf`. If one service is not responding over HTTPS, check:
 
 1. The port is open in UFW: `sudo ufw status`
 2. nginx is listening on that port: `docker exec servicepi-proxy nginx -t`

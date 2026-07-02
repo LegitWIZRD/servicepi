@@ -97,8 +97,8 @@ sudo /tmp/servicepi-verify/scripts/install.sh
 ### Network Security
 
 - **Firewall Configuration**: The installation script configures UFW to restrict access
-- **Management Interfaces**: Keep Portainer, Home Assistant, and Pi-hole behind a firewall or VPN
-- **Port Exposure**: Only expose ports 80, 8080, 8123, 8053, 9000 to your local network, not the internet
+- **Management Interfaces**: Keep Portainer and Pi-hole behind a firewall or VPN
+- **Port Exposure**: Only expose ports 80, 8080, 8053, 9000 to your local network, not the internet
 - Consider using a VPN (e.g., WireGuard, Tailscale) for remote access
 
 ### Drive Formatting Safety
@@ -154,7 +154,6 @@ Several services have default credentials that **must** be changed on first use:
 
 - **Pi-hole**: Default password is `servicepi` (set via `PIHOLE_PASSWORD` environment variable)
 - **Portainer**: Set up on first access
-- **Home Assistant**: Set up on first access
 
 ### Port Exposure
 
@@ -162,7 +161,6 @@ By default, the following ports are exposed on the host:
 
 - Port 80: Web dashboard (HTTP)
 - Port 8080: IoT API (HTTP)
-- Port 8123: Home Assistant (HTTP)
 - Port 8053: Pi-hole Admin (HTTP)
 - Port 9000: Portainer (HTTP)
 - Port 53 (TCP/UDP): Pi-hole DNS (commented out by default)
@@ -223,7 +221,6 @@ ServicePi follows security best practices from:
 
 - [Docker Security Documentation](https://docs.docker.com/engine/security/)
 - [Raspberry Pi Security Guide](https://www.raspberrypi.com/documentation/computers/configuration.html#securing-your-raspberry-pi)
-- [Home Assistant Security](https://www.home-assistant.io/docs/configuration/securing/)
 - [Pi-hole Security](https://docs.pi-hole.net/main/security/)
 
 ## Version History

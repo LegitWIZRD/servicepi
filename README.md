@@ -13,7 +13,6 @@ ServicePi provides a complete infrastructure-as-code solution for running Docker
 - 🛡️ **Security scanning** with Trivy vulnerability scanner
 - 📊 **Web dashboard** for monitoring services
 - 🔧 **Container management** with Portainer
-- 🏠 **Home Assistant** for IoT automation and service orchestration
 - 🚫 **Pi-hole DNS ad blocker** with curated blocklists
 - 🔁 **N8N workflow automation** for integrations and automation
 - 🤖 **OpenWebUI** for Large Language Model (LLM) interactions
@@ -72,7 +71,6 @@ After installation, access your services via HTTP using IP addresses or local do
 - **Web Dashboard**: `http://your-pi-ip/` or `http://servicepi.local/` (HTTP :80)
 - **Portainer**: `http://your-pi-ip:9000/` or `http://portainer.local:9000/` (HTTP :9000)
 - **IoT API**: `http://your-pi-ip:8080/` or `http://iot.local:8080/` (HTTP :8080)
-- **Home Assistant**: `http://your-pi-ip:8123/` or `http://homeassistant.local:8123/` (HTTP :8123)
 - **Pi-hole Admin**: `http://your-pi-ip:8053/admin` or `http://pihole.local:8053/admin` (HTTP :8053)
 - **N8N Workflow Automation**: `http://your-pi-ip:5678/` or `http://n8n.local:5678/` (HTTP :5678)
 - **OpenWebUI**: `http://your-pi-ip:3000/` or `http://openwebui.local:3000/` (HTTP :3000)
@@ -99,7 +97,6 @@ Edit the configuration files in `/opt/servicepi/configs/` to customize your serv
 - `configs/nginx/default.conf` - Web server configuration
 - `configs/web/index.html` - Dashboard content
 - `configs/iot/config.ini` - IoT service settings
-- `configs/homeassistant/configuration.yaml` - Home Assistant configuration (reverse proxy trusted networks)
 - `configs/pihole/adlists.list` - Pi-hole blocklists
 - `configs/pihole/custom.list` - Custom DNS entries
 
@@ -113,7 +110,6 @@ servicepi/
 │   ├── nginx/          # Nginx web server config
 │   ├── web/            # Web dashboard files
 │   ├── iot/            # IoT service configuration
-│   ├── homeassistant/  # Home Assistant configuration
 │   └── pihole/         # Pi-hole blocklists and DNS config
 ├── scripts/            # Deployment and management scripts
 │   ├── install.sh      # Initial installation script
@@ -131,7 +127,7 @@ servicepi/
 - Centralized routing for all services
 - Domain name resolution support (.local domains)
 - Security headers and CORS support
-- CSRF token and cookie forwarding for Portainer and Home Assistant
+- CSRF token and cookie forwarding for Portainer
 - WebSocket support for real-time updates
 
 #### Web Dashboard
@@ -152,14 +148,6 @@ servicepi/
 - Inter-service communication capabilities
 - GPIO access configuration for Pi hardware
 
-#### Home Assistant
-- Open-source home automation platform
-- Automate and control Portainer-hosted services
-- IoT device integration and management
-- User-friendly web interface for automation workflows
-- Direct integration with IoT API service
-- Configured to work behind reverse proxy with trusted networks
-
 #### Pi-hole DNS Ad Blocker
 - Network-wide ad and tracker blocking
 - DNS-level filtering for all devices
@@ -178,7 +166,6 @@ Access Pi-hole admin at `http://your-pi-ip:8053/admin` or `http://pihole.local:8
 - Schedule workflows and trigger on events
 - Self-hosted alternative to Zapier/Make
 - WebSocket support for real-time updates
-- Integration with Home Assistant and IoT API service
 
 Access N8N at `http://your-pi-ip:5678/` or `http://n8n.local:5678/`. Create workflows to automate tasks between your ServicePi services and external platforms.
 
@@ -365,7 +352,6 @@ The workflow checks these containers:
 - Portainer
 - n8n
 - Pi-hole
-- Home Assistant
 
 You can also trigger the check manually from the Actions tab in your GitHub repository.
 
@@ -386,7 +372,6 @@ Docker images are pinned to specific versions for reproducibility and security. 
 1. **Review the latest versions**:
    - Nginx: Check [Docker Hub - nginx](https://hub.docker.com/_/nginx/tags?page=1&name=alpine)
    - Portainer: Check [Docker Hub - portainer-ce](https://hub.docker.com/r/portainer/portainer-ce/tags)
-   - Home Assistant: Check [GitHub - home-assistant releases](https://github.com/home-assistant/core/releases)
    - Pi-hole: Check [Docker Hub - pihole](https://hub.docker.com/r/pihole/pihole/tags)
    - n8n: Check [Docker Hub - n8n](https://hub.docker.com/r/n8nio/n8n/tags)
 
@@ -505,7 +490,6 @@ For comprehensive security information, see [SECURITY.md](SECURITY.md).
 ⚠️ **Change Default Passwords**: After installation, immediately change:
 - Pi-hole web interface password (in `.env` file)
 - Portainer admin password (on first access)
-- Home Assistant admin password (on first access)
 
 ⚠️ **Network Security**: 
 - Keep management interfaces accessible only on your local network
@@ -549,9 +533,9 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
    sudo systemctl status docker
    ```
 
-2. **Port conflicts**: Ensure ports 53, 80, 5678, 8053, 8080, 8081, 8123, 8443, and 9000 are available
+2. **Port conflicts**: Ensure ports 53, 80, 5678, 8053, 8080, 8081, 8443, and 9000 are available
    ```bash
-   sudo netstat -tlnp | grep -E ':(53|80|5678|8053|8080|8081|8123|8443|9000) '
+   sudo netstat -tlnp | grep -E ':(53|80|5678|8053|8080|8081|8443|9000) '
    ```
 
 3. **Permission issues**: Verify ownership
@@ -571,16 +555,7 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
    /opt/servicepi/scripts/test-proxy-headers.sh
    ```
 
-5. **Home Assistant not accessible**: Ensure the service is running and healthy
-   ```bash
-   # Check Home Assistant status
-   docker logs servicepi-homeassistant
-   
-   # Verify the service is responding
-   curl -I http://localhost:8123
-   ```
-
-6. **Pi-hole DNS not working**: Check that Pi-hole is running and DNS ports are enabled
+5. **Pi-hole DNS not working**: Check that Pi-hole is running and DNS ports are enabled
    ```bash
    # Check Pi-hole status
    docker logs servicepi-pihole
@@ -604,7 +579,7 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
    docker exec servicepi-pihole pihole -g
    ```
 
-7. **N8N Docker image tar header error**: If you encounter "failed to register layer: Error processing tar file(exit status 1): invalid tar header" during updates:
+6. **N8N Docker image tar header error**: If you encounter "failed to register layer: Error processing tar file(exit status 1): invalid tar header" during updates:
    ```bash
    # Clean Docker cache
    docker system prune -a -f

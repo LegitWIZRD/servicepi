@@ -145,7 +145,6 @@ ufw allow 80/tcp    # HTTP for web dashboard
 ufw allow 443/tcp   # HTTPS for Tailscale (activated by scripts/setup-tailscale-certs.sh)
 ufw allow 9000/tcp  # HTTP for Portainer
 ufw allow 8080/tcp  # HTTP for IoT API
-ufw allow 8123/tcp  # HTTP for Home Assistant
 ufw allow 8053/tcp  # HTTP for Pi-hole Admin
 ufw allow 5678/tcp  # HTTP for N8N
 ufw allow 3000/tcp  # HTTP for OpenWebUI
@@ -189,7 +188,6 @@ fi
 echo "  - Web dashboard: http://$(hostname -I | awk '{print $1}') or http://servicepi.local"
 echo "  - Portainer: http://$(hostname -I | awk '{print $1}'):9000 or http://portainer.local:9000"
 echo "  - IoT API: http://$(hostname -I | awk '{print $1}'):8080 or http://iot.local:8080"
-echo "  - Home Assistant: http://$(hostname -I | awk '{print $1}'):8123 or http://homeassistant.local:8123"
 echo "  - Pi-hole Admin: http://$(hostname -I | awk '{print $1}'):8053/admin or http://pihole.local:8053/admin"
 echo "  - N8N: http://$(hostname -I | awk '{print $1}'):5678 or http://n8n.local:5678"
 echo "  - OpenWebUI: http://$(hostname -I | awk '{print $1}'):3000 or http://openwebui.local:3000"
@@ -199,21 +197,20 @@ echo ""
 echo "📝 Next steps:"
 echo "  1. Access the web dashboard to verify installation"
 echo "  2. Configure Portainer (first-time setup)"
-echo "  3. Set up Home Assistant for automation (first-time setup)"
-echo "  4. Configure Pi-hole admin (password: set via PIHOLE_PASSWORD or default 'servicepi')"
-echo "  5. Complete WordPress setup at http://$(hostname -I | awk '{print $1}'):8081"
-echo "  6. Enable Pi-hole DNS by uncommenting ports in docker-compose.yml (lines 89-90)"
-echo "  7. After enabling, uncomment firewall rules for port 53 in this script and rerun"
-echo "  8. Set your device's DNS to $(hostname -I | awk '{print $1}') to use Pi-hole ad blocking"
-echo "  9. Update configs/pihole/custom.list with your Pi's IP for .local domain resolution"
-echo "  10. To enable Wazuh: Set ENABLE_WAZUH=true in .env, uncomment Wazuh services in docker-compose.yml, and configure firewall (requires 4GB+ RAM)"
-echo "  11. Customize services in docker-compose.yml as needed"
-echo "  12. Set up automatic updates with 'sudo systemctl enable --now servicepi-update.timer'"
+echo "  3. Configure Pi-hole admin (password: set via PIHOLE_PASSWORD or default 'servicepi')"
+echo "  4. Complete WordPress setup at http://$(hostname -I | awk '{print $1}'):8081"
+echo "  5. Enable Pi-hole DNS by uncommenting ports in docker-compose.yml (lines 89-90)"
+echo "  6. After enabling, uncomment firewall rules for port 53 in this script and rerun"
+echo "  7. Set your device's DNS to $(hostname -I | awk '{print $1}') to use Pi-hole ad blocking"
+echo "  8. Update configs/pihole/custom.list with your Pi's IP for .local domain resolution"
+echo "  9. To enable Wazuh: Set ENABLE_WAZUH=true in .env, uncomment Wazuh services in docker-compose.yml, and configure firewall (requires 4GB+ RAM)"
+echo "  10. Customize services in docker-compose.yml as needed"
+echo "  11. Set up automatic updates with 'sudo systemctl enable --now servicepi-update.timer'"
 if [ "$TAILSCALE_AVAILABLE" = true ]; then
-    echo "  13. Optional: Set up Tailscale remote access: run 'sudo tailscale up' (if needed), then"
+    echo "  12. Optional: Set up Tailscale remote access: run 'sudo tailscale up' (if needed), then"
     echo "      run: sudo $INSTALL_DIR/scripts/setup-tailscale-certs.sh  (see docs/TAILSCALE_SETUP.md)"
 else
-    echo "  13. Optional: Install Tailscale later for remote access + HTTPS over tailnet"
+    echo "  12. Optional: Install Tailscale later for remote access + HTTPS over tailnet"
     echo "      (ServicePi works normally without Tailscale)"
 fi
 echo ""

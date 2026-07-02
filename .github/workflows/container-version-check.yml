@@ -53,27 +53,7 @@ jobs:
         get_ghcr_version() {
           local repo=$1
           local current=$2
-          
           echo "Checking $repo (current: $current)..." >&2
-          
-          # For GitHub Container Registry, we need to use GitHub API
-          # Extract owner and image name
-          local owner=$(echo $repo | cut -d'/' -f1)
-          local image=$(echo $repo | cut -d'/' -f2)
-          
-          # Get releases from GitHub API for home-assistant
-          if [[ "$image" == "home-assistant" ]]; then
-            local api_url="https://api.github.com/repos/home-assistant/core/releases"
-            local response=$(curl -s "$api_url")
-            
-            # Get latest stable release (filter out betas and RCs)
-            local latest=$(echo "$response" | jq -r '.[].tag_name' | \
-              grep -E '^[0-9]{4}\.[0-9]{1,2}\.[0-9]+$' | \
-              grep -v 'b\|rc' | \
-              sort -V | tail -1)
-            
-            echo "$latest"
-          fi
         }
         
         # Read current versions from docker-compose.yml
@@ -82,13 +62,11 @@ jobs:
         PORTAINER_CURRENT=$(grep "portainer/portainer-ce:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+)-alpine.*/\1/')
         N8N_CURRENT=$(grep "n8nio/n8n:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
         PIHOLE_CURRENT=$(grep "pihole/pihole:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-        HOMEASSISTANT_CURRENT=$(grep "ghcr.io/home-assistant/home-assistant:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
         
         echo "Current versions:"
         echo "  Portainer: $PORTAINER_CURRENT"
         echo "  n8n: $N8N_CURRENT"
         echo "  Pi-hole: $PIHOLE_CURRENT"
-        echo "  Home Assistant: $HOMEASSISTANT_CURRENT"
         echo ""
         
         # Check for updates
@@ -119,15 +97,6 @@ jobs:
           if [ $(printf '%s\n' "$PIHOLE_CURRENT" "$PIHOLE_LATEST" | sort -V | tail -1) = "$PIHOLE_LATEST" ]; then
             echo "✨ Pi-hole update available: $PIHOLE_CURRENT -> $PIHOLE_LATEST"
             UPDATES_AVAILABLE="${UPDATES_AVAILABLE}Pi-hole: ${PIHOLE_CURRENT} → ${PIHOLE_LATEST}\n"
-          fi
-        fi
-        
-        # Check Home Assistant
-        HOMEASSISTANT_LATEST=$(get_ghcr_version "ghcr.io/home-assistant" "$HOMEASSISTANT_CURRENT")
-        if [ ! -z "$HOMEASSISTANT_LATEST" ] && [ "$HOMEASSISTANT_LATEST" != "$HOMEASSISTANT_CURRENT" ]; then
-          if [ $(printf '%s\n' "$HOMEASSISTANT_CURRENT" "$HOMEASSISTANT_LATEST" | sort -V | tail -1) = "$HOMEASSISTANT_LATEST" ]; then
-            echo "✨ Home Assistant update available: $HOMEASSISTANT_CURRENT -> $HOMEASSISTANT_LATEST"
-            UPDATES_AVAILABLE="${UPDATES_AVAILABLE}Home Assistant: ${HOMEASSISTANT_CURRENT} → ${HOMEASSISTANT_LATEST}\n"
           fi
         fi
         
