@@ -4,7 +4,7 @@
 #
 # Usage:
 #   1. Run: scripts/setup-tailscale-certs.sh
-#   2. The script copies this template to https.conf and provisions certificates.
+#   2. The script copies this template to 00-https.conf and provisions certificates.
 #   3. nginx is reloaded to pick up the new HTTPS configuration.
 #
 # Accessibility after cert setup:
