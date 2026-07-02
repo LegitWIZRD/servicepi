@@ -90,7 +90,7 @@ services:
   # Home Assistant
   homeassistant:
     # Using specific version tag for reproducibility
-    image: ghcr.io/home-assistant/home-assistant:2026.2.3
+    image: ghcr.io/home-assistant/home-assistant:2026.6.4
     container_name: servicepi-homeassistant
     volumes:
       - homeassistant_data:/config
