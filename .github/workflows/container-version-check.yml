@@ -7,179 +7,216 @@ on:
   workflow_dispatch: # Allow manual trigger
 
 permissions:
-  issues: write
-  contents: read
+  contents: write
+  pull-requests: write
 
 jobs:
-  check-versions:
-    name: Check for Container Updates
+  check-and-update:
+    name: Check and Update Container Versions
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v7
-      
+
     - name: Check for container updates
       id: check
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # Function to get latest version from Docker Hub
-        get_dockerhub_version() {
-          local repo=$1
-          local current=$2
-          
-          echo "Checking $repo (current: $current)..."
-          
-          # Get latest version from Docker Hub API
-          if [[ "$repo" == *"/"* ]]; then
-            local namespace=$(echo $repo | cut -d'/' -f1)
-            local image=$(echo $repo | cut -d'/' -f2)
-            
-            # Get tags from Docker Hub API
-            local api_url="https://hub.docker.com/v2/repositories/${namespace}/${image}/tags?page_size=100"
-            local response=$(curl -s "$api_url")
-            
-            # Extract version tags (filter out 'latest', 'alpine', etc.)
-            # Look for semantic versions or date-based versions
-            local latest=$(echo "$response" | jq -r '.results[].name' | \
-              grep -E '^[0-9]+\.[0-9]+(\.[0-9]+)?(-alpine)?$|^202[0-9]\.[0-9]{2}\.[0-9]+$' | \
-              grep -v 'rc\|beta\|alpha' | \
-              sort -V | tail -1)
-            
-            echo "$latest"
-          fi
+        UPDATE_SUMMARY=""
+        UPDATES_AVAILABLE=false
+
+        # Helper: fetch latest Docker Hub tag for a repo matching a grep-E pattern
+        get_dockerhub_latest() {
+          local repo="$1"    # e.g. "library/nginx" or "portainer/portainer-ce"
+          local pattern="$2" # grep -E pattern to match valid tags
+          curl -sf "https://hub.docker.com/v2/repositories/${repo}/tags?page_size=100&ordering=last_updated" \
+            | jq -r '.results[].name' \
+            | grep -E "$pattern" \
+            | grep -Ev 'rc|beta|alpha' \
+            | sort -V \
+            | tail -1
         }
-        
-        # Function to get latest version from GitHub Container Registry
-        get_ghcr_version() {
-          local repo=$1
-          local current=$2
-          echo "Checking $repo (current: $current)..." >&2
-        }
-        
-        # Read current versions from docker-compose.yml
-        echo "Reading current versions from docker-compose.yml..."
-        
-        PORTAINER_CURRENT=$(grep "portainer/portainer-ce:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+)-alpine.*/\1/')
-        N8N_CURRENT=$(grep "n8nio/n8n:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-        PIHOLE_CURRENT=$(grep "pihole/pihole:" docker-compose.yml | sed -E 's/.*:([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-        
+
+        # Read current pinned versions from docker-compose.yml
+        NGINX_CURRENT=$(grep -oP 'nginx:\K[0-9]+\.[0-9]+\.[0-9]+-alpine' docker-compose.yml | head -1 || true)
+        PORTAINER_CURRENT=$(grep -oP 'portainer-ce:\K[0-9]+\.[0-9]+\.[0-9]+-alpine' docker-compose.yml | head -1 || true)
+        PIHOLE_CURRENT=$(grep -oP 'pihole/pihole:\K[0-9]{4}\.[0-9]+\.[0-9]+' docker-compose.yml | head -1 || true)
+        N8N_CURRENT=$(grep -oP 'n8nio/n8n:\K[0-9]+\.[0-9]+\.[0-9]+' docker-compose.yml | head -1 || true)
+        WORDPRESS_CURRENT=$(grep -oP 'wordpress:\K[0-9]+\.[0-9]+\.[0-9]+-php[0-9]+\.[0-9]+-apache' docker-compose.yml | head -1 || true)
+        OPENWEBUI_CURRENT=$(grep -oP 'open-webui:\Kv[0-9]+\.[0-9]+\.[0-9]+' docker-compose.yml | head -1 || true)
+        SEARXNG_CURRENT=$(grep -oP 'searxng/searxng:\K[0-9]{4}\.[0-9]+\.[0-9]+-[a-f0-9]+' docker-compose.yml | head -1 || true)
+        MYSQL_CURRENT=$(grep -oP 'mysql:\K[0-9]+\.[0-9]+\.[0-9]+' docker-compose.yml | head -1 || true)
+
         echo "Current versions:"
-        echo "  Portainer: $PORTAINER_CURRENT"
-        echo "  n8n: $N8N_CURRENT"
-        echo "  Pi-hole: $PIHOLE_CURRENT"
+        echo "  nginx:      $NGINX_CURRENT"
+        echo "  portainer:  $PORTAINER_CURRENT"
+        echo "  pihole:     $PIHOLE_CURRENT"
+        echo "  n8n:        $N8N_CURRENT"
+        echo "  wordpress:  $WORDPRESS_CURRENT"
+        echo "  openwebui:  $OPENWEBUI_CURRENT"
+        echo "  searxng:    $SEARXNG_CURRENT"
+        echo "  mysql:      $MYSQL_CURRENT"
         echo ""
-        
-        # Check for updates
         echo "Checking for updates..."
-        UPDATES_AVAILABLE=""
-        
-        # Check Portainer
-        PORTAINER_LATEST=$(get_dockerhub_version "portainer/portainer-ce" "$PORTAINER_CURRENT")
-        if [ ! -z "$PORTAINER_LATEST" ] && [ "$PORTAINER_LATEST" != "$PORTAINER_CURRENT" ]; then
-          if [ $(printf '%s\n' "$PORTAINER_CURRENT" "$PORTAINER_LATEST" | sort -V | tail -1) = "$PORTAINER_LATEST" ]; then
-            echo "✨ Portainer update available: $PORTAINER_CURRENT -> $PORTAINER_LATEST"
-            UPDATES_AVAILABLE="${UPDATES_AVAILABLE}Portainer: ${PORTAINER_CURRENT} → ${PORTAINER_LATEST}\n"
+
+        # --- nginx ---
+        if [ -n "$NGINX_CURRENT" ]; then
+          NGINX_LATEST=$(get_dockerhub_latest "library/nginx" '^[0-9]+\.[0-9]+\.[0-9]+-alpine$' || true)
+          if [ -n "$NGINX_LATEST" ] && [ "$NGINX_LATEST" != "$NGINX_CURRENT" ] && \
+             [ "$(printf '%s\n' "$NGINX_CURRENT" "$NGINX_LATEST" | sort -V | tail -1)" = "$NGINX_LATEST" ]; then
+            echo "✨ nginx: $NGINX_CURRENT -> $NGINX_LATEST"
+            sed -i "s|nginx:${NGINX_CURRENT}|nginx:${NGINX_LATEST}|g" docker-compose.yml
+            UPDATE_SUMMARY="${UPDATE_SUMMARY}\n- **nginx**: \`${NGINX_CURRENT}\` → \`${NGINX_LATEST}\`"
+            UPDATES_AVAILABLE=true
           fi
         fi
-        
-        # Check n8n
-        N8N_LATEST=$(get_dockerhub_version "n8nio/n8n" "$N8N_CURRENT")
-        if [ ! -z "$N8N_LATEST" ] && [ "$N8N_LATEST" != "$N8N_CURRENT" ]; then
-          if [ $(printf '%s\n' "$N8N_CURRENT" "$N8N_LATEST" | sort -V | tail -1) = "$N8N_LATEST" ]; then
-            echo "✨ n8n update available: $N8N_CURRENT -> $N8N_LATEST"
-            UPDATES_AVAILABLE="${UPDATES_AVAILABLE}n8n: ${N8N_CURRENT} → ${N8N_LATEST}\n"
+
+        # --- portainer ---
+        if [ -n "$PORTAINER_CURRENT" ]; then
+          PORTAINER_LATEST=$(get_dockerhub_latest "portainer/portainer-ce" '^[0-9]+\.[0-9]+\.[0-9]+-alpine$' || true)
+          if [ -n "$PORTAINER_LATEST" ] && [ "$PORTAINER_LATEST" != "$PORTAINER_CURRENT" ] && \
+             [ "$(printf '%s\n' "$PORTAINER_CURRENT" "$PORTAINER_LATEST" | sort -V | tail -1)" = "$PORTAINER_LATEST" ]; then
+            echo "✨ portainer: $PORTAINER_CURRENT -> $PORTAINER_LATEST"
+            sed -i "s|portainer-ce:${PORTAINER_CURRENT}|portainer-ce:${PORTAINER_LATEST}|g" docker-compose.yml
+            UPDATE_SUMMARY="${UPDATE_SUMMARY}\n- **portainer**: \`${PORTAINER_CURRENT}\` → \`${PORTAINER_LATEST}\`"
+            UPDATES_AVAILABLE=true
           fi
         fi
-        
-        # Check Pi-hole
-        PIHOLE_LATEST=$(get_dockerhub_version "pihole/pihole" "$PIHOLE_CURRENT")
-        if [ ! -z "$PIHOLE_LATEST" ] && [ "$PIHOLE_LATEST" != "$PIHOLE_CURRENT" ]; then
-          if [ $(printf '%s\n' "$PIHOLE_CURRENT" "$PIHOLE_LATEST" | sort -V | tail -1) = "$PIHOLE_LATEST" ]; then
-            echo "✨ Pi-hole update available: $PIHOLE_CURRENT -> $PIHOLE_LATEST"
-            UPDATES_AVAILABLE="${UPDATES_AVAILABLE}Pi-hole: ${PIHOLE_CURRENT} → ${PIHOLE_LATEST}\n"
+
+        # --- pihole ---
+        if [ -n "$PIHOLE_CURRENT" ]; then
+          PIHOLE_LATEST=$(get_dockerhub_latest "pihole/pihole" '^[0-9]{4}\.[0-9]+\.[0-9]+$' || true)
+          if [ -n "$PIHOLE_LATEST" ] && [ "$PIHOLE_LATEST" != "$PIHOLE_CURRENT" ] && \
+             [ "$(printf '%s\n' "$PIHOLE_CURRENT" "$PIHOLE_LATEST" | sort -V | tail -1)" = "$PIHOLE_LATEST" ]; then
+            echo "✨ pihole: $PIHOLE_CURRENT -> $PIHOLE_LATEST"
+            sed -i "s|pihole/pihole:${PIHOLE_CURRENT}|pihole/pihole:${PIHOLE_LATEST}|g" docker-compose.yml
+            UPDATE_SUMMARY="${UPDATE_SUMMARY}\n- **pihole**: \`${PIHOLE_CURRENT}\` → \`${PIHOLE_LATEST}\`"
+            UPDATES_AVAILABLE=true
           fi
         fi
-        
-        # Save results
-        if [ ! -z "$UPDATES_AVAILABLE" ]; then
-          echo "updates_available=true" >> $GITHUB_OUTPUT
-          echo -e "$UPDATES_AVAILABLE" > updates.txt
-          
-          # Create issue body
-          cat > issue_body.txt << 'EOF'
-        Container updates are available:
 
-        EOF
-          echo -e "$UPDATES_AVAILABLE" >> issue_body.txt
-          cat >> issue_body.txt << 'EOF'
-
-        Please update the container versions in `docker-compose.yml` to the latest LTS versions.
-
-        ---
-        *This issue was automatically created by the Container Version Check workflow.*
-        EOF
-          
-          echo "Issue body created successfully"
-        else
-          echo "updates_available=false" >> $GITHUB_OUTPUT
-          echo "✅ All containers are up to date!"
+        # --- n8n ---
+        if [ -n "$N8N_CURRENT" ]; then
+          N8N_LATEST=$(get_dockerhub_latest "n8nio/n8n" '^[0-9]+\.[0-9]+\.[0-9]+$' || true)
+          if [ -n "$N8N_LATEST" ] && [ "$N8N_LATEST" != "$N8N_CURRENT" ] && \
+             [ "$(printf '%s\n' "$N8N_CURRENT" "$N8N_LATEST" | sort -V | tail -1)" = "$N8N_LATEST" ]; then
+            echo "✨ n8n: $N8N_CURRENT -> $N8N_LATEST"
+            sed -i "s|n8nio/n8n:${N8N_CURRENT}|n8nio/n8n:${N8N_LATEST}|g" docker-compose.yml
+            UPDATE_SUMMARY="${UPDATE_SUMMARY}\n- **n8n**: \`${N8N_CURRENT}\` → \`${N8N_LATEST}\`"
+            UPDATES_AVAILABLE=true
+          fi
         fi
-        
-    - name: Create issue for updates
+
+        # --- wordpress (preserve existing PHP/server suffix) ---
+        if [ -n "$WORDPRESS_CURRENT" ]; then
+          WP_SUFFIX=$(echo "$WORDPRESS_CURRENT" | grep -oP 'php[0-9]+\.[0-9]+-apache' || true)
+          if [ -n "$WP_SUFFIX" ]; then
+            WP_SUFFIX_ESC=$(echo "$WP_SUFFIX" | sed 's/\./\\./g')
+            WORDPRESS_LATEST=$(get_dockerhub_latest "library/wordpress" "^[0-9]+\\.[0-9]+\\.[0-9]+-${WP_SUFFIX_ESC}\$" || true)
+            if [ -n "$WORDPRESS_LATEST" ] && [ "$WORDPRESS_LATEST" != "$WORDPRESS_CURRENT" ] && \
+               [ "$(printf '%s\n' "$WORDPRESS_CURRENT" "$WORDPRESS_LATEST" | sort -V | tail -1)" = "$WORDPRESS_LATEST" ]; then
+              echo "✨ wordpress: $WORDPRESS_CURRENT -> $WORDPRESS_LATEST"
+              sed -i "s|wordpress:${WORDPRESS_CURRENT}|wordpress:${WORDPRESS_LATEST}|g" docker-compose.yml
+              UPDATE_SUMMARY="${UPDATE_SUMMARY}\n- **wordpress**: \`${WORDPRESS_CURRENT}\` → \`${WORDPRESS_LATEST}\`"
+              UPDATES_AVAILABLE=true
+            fi
+          fi
+        fi
+
+        # --- openwebui (latest release from GitHub) ---
+        if [ -n "$OPENWEBUI_CURRENT" ]; then
+          OPENWEBUI_LATEST=$(gh api repos/open-webui/open-webui/releases/latest --jq '.tag_name' 2>/dev/null || true)
+          if [ -n "$OPENWEBUI_LATEST" ] && [ "$OPENWEBUI_LATEST" != "$OPENWEBUI_CURRENT" ]; then
+            CUR_VER=$(echo "$OPENWEBUI_CURRENT" | sed 's/^v//')
+            LAT_VER=$(echo "$OPENWEBUI_LATEST" | sed 's/^v//')
+            if [ "$(printf '%s\n' "$CUR_VER" "$LAT_VER" | sort -V | tail -1)" = "$LAT_VER" ]; then
+              echo "✨ openwebui: $OPENWEBUI_CURRENT -> $OPENWEBUI_LATEST"
+              sed -i "s|open-webui:${OPENWEBUI_CURRENT}|open-webui:${OPENWEBUI_LATEST}|g" docker-compose.yml
+              UPDATE_SUMMARY="${UPDATE_SUMMARY}\n- **openwebui**: \`${OPENWEBUI_CURRENT}\` → \`${OPENWEBUI_LATEST}\`"
+              UPDATES_AVAILABLE=true
+            fi
+          fi
+        fi
+
+        # --- searxng (date+commit versioning; sort -V correctly orders YYYY.M.D-<hash> tags) ---
+        if [ -n "$SEARXNG_CURRENT" ]; then
+          SEARXNG_LATEST=$(get_dockerhub_latest "searxng/searxng" '^[0-9]{4}\.[0-9]+\.[0-9]+-[a-f0-9]+$' || true)
+          if [ -n "$SEARXNG_LATEST" ] && [ "$SEARXNG_LATEST" != "$SEARXNG_CURRENT" ]; then
+            echo "✨ searxng: $SEARXNG_CURRENT -> $SEARXNG_LATEST"
+            sed -i "s|searxng/searxng:${SEARXNG_CURRENT}|searxng/searxng:${SEARXNG_LATEST}|g" docker-compose.yml
+            UPDATE_SUMMARY="${UPDATE_SUMMARY}\n- **searxng**: \`${SEARXNG_CURRENT}\` → \`${SEARXNG_LATEST}\`"
+            UPDATES_AVAILABLE=true
+          fi
+        fi
+
+        # --- mysql (stay on same major.minor track) ---
+        if [ -n "$MYSQL_CURRENT" ]; then
+          MYSQL_MAJOR=$(echo "$MYSQL_CURRENT" | cut -d. -f1,2)
+          MYSQL_MAJOR_ESC=$(echo "$MYSQL_MAJOR" | sed 's/\./\\./g')
+          MYSQL_LATEST=$(get_dockerhub_latest "library/mysql" "^${MYSQL_MAJOR_ESC}\\.[0-9]+\$" || true)
+          if [ -n "$MYSQL_LATEST" ] && [ "$MYSQL_LATEST" != "$MYSQL_CURRENT" ] && \
+             [ "$(printf '%s\n' "$MYSQL_CURRENT" "$MYSQL_LATEST" | sort -V | tail -1)" = "$MYSQL_LATEST" ]; then
+            echo "✨ mysql: $MYSQL_CURRENT -> $MYSQL_LATEST"
+            sed -i "s|mysql:${MYSQL_CURRENT}|mysql:${MYSQL_LATEST}|g" docker-compose.yml
+            UPDATE_SUMMARY="${UPDATE_SUMMARY}\n- **mysql**: \`${MYSQL_CURRENT}\` → \`${MYSQL_LATEST}\`"
+            UPDATES_AVAILABLE=true
+          fi
+        fi
+
+        echo "updates_available=${UPDATES_AVAILABLE}" >> "$GITHUB_OUTPUT"
+        printf '%b' "$UPDATE_SUMMARY" > update_summary.txt
+
+    - name: Create pull request with updates
       if: steps.check.outputs.updates_available == 'true'
-      uses: actions/github-script@v9
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const fs = require('fs');
-          const issueBody = fs.readFileSync('issue_body.txt', 'utf8');
-          
-          // Check if there's already an open issue for container updates
-          const issues = await github.rest.issues.listForRepo({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            state: 'open',
-            labels: 'dependencies,docker,auto-update'
-          });
-          
-          // Filter for container update issues
-          const existingIssue = issues.data.find(issue => 
-            issue.title.includes('Container Updates Available')
-          );
-          
-          if (existingIssue) {
-            // Update existing issue with new information
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: existingIssue.number,
-              body: `## Updated Container Versions Available\n\n${issueBody}\n\n*Updated: ${new Date().toISOString()}*`
-            });
-            console.log(`Updated existing issue #${existingIssue.number}`);
-          } else {
-            // Create new issue (no assignee as 'copilot' is not a valid username)
-            const issue = await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: 'Container Updates Available',
-              body: issueBody,
-              labels: ['dependencies', 'docker', 'auto-update']
-            });
-            console.log(`Created new issue #${issue.data.number}`);
-          }
-          
-    - name: Summary
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        BRANCH_NAME="container-updates/$(date +%Y-%m-%d)"
+
+        # Skip if an update branch/PR for today already exists
+        if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
+          echo "Branch '$BRANCH_NAME' already exists — skipping PR creation."
+          echo "Merge or close the existing PR before new updates are created."
+          exit 0
+        fi
+
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git checkout -b "$BRANCH_NAME"
+        git add docker-compose.yml
+        git commit -m "chore: update container image versions"
+        git push origin "$BRANCH_NAME"
+
+        # Build PR body
+        {
+          echo "## Container Image Updates"
+          echo ""
+          echo "The following container image versions have been updated in \`docker-compose.yml\`:"
+          echo ""
+          cat update_summary.txt
+          echo ""
+          echo "---"
+          echo "*This PR was automatically created by the [Container Version Check](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) workflow.*"
+        } > /tmp/pr_body.md
+
+        gh pr create \
+          --title "chore: update container image versions ($(date +%Y-%m-%d))" \
+          --body-file /tmp/pr_body.md \
+          --base main \
+          --head "$BRANCH_NAME"
+
+    - name: Workflow summary
       if: always()
       run: |
-        echo "## Container Version Check Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        
-        if [ "${{ steps.check.outputs.updates_available }}" == "true" ]; then
-          echo "### 🔔 Updates Available" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          cat updates.txt >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "An issue has been created and assigned to @copilot for automatic PR creation." >> $GITHUB_STEP_SUMMARY
+        echo "## Container Version Check Summary" >> "$GITHUB_STEP_SUMMARY"
+        echo "" >> "$GITHUB_STEP_SUMMARY"
+        if [ "${{ steps.check.outputs.updates_available }}" = "true" ]; then
+          echo "### 🔔 Updates Found — Pull Request Created" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          cat update_summary.txt >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          echo "" >> "$GITHUB_STEP_SUMMARY"
         else
-          echo "### ✅ All containers are up to date!" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ All containers are up to date!" >> "$GITHUB_STEP_SUMMARY"
         fi
