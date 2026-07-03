@@ -148,6 +148,19 @@ log "Testing nginx configuration..."
 if docker exec servicepi-proxy nginx -t; then
     log "Reloading nginx..."
     docker exec servicepi-proxy nginx -s reload
+    # Give nginx a moment to finish starting the new workers, then check for
+    # any [emerg] or [crit] errors in the logs that would indicate a silent
+    # reload failure (e.g. unresolvable proxy_pass hostname).
+    sleep 2
+    if docker logs --since=10s servicepi-proxy 2>&1 | grep -E '\[(emerg|crit)\]'; then
+        echo ""
+        warning "nginx logged configuration errors after reload."
+        warning "HTTPS may NOT be fully active. Check the output above and 'docker logs servicepi-proxy'."
+        warning "Common cause: a proxy_pass hostname in 00-https.conf cannot be resolved."
+        warning "Verify that all services referenced in the template are running."
+        echo ""
+        error "nginx reload completed with errors. Please resolve the issues above and re-run this script."
+    fi
     success "nginx reloaded with HTTPS support."
 else
     error "nginx configuration test failed. Check the HTTPS config template."

@@ -58,6 +58,8 @@ All services are immediately accessible via HTTP over the encrypted Tailscale Wi
 
 Replace `tailnet-name` with your actual Tailscale tailnet name (shown in the Tailscale admin console).
 
+> **Use the MagicDNS hostname, not the raw IP.** Tailscale assigns each device a stable IP in the `100.x.x.x` range, but TLS certificates are only issued for the MagicDNS hostname (`hostname.ts.net`). If you access via `https://100.x.x.x/` the browser will show a certificate error for every service port opened in a new tab. Always use the `.ts.net` hostname for HTTPS access.
+
 ### 3. Enable HTTPS for All Services (Optional)
 
 For browser-trusted `https://` access to **all** services, run the certificate setup script:
@@ -153,6 +155,42 @@ sudo bash /opt/servicepi/scripts/setup-tailscale-certs.sh
 
 ```bash
 tailscale status
+```
+
+### "This site can't provide a secure connection" on service cards
+
+This error means the browser attempted HTTPS but the server responded with plain HTTP
+(a TLS protocol mismatch). The two most common causes are:
+
+**1. Accessing via the raw Tailscale IP instead of the MagicDNS hostname**
+
+Tailscale certificates are issued for the MagicDNS hostname (`hostname.ts.net`) only, not
+for the raw `100.x.x.x` IP. When you access `https://100.x.x.x/` and then click a card
+that opens `https://100.x.x.x:9000/` in a new tab, the browser cannot verify the
+certificate and shows this error.
+
+**Fix:** Always use the MagicDNS hostname for HTTPS access:
+```
+https://servicepi.tailnet-name.ts.net/
+```
+
+The web dashboard automatically detects whether the host is a DNS name or a raw IP, and
+adjusts service card links accordingly (HTTP for raw IPs, HTTPS for DNS names).
+
+**2. nginx HTTPS was not fully activated (silent reload failure)**
+
+Running `setup-tailscale-certs.sh` sends a reload signal to nginx, but if the config
+contains an unresolvable upstream hostname nginx silently keeps the old HTTP-only config.
+Check nginx logs immediately after running the script:
+
+```bash
+docker logs --since=60s servicepi-proxy
+```
+
+If you see `[emerg] host not found in upstream`, the reload failed. Re-run:
+
+```bash
+sudo bash /opt/servicepi/scripts/setup-tailscale-certs.sh
 ```
 
 ### nginx HTTPS not working

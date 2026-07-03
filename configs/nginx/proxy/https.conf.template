@@ -11,13 +11,20 @@
 #   - Web dashboard : https://<ts-hostname>.ts.net/         (port 443)
 #   - Portainer     : https://<ts-hostname>.ts.net:9000/    (port 9000)
 #   - IoT API       : https://<ts-hostname>.ts.net:8080/    (port 8080)
-#   - Home Assistant: https://<ts-hostname>.ts.net:8123/    (port 8123)
 #   - Pi-hole Admin : https://<ts-hostname>.ts.net:8053/    (port 8053)
 #   - N8N           : https://<ts-hostname>.ts.net:5678/    (port 5678)
 #   - WordPress     : https://<ts-hostname>.ts.net:8081/    (port 8081)
 #   - OpenWebUI     : https://<ts-hostname>.ts.net:3000/    (port 3000)
 #   - SearXNG       : https://<ts-hostname>.ts.net:8888/    (port 8888)
 #   - Local HTTP    : http://<pi-ip>/                       (always available)
+#
+# NOTE: Optional services (Home Assistant, Wazuh) are NOT included here by default
+# because their Docker service names are not resolvable unless those services are
+# enabled and running. nginx resolves proxy_pass hostnames at worker startup; an
+# unresolvable hostname causes the entire config reload to fail silently, leaving
+# nginx on the old HTTP-only config and preventing HTTPS from activating.
+# To add an optional service, uncomment the relevant server block below ONLY after
+# enabling the service in docker-compose.yml.
 
 # HTTPS - Web Dashboard and IoT API entry-point
 # Accessible via: https://<tailscale-hostname>.ts.net/
@@ -154,45 +161,50 @@ server {
 
 # HTTPS - Home Assistant on port 8123
 # Accessible via: https://<tailscale-hostname>.ts.net:8123/
-server {
-    listen 8123 ssl;
-    server_name _;
-
-    ssl_certificate     /etc/nginx/certs/tailscale.crt;
-    ssl_certificate_key /etc/nginx/certs/tailscale.key;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256;
-    ssl_prefer_server_ciphers off;
-    ssl_session_timeout 1d;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_tickets off;
-
-    add_header X-Frame-Options SAMEORIGIN always;
-    add_header X-Content-Type-Options nosniff always;
-    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
-
-    location / {
-        proxy_pass http://homeassistant:8123/;
-        proxy_set_header Host $http_host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto https;
-        proxy_set_header X-Forwarded-Host $http_host;
-        proxy_set_header Origin $http_origin;
-        proxy_set_header Referer $http_referer;
-        proxy_cookie_path / /;
-        proxy_cookie_domain off;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-        proxy_connect_timeout 90s;
-        proxy_send_timeout 90s;
-        proxy_read_timeout 90s;
-        proxy_buffering off;
-        proxy_request_buffering off;
-        client_max_body_size 50M;
-    }
-}
+# NOTE: Uncomment this block ONLY after enabling Home Assistant in docker-compose.yml.
+# nginx resolves proxy_pass hostnames at startup; an unresolvable hostname causes the
+# entire config reload to fail silently, so this block must stay commented out when
+# Home Assistant is not running.
+#
+# server {
+#     listen 8123 ssl;
+#     server_name _;
+#
+#     ssl_certificate     /etc/nginx/certs/tailscale.crt;
+#     ssl_certificate_key /etc/nginx/certs/tailscale.key;
+#     ssl_protocols TLSv1.2 TLSv1.3;
+#     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256;
+#     ssl_prefer_server_ciphers off;
+#     ssl_session_timeout 1d;
+#     ssl_session_cache shared:SSL:10m;
+#     ssl_session_tickets off;
+#
+#     add_header X-Frame-Options SAMEORIGIN always;
+#     add_header X-Content-Type-Options nosniff always;
+#     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+#
+#     location / {
+#         proxy_pass http://homeassistant:8123/;
+#         proxy_set_header Host $http_host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto https;
+#         proxy_set_header X-Forwarded-Host $http_host;
+#         proxy_set_header Origin $http_origin;
+#         proxy_set_header Referer $http_referer;
+#         proxy_cookie_path / /;
+#         proxy_cookie_domain off;
+#         proxy_http_version 1.1;
+#         proxy_set_header Upgrade $http_upgrade;
+#         proxy_set_header Connection $connection_upgrade;
+#         proxy_connect_timeout 90s;
+#         proxy_send_timeout 90s;
+#         proxy_read_timeout 90s;
+#         proxy_buffering off;
+#         proxy_request_buffering off;
+#         client_max_body_size 50M;
+#     }
+# }
 
 # HTTPS - Pi-hole Admin on port 8053
 # Accessible via: https://<tailscale-hostname>.ts.net:8053/
@@ -394,3 +406,51 @@ server {
         proxy_buffering off;
     }
 }
+
+# HTTPS - Wazuh Dashboard on port 8443
+# Accessible via: https://<tailscale-hostname>.ts.net:8443/
+# NOTE: Uncomment this block ONLY after enabling Wazuh in docker-compose.yml
+# (set ENABLE_WAZUH=true in .env). See the Home Assistant block above for the
+# reason optional services must stay commented out until the service is running.
+#
+# server {
+#     listen 8443 ssl;
+#     server_name _;
+#
+#     ssl_certificate     /etc/nginx/certs/tailscale.crt;
+#     ssl_certificate_key /etc/nginx/certs/tailscale.key;
+#     ssl_protocols TLSv1.2 TLSv1.3;
+#     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256;
+#     ssl_prefer_server_ciphers off;
+#     ssl_session_timeout 1d;
+#     ssl_session_cache shared:SSL:10m;
+#     ssl_session_tickets off;
+#
+#     add_header X-Frame-Options SAMEORIGIN always;
+#     add_header X-Content-Type-Options nosniff always;
+#     add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+#
+#     location / {
+#         proxy_pass https://wazuh-dashboard:5601/;
+#         proxy_set_header Host $http_host;
+#         proxy_set_header X-Real-IP $remote_addr;
+#         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#         proxy_set_header X-Forwarded-Proto https;
+#         proxy_set_header X-Forwarded-Host $http_host;
+#         proxy_set_header X-Forwarded-Port $server_port;
+#         proxy_set_header Origin $http_origin;
+#         proxy_set_header Referer $http_referer;
+#         proxy_cookie_path / /;
+#         proxy_cookie_domain off;
+#         proxy_ssl_verify off;
+#         proxy_http_version 1.1;
+#         proxy_set_header Upgrade $http_upgrade;
+#         proxy_set_header Connection $connection_upgrade;
+#         proxy_connect_timeout 120s;
+#         proxy_send_timeout 120s;
+#         proxy_read_timeout 120s;
+#         proxy_buffering off;
+#         proxy_request_buffering off;
+#         client_max_body_size 50M;
+#     }
+# }
