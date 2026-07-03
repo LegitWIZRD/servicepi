@@ -695,74 +695,92 @@
         document.getElementById('timestamp').textContent = new Date().toLocaleString();
         
         // Update service links with current hostname and protocol.
-        // When accessed over HTTPS (e.g. via Tailscale), use https:// for all
-        // service links so the browser does not block mixed content and users
-        // stay on encrypted connections end-to-end.
+        // When accessed over HTTPS (e.g. via Tailscale with setup-tailscale-certs.sh),
+        // use https:// for all service links so the browser does not block mixed
+        // content and users stay on encrypted connections end-to-end.
+        //
+        // IMPORTANT: Tailscale TLS certificates are issued for the MagicDNS hostname
+        // (e.g. hostname.ts.net), NOT for the raw Tailscale IP (100.x.x.x).
+        // If the page is served over HTTPS but the host is an IP address, the
+        // per-port service links would open in new tabs with a mismatched certificate
+        // and the browser would show "This site can't provide a secure connection".
+        // In that case we fall back to http:// for service links — Tailscale's
+        // WireGuard tunnel already encrypts all traffic regardless of protocol.
         const hostname = window.location.hostname;
         const proto = window.location.protocol; // 'http:' or 'https:'
+
+        // Detect raw IP addresses (IPv4 like 100.x.x.x or IPv6).
+        // When the page is served via https:// but the host is an IP, the Tailscale
+        // certificate does not cover the IP, so service port links must use http://.
+        const isIPAddress = /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(hostname) ||
+                            hostname.startsWith('[');
+        // Effective protocol to use for service links:
+        // - https: when the page is HTTPS *and* the host is a DNS name (cert will match)
+        // - http:  in all other cases (plain HTTP, or HTTPS via IP where cert won't match)
+        const serviceProto = (proto === 'https:' && !isIPAddress) ? 'https:' : 'http:';
         
         // Update Portainer link
         const portainerLink = document.querySelector('a[href="http://localhost:9000"]');
         if (portainerLink && hostname !== 'localhost') {
-            portainerLink.href = `${proto}//${hostname}:9000`;
+            portainerLink.href = `${serviceProto}//${hostname}:9000`;
         }
         
         // Update IoT API links
         const iotRootLink = document.querySelector('a[href="http://localhost:8080"]');
         if (iotRootLink && hostname !== 'localhost') {
-            iotRootLink.href = `${proto}//${hostname}:8080`;
+            iotRootLink.href = `${serviceProto}//${hostname}:8080`;
         }
         
         const iotHealthLink = document.querySelector('a[href="http://localhost:8080/health"]');
         if (iotHealthLink && hostname !== 'localhost') {
-            iotHealthLink.href = `${proto}//${hostname}:8080/health`;
+            iotHealthLink.href = `${serviceProto}//${hostname}:8080/health`;
         }
         
         // Update Pi-hole link
         const piholeLink = document.querySelector('a[href="http://localhost:8053/admin"]');
         if (piholeLink && hostname !== 'localhost') {
-            piholeLink.href = `${proto}//${hostname}:8053/admin`;
+            piholeLink.href = `${serviceProto}//${hostname}:8053/admin`;
         }
         
         // Update N8N link
         const n8nLink = document.querySelector('a[href="http://localhost:5678"]');
         if (n8nLink && hostname !== 'localhost') {
-            n8nLink.href = `${proto}//${hostname}:5678`;
+            n8nLink.href = `${serviceProto}//${hostname}:5678`;
         }
         
         // Update WordPress links
         const wordpressLink = document.querySelector('a[href="http://localhost:8081"]');
         if (wordpressLink && hostname !== 'localhost') {
-            wordpressLink.href = `${proto}//${hostname}:8081`;
+            wordpressLink.href = `${serviceProto}//${hostname}:8081`;
         }
         
         const wordpressAdminLink = document.querySelector('a[href="http://localhost:8081/wp-admin"]');
         if (wordpressAdminLink && hostname !== 'localhost') {
-            wordpressAdminLink.href = `${proto}//${hostname}:8081/wp-admin`;
+            wordpressAdminLink.href = `${serviceProto}//${hostname}:8081/wp-admin`;
         }
         
         // Update Wazuh link
         const wazuhLink = document.querySelector('a[href="http://localhost:8443"]');
         if (wazuhLink && hostname !== 'localhost') {
-            wazuhLink.href = `${proto}//${hostname}:8443`;
+            wazuhLink.href = `${serviceProto}//${hostname}:8443`;
         }
         
         // Update OpenWebUI link
         const openWebUILink = document.querySelector('a[href="http://localhost:3000"]');
         if (openWebUILink && hostname !== 'localhost') {
-            openWebUILink.href = `${proto}//${hostname}:3000`;
+            openWebUILink.href = `${serviceProto}//${hostname}:3000`;
         }
         
         // Update SearXNG link
         const searxngLink = document.querySelector('a[href="http://localhost:8888"]');
         if (searxngLink && hostname !== 'localhost') {
-            searxngLink.href = `${proto}//${hostname}:8888`;
+            searxngLink.href = `${serviceProto}//${hostname}:8888`;
         }
 
         // Update footer protocol indicators to reflect actual protocol (HTTP vs HTTPS).
-        // The HTML defaults show 'HTTP :PORT'; only update when served over HTTPS
-        // (e.g. via Tailscale with certificates enabled).
-        if (proto === 'https:') {
+        // The HTML defaults show 'HTTP :PORT'; only update when served over HTTPS via a
+        // DNS hostname (i.e. when service links actually use https://).
+        if (serviceProto === 'https:') {
             const indicators = [
                 // Web dashboard is at the default HTTPS port (443)
                 ['proto-web',           'HTTPS :443'],
@@ -779,7 +797,7 @@
                 if (el) el.textContent = label;
             });
         }
-        // When proto === 'http:', the HTML defaults ('HTTP :PORT') already show the correct values.
+        // When serviceProto === 'http:', the HTML defaults ('HTTP :PORT') already show the correct values.
         
         // Modal functions
         function showUpdateModal() {
