@@ -3,7 +3,7 @@ services:
   nginx-proxy:
     # Using nginx:alpine with version tag for ARM64 compatibility
     # Alpine images are lightweight and well-suited for Raspberry Pi
-    image: nginx:1.31.0-alpine
+    image: nginx:1.31.3-alpine
     container_name: servicepi-proxy
     ports:
       - "80:80"    # HTTP for web dashboard (local traffic)
@@ -39,7 +39,7 @@ services:
   # Web Backend (internal only)
   web-backend:
     # Using nginx:alpine with version tag for ARM64 compatibility
-    image: nginx:1.31.0-alpine
+    image: nginx:1.31.3-alpine
     container_name: servicepi-web-backend
     volumes:
       - ./configs/nginx/backend:/etc/nginx/conf.d
@@ -53,7 +53,7 @@ services:
   portainer:
     # Using specific version tag instead of :latest for reproducibility
     # Portainer CE 2.41.1 includes bug fixes, security updates, and improvements
-    image: portainer/portainer-ce:2.41.1-alpine
+    image: portainer/portainer-ce:2.44.0-alpine
     container_name: servicepi-portainer
     command: --host unix:///var/run/docker.sock
     volumes:
@@ -89,7 +89,7 @@ services:
   pihole:
     # Using specific version tag instead of :latest
     # Pi-hole 2026.05.0 includes important updates and fixes
-    image: pihole/pihole:2026.05.0
+    image: pihole/pihole:2026.07.2
     container_name: servicepi-pihole
     # Uncomment the ports below to enable network-wide DNS on your Pi
     # Note: Port 53 requires elevated privileges and may conflict with existing DNS services
@@ -123,7 +123,7 @@ services:
   n8n:
     # Using specific version tag for reproducibility
     # Rolled back to 2.3.0 due to tar header errors in newer versions
-    image: n8nio/n8n:2.3.0
+    image: n8nio/n8n:2.35.3
     container_name: servicepi-n8n
     volumes:
       - n8n_data:/home/node/.n8n
@@ -164,7 +164,7 @@ services:
   openwebui:
     # Using specific version tag for reproducibility
     # OpenWebUI v0.9.5 is the latest stable release
-    image: ghcr.io/open-webui/open-webui:v0.9.5
+    image: ghcr.io/open-webui/open-webui:v0.11.0
     container_name: servicepi-openwebui
     volumes:
       - openwebui_data:/app/backend/data
@@ -188,7 +188,7 @@ services:
     # Using specific version tag for reproducibility
     # SearXNG uses date+commit versioning (YYYY.M.D-<commit>); update to a newer tag as needed
     # See: https://hub.docker.com/r/searxng/searxng/tags
-    image: searxng/searxng:2026.5.15-afafca93f
+    image: searxng/searxng:2026.8.16-b2da6b90f
     container_name: servicepi-searxng
     volumes:
       - ./configs/searxng:/etc/searxng
