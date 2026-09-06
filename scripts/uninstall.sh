@@ -245,10 +245,6 @@ if data:
             json.dump(data, handle, indent=4, sort_keys=True)
             handle.write("\n")
         os.replace(tmp_path, path)
-        try:
-            os.unlink(tmp_path)
-        except FileNotFoundError:
-            pass
 else:
     os.remove(path)
 PY
