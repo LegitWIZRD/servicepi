@@ -117,7 +117,9 @@ remove_service_user() {
         log "Removing service user: $SERVICE_USER"
         if ! userdel -r "$SERVICE_USER" >/dev/null 2>&1; then
             warning "Could not remove the home directory with userdel -r; removing the account only"
-            userdel "$SERVICE_USER"
+            if ! userdel "$SERVICE_USER"; then
+                error "Failed to remove service user: $SERVICE_USER"
+            fi
         fi
         success "Service user removed"
     fi
@@ -291,6 +293,14 @@ partial_uninstall() {
 full_uninstall() {
     log "Performing full uninstall..."
     validate_storage_target
+    if [ -n "$FULL_UNINSTALL_STORAGE_DEVICE" ]; then
+        warning "Full uninstall will permanently erase and reformat: $FULL_UNINSTALL_STORAGE_DEVICE"
+        read -r -p "Type ERASE to continue: " erase_confirm
+        if [ "$erase_confirm" != "ERASE" ]; then
+            log "Full uninstall cancelled before storage wipe"
+            exit 0
+        fi
+    fi
     stop_containers true
     remove_containers_by_name
     remove_update_services
@@ -349,14 +359,6 @@ main() {
 
     if [ "$dry_run" = false ]; then
         check_root
-    fi
-
-    if [ "$dry_run" = true ] && [ -z "$mode" ]; then
-        log "DRY RUN mode selected"
-        echo "Specify --partial or --full to preview a specific uninstall path."
-        echo "Partial: stop containers and remove update services while preserving data."
-        echo "Full: stop containers and volumes, remove data, remove update services, reformat configured storage, and remove the installation."
-        exit 0
     fi
 
     if [ -z "$mode" ]; then
