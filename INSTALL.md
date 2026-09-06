@@ -457,37 +457,22 @@ docker info | grep "Docker Root Dir"
 
 ## Uninstallation
 
-If you need to uninstall ServicePi:
+If you need to uninstall ServicePi, use the uninstall script:
 
 ```bash
-# Stop and remove containers
-cd /opt/servicepi
-sudo docker-compose down -v
+# Review the uninstall script first
+less /opt/servicepi/scripts/uninstall.sh
 
-# Remove installation directory
-sudo rm -rf /opt/servicepi
+# Run interactively
+sudo /opt/servicepi/scripts/uninstall.sh
 
-# Remove service user
-sudo userdel -r servicepi
-
-# Remove systemd service
-sudo systemctl disable --now servicepi-update.timer
-sudo rm /etc/systemd/system/servicepi-update.service
-sudo rm /etc/systemd/system/servicepi-update.timer
-sudo systemctl daemon-reload
-
-# Remove Docker (optional)
-sudo apt-get remove docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-sudo rm -rf /var/lib/docker
-
-# Remove firewall rules (optional)
-sudo ufw delete allow 80/tcp
-sudo ufw delete allow 8080/tcp
-sudo ufw delete allow 8053/tcp
-sudo ufw delete allow 9000/tcp
-sudo ufw delete allow 53/tcp
-sudo ufw delete allow 53/udp
+# Or choose a mode explicitly
+sudo /opt/servicepi/scripts/uninstall.sh --partial
+sudo /opt/servicepi/scripts/uninstall.sh --full
 ```
+
+- **Partial uninstall** keeps ServicePi data and the installation directory intact while removing containers and update automation.
+- **Full uninstall** removes the installation, deletes data, and reformats any configured storage used by ServicePi.
 
 ## Next Steps
 
