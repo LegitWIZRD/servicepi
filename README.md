@@ -113,6 +113,7 @@ servicepi/
 │   └── pihole/         # Pi-hole blocklists and DNS config
 ├── scripts/            # Deployment and management scripts
 │   ├── install.sh      # Initial installation script
+│   ├── uninstall.sh    # Uninstall script
 │   └── update-pi.sh    # Update deployment script
 ├── docker-compose.yml  # Main service orchestration
 ├── .gitignore         # Git ignore rules
