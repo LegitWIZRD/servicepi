@@ -210,10 +210,8 @@ cleanup_storage_config() {
 
     storage_device="$FULL_UNINSTALL_STORAGE_DEVICE"
     if [ -z "$storage_device" ]; then
-        storage_device="$(resolve_storage_device)"
-        if [ -n "$storage_device" ]; then
-            storage_device="$(assert_safe_storage_device "$storage_device")"
-        fi
+        warning "No validated storage device is available for reformatting"
+        return 0
     fi
 
     if [ -n "$storage_device" ]; then
@@ -293,6 +291,10 @@ partial_uninstall() {
 full_uninstall() {
     log "Performing full uninstall..."
     validate_storage_target
+    if ! confirm "Continue with full uninstall"; then
+        log "Full uninstall cancelled"
+        exit 0
+    fi
     if [ -n "$FULL_UNINSTALL_STORAGE_DEVICE" ]; then
         warning "Full uninstall will permanently erase and reformat: $FULL_UNINSTALL_STORAGE_DEVICE"
         read -r -p "Type ERASE to continue: " erase_confirm
@@ -361,6 +363,14 @@ main() {
         check_root
     fi
 
+    if [ "$dry_run" = true ] && [ -z "$mode" ]; then
+        log "DRY RUN mode selected"
+        echo "Specify --partial or --full to preview a specific uninstall path."
+        echo "Partial: stop containers and remove update services while preserving data."
+        echo "Full: stop containers and volumes, remove data, remove update services, reformat configured storage, and remove the installation."
+        exit 0
+    fi
+
     if [ -z "$mode" ]; then
         echo "Select uninstall mode:"
         echo "  1) Partial uninstall (preserve data)"
@@ -398,11 +408,6 @@ main() {
         fi
         partial_uninstall
     else
-        warning "This will permanently remove ServicePi, delete data, and reformat configured storage."
-        if ! confirm "Continue with full uninstall"; then
-            log "Full uninstall cancelled"
-            exit 0
-        fi
         full_uninstall
     fi
 }
