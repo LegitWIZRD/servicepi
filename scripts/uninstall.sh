@@ -154,14 +154,8 @@ resolve_storage_device() {
     esac
 }
 
-validate_storage_target() {
-    local storage_device root_source root_disk storage_disk root_physical_disk storage_physical_disk
-
-    storage_device="$(resolve_storage_device)"
-    if [ -z "$storage_device" ]; then
-        warning "No configured storage device could be identified for reformatting"
-        return 0
-    fi
+assert_safe_storage_device() {
+    local storage_device="$1" root_source root_disk storage_disk root_physical_disk storage_physical_disk
 
     root_source="$(findmnt -n -o SOURCE / 2>/dev/null || true)"
     root_disk="$(lsblk -no PKNAME "$root_source" 2>/dev/null || true)"
@@ -189,33 +183,30 @@ validate_storage_target() {
         error "Refusing to reformat storage on the same physical disk as the root filesystem"
     fi
 
-    FULL_UNINSTALL_STORAGE_DEVICE="$storage_device"
+    echo "$storage_device"
+}
+
+validate_storage_target() {
+    local storage_device
+
+    storage_device="$(resolve_storage_device)"
+    if [ -z "$storage_device" ]; then
+        warning "No configured storage device could be identified for reformatting"
+        return 0
+    fi
+
+    FULL_UNINSTALL_STORAGE_DEVICE="$(assert_safe_storage_device "$storage_device")"
 }
 
 cleanup_storage_config() {
-    local storage_device root_source root_disk storage_disk root_physical_disk storage_physical_disk
+    local storage_device
 
-    storage_device="${FULL_UNINSTALL_STORAGE_DEVICE:-$(resolve_storage_device)}"
-    root_source="$(findmnt -n -o SOURCE / 2>/dev/null || true)"
-    root_disk="$(lsblk -no PKNAME "$root_source" 2>/dev/null || true)"
-    storage_disk="$(lsblk -no PKNAME "$storage_device" 2>/dev/null || true)"
-    root_physical_disk="$root_disk"
-    storage_physical_disk="$storage_disk"
-
-    if [ -z "$root_physical_disk" ] && [ -n "$root_source" ]; then
-        root_physical_disk="$(basename "$root_source")"
-    fi
-
-    if [ -z "$storage_physical_disk" ] && [ -n "$storage_device" ]; then
-        storage_physical_disk="$(basename "$storage_device")"
-    fi
-
-    if [ -n "$storage_device" ] && [ -n "$root_source" ] && [ "$storage_device" = "$root_source" ]; then
-        error "Refusing to reformat the root filesystem"
-    fi
-
-    if [ -n "$storage_device" ] && [ -n "$root_source" ] && [ "$root_physical_disk" = "$storage_physical_disk" ]; then
-        error "Refusing to reformat storage on the same physical disk as the root filesystem"
+    storage_device="$FULL_UNINSTALL_STORAGE_DEVICE"
+    if [ -z "$storage_device" ]; then
+        storage_device="$(resolve_storage_device)"
+        if [ -n "$storage_device" ]; then
+            storage_device="$(assert_safe_storage_device "$storage_device")"
+        fi
     fi
 
     if [ -n "$storage_device" ]; then
@@ -311,7 +302,7 @@ Usage: sudo ./scripts/uninstall.sh [partial|full|--partial|--full|--dry-run]
 Options:
   partial, --partial   Remove containers and update services, preserving data
   full, --full         Remove ServicePi, delete data, and reformat configured storage
-  --dry-run            Show what would happen without making changes
+  --dry-run            Show what would happen without making changes (no root required)
   -h, --help           Show this help message
 
 If no mode is provided, the script will prompt interactively.
