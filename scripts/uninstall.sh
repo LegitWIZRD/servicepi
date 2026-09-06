@@ -191,10 +191,48 @@ cleanup_storage_config() {
 
     if [ -f "$DOCKER_DAEMON_CONFIG" ] && grep -q "$NVME_MOUNT_POINT/docker" "$DOCKER_DAEMON_CONFIG" 2>/dev/null; then
         log "Removing ServicePi Docker daemon configuration"
-        rm -f "$DOCKER_DAEMON_CONFIG"
+        if command -v python3 >/dev/null 2>&1; then
+            if ! python3 - "$DOCKER_DAEMON_CONFIG" <<'PY'
+import json
+import os
+import sys
+import tempfile
+
+path = sys.argv[1]
+with open(path, "r", encoding="utf-8") as handle:
+    data = json.load(handle)
+
+for key in ("data-root", "storage-driver", "log-driver", "log-opts"):
+    data.pop(key, None)
+
+if data:
+    fd, tmp_path = tempfile.mkstemp(dir=os.path.dirname(path))
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            json.dump(data, handle, indent=4, sort_keys=True)
+            handle.write("\n")
+        os.replace(tmp_path, path)
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+else:
+    os.remove(path)
+PY
+            then
+                warning "Could not safely edit the Docker daemon config; removing it entirely"
+                rm -f "$DOCKER_DAEMON_CONFIG"
+            fi
+        else
+            warning "python3 is not available; removing the Docker daemon config file entirely"
+            rm -f "$DOCKER_DAEMON_CONFIG"
+        fi
     fi
 
     if [ -n "$storage_device" ]; then
+        if [ -z "$root_physical_disk" ] || [ -z "$storage_physical_disk" ]; then
+            error "Unable to safely identify the storage device for reformatting"
+        fi
+
         warning "Reformatting configured storage device: $storage_device"
         wipefs -a "$storage_device"
         mkfs.ext4 -F "$storage_device"
@@ -267,6 +305,14 @@ main() {
 
     if [ "$dry_run" = false ]; then
         check_root
+    fi
+
+    if [ "$dry_run" = true ] && [ -z "$mode" ]; then
+        log "DRY RUN mode selected"
+        echo "Specify --partial or --full to preview a specific uninstall path."
+        echo "Partial: stop containers and remove update services while preserving data."
+        echo "Full: stop containers and volumes, remove data, remove update services, reformat configured storage, and remove the installation."
+        exit 0
     fi
 
     if [ -z "$mode" ]; then
