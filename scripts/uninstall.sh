@@ -259,10 +259,6 @@ PY
     fi
 
     if [ -n "$storage_device" ]; then
-        if [ -z "$root_physical_disk" ] || [ -z "$storage_physical_disk" ]; then
-            error "Unable to safely identify the storage device for reformatting"
-        fi
-
         warning "Reformatting configured storage device: $storage_device"
         wipefs -a "$storage_device"
         mkfs.ext4 -F "$storage_device"
