@@ -12,6 +12,7 @@ UPDATE_SERVICE="/etc/systemd/system/servicepi-update.service"
 UPDATE_TIMER="/etc/systemd/system/servicepi-update.timer"
 NVME_MOUNT_POINT="/opt/docker-storage"
 DOCKER_DAEMON_CONFIG="/etc/docker/daemon.json"
+FULL_UNINSTALL_STORAGE_DEVICE=""
 
 # Colors for output
 RED='\033[0;31m'
@@ -153,10 +154,48 @@ resolve_storage_device() {
     esac
 }
 
-cleanup_storage_config() {
+validate_storage_target() {
     local storage_device root_source root_disk storage_disk root_physical_disk storage_physical_disk
 
     storage_device="$(resolve_storage_device)"
+    if [ -z "$storage_device" ]; then
+        warning "No configured storage device could be identified for reformatting"
+        return 0
+    fi
+
+    root_source="$(findmnt -n -o SOURCE / 2>/dev/null || true)"
+    root_disk="$(lsblk -no PKNAME "$root_source" 2>/dev/null || true)"
+    storage_disk="$(lsblk -no PKNAME "$storage_device" 2>/dev/null || true)"
+    root_physical_disk="$root_disk"
+    storage_physical_disk="$storage_disk"
+
+    if [ -z "$root_physical_disk" ] && [ -n "$root_source" ]; then
+        root_physical_disk="$(basename "$root_source")"
+    fi
+
+    if [ -z "$storage_physical_disk" ] && [ -n "$storage_device" ]; then
+        storage_physical_disk="$(basename "$storage_device")"
+    fi
+
+    if [ -n "$storage_device" ] && [ -n "$root_source" ] && [ "$storage_device" = "$root_source" ]; then
+        error "Refusing to reformat the root filesystem"
+    fi
+
+    if [ -z "$root_physical_disk" ] || [ -z "$storage_physical_disk" ]; then
+        error "Unable to safely identify the storage device for reformatting"
+    fi
+
+    if [ "$root_physical_disk" = "$storage_physical_disk" ]; then
+        error "Refusing to reformat storage on the same physical disk as the root filesystem"
+    fi
+
+    FULL_UNINSTALL_STORAGE_DEVICE="$storage_device"
+}
+
+cleanup_storage_config() {
+    local storage_device root_source root_disk storage_disk root_physical_disk storage_physical_disk
+
+    storage_device="${FULL_UNINSTALL_STORAGE_DEVICE:-$(resolve_storage_device)}"
     root_source="$(findmnt -n -o SOURCE / 2>/dev/null || true)"
     root_disk="$(lsblk -no PKNAME "$root_source" 2>/dev/null || true)"
     storage_disk="$(lsblk -no PKNAME "$storage_device" 2>/dev/null || true)"
@@ -253,12 +292,13 @@ partial_uninstall() {
 
 full_uninstall() {
     log "Performing full uninstall..."
+    validate_storage_target
     stop_containers true
     remove_containers_by_name
     remove_update_services
-    cleanup_storage_config
     remove_installation
     remove_service_user
+    cleanup_storage_config
     success "Full uninstall complete"
 }
 
@@ -285,9 +325,15 @@ main() {
     for arg in "$@"; do
         case "$arg" in
             partial|--partial)
+                if [ -n "$mode" ] && [ "$mode" != "partial" ]; then
+                    error "Cannot combine partial and full uninstall modes"
+                fi
                 mode="partial"
                 ;;
             full|--full)
+                if [ -n "$mode" ] && [ "$mode" != "full" ]; then
+                    error "Cannot combine partial and full uninstall modes"
+                fi
                 mode="full"
                 ;;
             --dry-run)
