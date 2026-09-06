@@ -74,10 +74,12 @@ stop_containers() {
             else
                 warning "Docker Compose shutdown reported an issue, continuing cleanup"
             fi
-        elif compose_cmd down --remove-orphans; then
-            success "ServicePi containers stopped"
         else
-            warning "Docker Compose shutdown reported an issue, continuing cleanup"
+            if compose_cmd down --remove-orphans; then
+                success "ServicePi containers stopped"
+            else
+                warning "Docker Compose shutdown reported an issue, continuing cleanup"
+            fi
         fi
     else
         warning "Installation directory not found, skipping Docker Compose shutdown"
@@ -113,7 +115,10 @@ remove_update_services() {
 remove_service_user() {
     if id "$SERVICE_USER" >/dev/null 2>&1; then
         log "Removing service user: $SERVICE_USER"
-        userdel -r "$SERVICE_USER" >/dev/null 2>&1 || userdel "$SERVICE_USER"
+        if ! userdel -r "$SERVICE_USER" >/dev/null 2>&1; then
+            warning "Could not remove the home directory with userdel -r; removing the account only"
+            userdel "$SERVICE_USER"
+        fi
         success "Service user removed"
     fi
 }
@@ -260,9 +265,15 @@ PY
 
     if [ -n "$storage_device" ]; then
         warning "Reformatting configured storage device: $storage_device"
-        wipefs -a "$storage_device"
-        mkfs.ext4 -F "$storage_device"
-        e2label "$storage_device" "docker-storage"
+        if ! wipefs -a "$storage_device"; then
+            error "Failed to wipe filesystem signatures from $storage_device"
+        fi
+        if ! mkfs.ext4 -F "$storage_device"; then
+            error "Failed to format $storage_device with ext4"
+        fi
+        if ! e2label "$storage_device" "docker-storage"; then
+            error "Failed to label $storage_device"
+        fi
         success "Configured storage device reformatted"
     else
         warning "No configured storage device could be identified for reformatting"
