@@ -214,10 +214,8 @@ cleanup_storage_config() {
         return 0
     fi
 
-    if [ -n "$storage_device" ]; then
-        log "Unmounting configured storage: $NVME_MOUNT_POINT"
-        umount "$NVME_MOUNT_POINT" >/dev/null 2>&1 || true
-    fi
+    log "Unmounting configured storage: $NVME_MOUNT_POINT"
+    umount "$NVME_MOUNT_POINT" >/dev/null 2>&1 || true
 
     if grep -q "$NVME_MOUNT_POINT" /etc/fstab 2>/dev/null; then
         log "Removing $NVME_MOUNT_POINT from /etc/fstab"
@@ -247,9 +245,10 @@ if data:
             json.dump(data, handle, indent=4, sort_keys=True)
             handle.write("\n")
         os.replace(tmp_path, path)
-    finally:
-        if os.path.exists(tmp_path):
+        try:
             os.unlink(tmp_path)
+        except FileNotFoundError:
+            pass
 else:
     os.remove(path)
 PY
@@ -291,10 +290,6 @@ partial_uninstall() {
 full_uninstall() {
     log "Performing full uninstall..."
     validate_storage_target
-    if ! confirm "Continue with full uninstall"; then
-        log "Full uninstall cancelled"
-        exit 0
-    fi
     if [ -n "$FULL_UNINSTALL_STORAGE_DEVICE" ]; then
         warning "Full uninstall will permanently erase and reformat: $FULL_UNINSTALL_STORAGE_DEVICE"
         read -r -p "Type ERASE to continue: " erase_confirm
@@ -302,6 +297,10 @@ full_uninstall() {
             log "Full uninstall cancelled before storage wipe"
             exit 0
         fi
+    fi
+    if ! confirm "Continue with full uninstall"; then
+        log "Full uninstall cancelled"
+        exit 0
     fi
     stop_containers true
     remove_containers_by_name
