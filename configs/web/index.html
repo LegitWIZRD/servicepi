@@ -27,6 +27,8 @@
             --danger-text: #b91c1c;
             --warning-bg: #fef3c7;
             --warning-text: #92400e;
+            --bg-gradient-top: rgba(37, 99, 235, 0.18);
+            --bg-gradient-bottom: rgba(124, 58, 237, 0.12);
         }
 
         body.dark-mode {
@@ -50,6 +52,8 @@
             --danger-text: #fca5a5;
             --warning-bg: rgba(245, 158, 11, 0.2);
             --warning-text: #fcd34d;
+            --bg-gradient-top: rgba(96, 165, 250, 0.16);
+            --bg-gradient-bottom: rgba(167, 139, 250, 0.12);
         }
 
         * {
@@ -61,8 +65,8 @@
             margin: 0;
             padding: 24px;
             background:
-                radial-gradient(circle at top right, rgba(37, 99, 235, 0.18), transparent 44%),
-                radial-gradient(circle at bottom left, rgba(124, 58, 237, 0.12), transparent 38%),
+                radial-gradient(circle at top right, var(--bg-gradient-top), transparent 44%),
+                radial-gradient(circle at bottom left, var(--bg-gradient-bottom), transparent 38%),
                 var(--bg-primary);
             color: var(--text-primary);
             transition: background-color 0.3s ease, color 0.3s ease;
@@ -102,15 +106,7 @@
             font-size: clamp(2rem, 4vw, 2.6rem);
             font-weight: 700;
             color: var(--text-primary);
-        }
-
-        @supports ((-webkit-background-clip: text) or (background-clip: text)) {
-            .header h1 {
-                background: linear-gradient(135deg, var(--border-primary), var(--accent-secondary));
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            }
+            text-shadow: 0 2px 12px rgba(37, 99, 235, 0.25);
         }
 
         .header p {
