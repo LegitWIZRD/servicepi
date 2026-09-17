@@ -101,10 +101,16 @@
             margin: 0;
             font-size: clamp(2rem, 4vw, 2.6rem);
             font-weight: 700;
-            background: linear-gradient(135deg, var(--border-primary), var(--accent-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--text-primary);
+        }
+
+        @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+            .header h1 {
+                background: linear-gradient(135deg, var(--border-primary), var(--accent-secondary));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
         }
 
         .header p {
@@ -162,7 +168,7 @@
         .service-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 12px 24px var(--shadow-hover);
-            border-color: color-mix(in srgb, var(--border-primary) 35%, var(--border-color));
+            border-color: var(--border-primary);
         }
 
         .service-card h3 {
@@ -176,7 +182,7 @@
         }
 
         .service-card .port {
-            background: color-mix(in srgb, var(--border-primary) 88%, black 12%);
+            background: var(--border-primary);
             color: white;
             padding: 3px 10px;
             border-radius: 999px;
@@ -200,7 +206,7 @@
         .status.running {
             background: var(--success-bg);
             color: var(--success-text);
-            border-color: color-mix(in srgb, var(--success-text) 30%, transparent);
+            border-color: rgba(34, 197, 94, 0.35);
         }
 
         .service-links {
@@ -215,7 +221,7 @@
             align-items: center;
             margin: 0;
             padding: 7px 12px;
-            background: color-mix(in srgb, var(--border-primary) 94%, black 6%);
+            background: var(--border-primary);
             color: white;
             text-decoration: none;
             border-radius: 10px;
@@ -317,7 +323,7 @@
 
         .action-button.secondary:hover {
             border-color: var(--border-primary);
-            background: color-mix(in srgb, var(--border-primary) 12%, var(--bg-card));
+            background: rgba(37, 99, 235, 0.12);
             transform: translateY(-1px);
             box-shadow: 0 8px 18px var(--shadow-hover);
         }
@@ -330,14 +336,14 @@
 
         .version-badge {
             display: inline-block;
-            background: color-mix(in srgb, var(--border-primary) 14%, var(--bg-api-endpoint));
+            background: rgba(37, 99, 235, 0.14);
             color: var(--text-muted);
             padding: 2px 9px;
             border-radius: 999px;
             font-size: 11px;
             font-weight: 600;
             margin-left: 8px;
-            border: 1px solid color-mix(in srgb, var(--border-primary) 28%, transparent);
+            border: 1px solid rgba(37, 99, 235, 0.28);
         }
 
         .modal {
@@ -432,19 +438,19 @@
         .status-message.success {
             background: var(--success-bg);
             color: var(--success-text);
-            border-color: color-mix(in srgb, var(--success-text) 28%, transparent);
+            border-color: rgba(22, 163, 74, 0.35);
         }
 
         .status-message.error {
             background: var(--danger-bg);
             color: var(--danger-text);
-            border-color: color-mix(in srgb, var(--danger-text) 24%, transparent);
+            border-color: rgba(220, 38, 38, 0.35);
         }
 
         .status-message.info {
-            background: color-mix(in srgb, var(--border-primary) 14%, var(--bg-secondary));
+            background: rgba(37, 99, 235, 0.12);
             color: var(--text-muted);
-            border-color: color-mix(in srgb, var(--border-primary) 35%, transparent);
+            border-color: rgba(37, 99, 235, 0.3);
         }
 
         /* Live status states */
@@ -471,33 +477,33 @@
         }
 
         .status.checking {
-            background: color-mix(in srgb, var(--border-primary) 12%, var(--bg-secondary));
+            background: rgba(37, 99, 235, 0.12);
             color: var(--text-muted);
-            border-color: color-mix(in srgb, var(--border-primary) 24%, transparent);
+            border-color: rgba(37, 99, 235, 0.25);
         }
 
         .status.down {
             background: var(--danger-bg);
             color: var(--danger-text);
-            border-color: color-mix(in srgb, var(--danger-text) 22%, transparent);
+            border-color: rgba(220, 38, 38, 0.3);
         }
 
         .status.degraded {
             background: var(--warning-bg);
             color: var(--warning-text);
-            border-color: color-mix(in srgb, var(--warning-text) 25%, transparent);
+            border-color: rgba(245, 158, 11, 0.35);
         }
 
         .status.timeout {
             background: var(--warning-bg);
             color: var(--warning-text);
-            border-color: color-mix(in srgb, var(--warning-text) 25%, transparent);
+            border-color: rgba(245, 158, 11, 0.35);
         }
 
         .status.unknown {
-            background: color-mix(in srgb, var(--text-secondary) 16%, transparent);
+            background: rgba(148, 163, 184, 0.22);
             color: var(--text-muted);
-            border-color: color-mix(in srgb, var(--text-secondary) 20%, transparent);
+            border-color: rgba(148, 163, 184, 0.32);
         }
 
         .status-bar {
@@ -524,7 +530,7 @@
         .status-bar button:hover {
             border-color: var(--border-primary);
             color: var(--text-primary);
-            background: color-mix(in srgb, var(--border-primary) 10%, var(--bg-card));
+            background: rgba(37, 99, 235, 0.10);
         }
 
         /* Modal service status table */
@@ -549,7 +555,7 @@
         .modal-status-table th {
             color: var(--text-secondary);
             font-weight: 600;
-            background: color-mix(in srgb, var(--border-primary) 8%, var(--bg-card));
+            background: rgba(37, 99, 235, 0.08);
         }
 
         .modal-status-table tr:last-child td {
