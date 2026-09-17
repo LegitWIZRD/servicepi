@@ -1,9 +1,9 @@
 services:
   # Reverse Proxy - HTTP (local) and optional HTTPS (host Tailscale certs)
   nginx-proxy:
-    # Using nginx:alpine with version tag for ARM64 compatibility
+    # Using nginx:alpine for ARM64 compatibility
     # Alpine images are lightweight and well-suited for Raspberry Pi
-    image: nginx:1.31.0-alpine
+    image: nginx:latest
     container_name: servicepi-proxy
     ports:
       - "80:80"    # HTTP for web dashboard (local traffic)
@@ -38,8 +38,8 @@ services:
 
   # Web Backend (internal only)
   web-backend:
-    # Using nginx:alpine with version tag for ARM64 compatibility
-    image: nginx:1.31.0-alpine
+    # Using nginx:alpine for ARM64 compatibility
+    image: nginx:latest
     container_name: servicepi-web-backend
     volumes:
       - ./configs/nginx/backend:/etc/nginx/conf.d
@@ -51,9 +51,8 @@ services:
 
   # Container Management (Portainer)
   portainer:
-    # Using specific version tag instead of :latest for reproducibility
-    # Portainer CE 2.41.1 includes bug fixes, security updates, and improvements
-    image: portainer/portainer-ce:2.41.1-alpine
+    # Using Portainer CE latest
+    image: portainer/portainer-ce:latest
     container_name: servicepi-portainer
     command: --host unix:///var/run/docker.sock
     volumes:
@@ -87,9 +86,8 @@ services:
 
   # Pi-hole DNS Ad Blocker
   pihole:
-    # Using specific version tag instead of :latest
-    # Pi-hole 2026.05.0 includes important updates and fixes
-    image: pihole/pihole:2026.05.0
+    # Using Pi-hole latest
+    image: pihole/pihole:latest
     container_name: servicepi-pihole
     # Uncomment the ports below to enable network-wide DNS on your Pi
     # Note: Port 53 requires elevated privileges and may conflict with existing DNS services
@@ -121,9 +119,8 @@ services:
 
   # N8N Workflow Automation
   n8n:
-    # Using specific version tag for reproducibility
-    # Rolled back to 2.3.0 due to tar header errors in newer versions
-    image: n8nio/n8n:2.3.0
+    # Using N8N latest
+    image: n8nio/n8n:latest
     container_name: servicepi-n8n
     volumes:
       - n8n_data:/home/node/.n8n
@@ -142,8 +139,8 @@ services:
 
   # WordPress - User-friendly dashboard for service links
   wordpress:
-    # Using WordPress with PHP 8.2 and Apache, pinned to specific version for reproducibility
-    image: wordpress:6.9.4-php8.2-apache
+    # Using WordPress latest with PHP and Apache
+    image: wordpress:latest
     container_name: servicepi-wordpress
     volumes:
       - wordpress_data:/var/www/html
@@ -162,9 +159,8 @@ services:
 
   # OpenWebUI - LLM Web Interface
   openwebui:
-    # Using specific version tag for reproducibility
-    # OpenWebUI v0.9.5 is the latest stable release
-    image: ghcr.io/open-webui/open-webui:v0.9.5
+    # Using OpenWebUI latest
+    image: ghcr.io/open-webui/open-webui:latest
     container_name: servicepi-openwebui
     volumes:
       - openwebui_data:/app/backend/data
@@ -185,10 +181,8 @@ services:
 
   # SearXNG - Privacy-respecting metasearch engine
   searxng:
-    # Using specific version tag for reproducibility
-    # SearXNG uses date+commit versioning (YYYY.M.D-<commit>); update to a newer tag as needed
-    # See: https://hub.docker.com/r/searxng/searxng/tags
-    image: searxng/searxng:2026.5.15-afafca93f
+    # Using SearXNG latest
+    image: searxng/searxng:latest
     container_name: servicepi-searxng
     volumes:
       - ./configs/searxng:/etc/searxng
@@ -209,7 +203,7 @@ services:
       - SETUID
 
   wordpress-db:
-    image: mysql:8.0.46
+    image: mysql:latest
     container_name: servicepi-wordpress-db
     volumes:
       - wordpress_db:/var/lib/mysql
