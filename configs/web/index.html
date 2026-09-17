@@ -534,15 +534,18 @@
         }
 
         /* Modal service status table */
+        .modal-status-table-wrap {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--bg-card);
+            margin-top: 12px;
+        }
+
         .modal-status-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
-            margin-top: 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow: hidden;
         }
 
         .modal-status-table th,
@@ -815,12 +818,14 @@
                 <!-- Live service status during update -->
                 <div id="modalServiceStatus" style="display:none;">
                     <p><strong>📡 Live Service Status:</strong></p>
-                    <table class="modal-status-table">
-                        <thead>
-                            <tr><th>Service</th><th>Status</th><th>Response (ms)</th></tr>
-                        </thead>
-                        <tbody id="modalStatusBody"></tbody>
-                    </table>
+                    <div class="modal-status-table-wrap">
+                        <table class="modal-status-table">
+                            <thead>
+                                <tr><th>Service</th><th>Status</th><th>Response (ms)</th></tr>
+                            </thead>
+                            <tbody id="modalStatusBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
