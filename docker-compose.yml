@@ -181,8 +181,8 @@ services:
 
   # SearXNG - Privacy-respecting metasearch engine
   searxng:
-    # Using a pinned SearXNG release for reproducible deployments
-    image: searxng/searxng:2025.11.1
+    # Using a valid pinned SearXNG release for reproducible deployments
+    image: searxng/searxng:2026.11.5-3e95f6cd2
     container_name: servicepi-searxng
     volumes:
       - ./configs/searxng:/etc/searxng
