@@ -27,10 +27,18 @@ jobs:
       
     - name: Validate Docker Compose
       run: |
-        # Install docker-compose if not available
+        # Ensure docker-compose command is available
         if ! command -v docker-compose &> /dev/null; then
-          sudo curl -L "https://github.com/docker/compose/releases/download/v2.32.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
+          if docker compose version &> /dev/null; then
+            sudo tee /usr/local/bin/docker-compose > /dev/null << 'EOF'
+        #!/usr/bin/env bash
+        docker compose "$@"
+        EOF
+            sudo chmod +x /usr/local/bin/docker-compose
+          else
+            echo "ERROR: Neither docker-compose nor docker compose is available"
+            exit 1
+          fi
         fi
         
         # Create test .env file for validation
@@ -147,12 +155,20 @@ jobs:
       
     - name: Install Docker Compose
       run: |
-        # Install docker-compose if not available
+        # Ensure docker-compose command is available
         if ! command -v docker-compose &> /dev/null; then
-          sudo curl -L "https://github.com/docker/compose/releases/download/v2.32.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
+          if docker compose version &> /dev/null; then
+            sudo tee /usr/local/bin/docker-compose > /dev/null << 'EOF'
+        #!/usr/bin/env bash
+        docker compose "$@"
+        EOF
+            sudo chmod +x /usr/local/bin/docker-compose
+          else
+            echo "ERROR: Neither docker-compose nor docker compose is available"
+            exit 1
+          fi
         fi
-        docker-compose --version
+        docker-compose version
       
     - name: Test Docker Compose deployment
       run: |

@@ -99,10 +99,10 @@ services:
     networks:
       - servicepi-network
     environment:
-      - TZ=America/New_York
+      - TZ=${TZ:-America/New_York}
       - WEBPASSWORD=${PIHOLE_PASSWORD:-servicepi}
       - FTLCONF_LOCAL_IPV4=${PI_IP:-}
-      - PIHOLE_DNS_=1.1.1.1;1.0.0.1
+      - PIHOLE_DNS_=${PIHOLE_DNS:-1.1.1.1;1.0.0.1}
       - DNSMASQ_LISTENING=all
     # No exposed port for web interface - accessed via nginx-proxy at :8053
     # Pi-hole requires NET_ADMIN capability for DNS functionality
@@ -129,8 +129,8 @@ services:
       - N8N_PROTOCOL=http
       - N8N_SECURE_COOKIE=false
       - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5678/}
-      - GENERIC_TIMEZONE=America/New_York
-      - TZ=America/New_York
+      - GENERIC_TIMEZONE=${N8N_TIMEZONE:-America/New_York}
+      - TZ=${N8N_TIMEZONE:-America/New_York}
     # No exposed ports - accessed via nginx-proxy at :5678
 
   # WordPress - User-friendly dashboard for service links
