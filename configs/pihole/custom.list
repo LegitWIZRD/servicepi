@@ -10,13 +10,9 @@
 # <YOUR_PI_IP> servicepi.local
 # <YOUR_PI_IP> portainer.local
 # <YOUR_PI_IP> iot.local
-# <YOUR_PI_IP> homeassistant.local
 # <YOUR_PI_IP> pihole.local
 # <YOUR_PI_IP> n8n.local
 # <YOUR_PI_IP> openwebui.local
 # <YOUR_PI_IP> wordpress.local
-
-# Wazuh (uncomment when enabling Wazuh - set ENABLE_WAZUH=true in .env)
-# <YOUR_PI_IP> wazuh.local
 
 # Add your custom DNS entries below

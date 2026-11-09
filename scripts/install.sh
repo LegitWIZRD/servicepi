@@ -150,9 +150,6 @@ ufw allow 5678/tcp  # HTTP for N8N
 ufw allow 3000/tcp  # HTTP for OpenWebUI
 ufw allow 8081/tcp  # HTTP for WordPress
 ufw allow 8888/tcp  # HTTP for SearXNG
-# ufw allow 8443/tcp  # HTTP for Wazuh Dashboard (uncomment when enabling Wazuh)
-# ufw allow 1514/tcp  # Wazuh agent events (uncomment when using Wazuh agents)
-# ufw allow 1515/tcp  # Wazuh agent enrollment (uncomment when using Wazuh agents)
 ufw --force enable
 
 # Initial deployment
@@ -203,14 +200,13 @@ echo "  5. Enable Pi-hole DNS by uncommenting ports in docker-compose.yml (lines
 echo "  6. After enabling, uncomment firewall rules for port 53 in this script and rerun"
 echo "  7. Set your device's DNS to $(hostname -I | awk '{print $1}') to use Pi-hole ad blocking"
 echo "  8. Update configs/pihole/custom.list with your Pi's IP for .local domain resolution"
-echo "  9. To enable Wazuh: Set ENABLE_WAZUH=true in .env, uncomment Wazuh services in docker-compose.yml, and configure firewall (requires 4GB+ RAM)"
-echo "  10. Customize services in docker-compose.yml as needed"
-echo "  11. Set up automatic updates with 'sudo systemctl enable --now servicepi-update.timer'"
+echo "  9. Customize services in docker-compose.yml as needed"
+echo "  10. Set up automatic updates with 'sudo systemctl enable --now servicepi-update.timer'"
 if [ "$TAILSCALE_AVAILABLE" = true ]; then
-    echo "  12. Optional: Set up Tailscale remote access: run 'sudo tailscale up' (if needed), then"
+    echo "  11. Optional: Set up Tailscale remote access: run 'sudo tailscale up' (if needed), then"
     echo "      run: sudo $INSTALL_DIR/scripts/setup-tailscale-certs.sh  (see docs/TAILSCALE_SETUP.md)"
 else
-    echo "  12. Optional: Install Tailscale later for remote access + HTTPS over tailnet"
+    echo "  11. Optional: Install Tailscale later for remote access + HTTPS over tailnet"
     echo "      (ServicePi works normally without Tailscale)"
 fi
 echo ""
