@@ -1,9 +1,9 @@
 services:
   # Reverse Proxy - HTTP (local) and optional HTTPS (host Tailscale certs)
   nginx-proxy:
-    # Using nginx:alpine for ARM64 compatibility
+    # Use the default latest tag for the stack's current image versions
     # Alpine images are lightweight and well-suited for Raspberry Pi
-    image: nginx:1.27.3-alpine
+    image: nginx:latest
     container_name: servicepi-proxy
     ports:
       - "80:80"    # HTTP for web dashboard (local traffic)
@@ -38,8 +38,8 @@ services:
 
   # Web Backend (internal only)
   web-backend:
-    # Using nginx:alpine for ARM64 compatibility
-    image: nginx:1.27.3-alpine
+    # Use the default latest tag for the stack's current image versions
+    image: nginx:latest
     container_name: servicepi-web-backend
     volumes:
       - ./configs/nginx/backend:/etc/nginx/conf.d
@@ -51,8 +51,8 @@ services:
 
   # Container Management (Portainer)
   portainer:
-    # Using Portainer CE stable release for reproducible deployments
-    image: portainer/portainer-ce:2.33.2-alpine
+    # Use the default latest tag for the stack's current image versions
+    image: portainer/portainer-ce:latest
     container_name: servicepi-portainer
     command: --host unix:///var/run/docker.sock
     volumes:
@@ -86,8 +86,8 @@ services:
 
   # Pi-hole DNS Ad Blocker
   pihole:
-    # Using a pinned Pi-hole release for reproducible deployments
-    image: pihole/pihole:2025.08.0
+    # Use the default latest tag for the stack's current image versions
+    image: pihole/pihole:latest
     container_name: servicepi-pihole
     # Uncomment the ports below to enable network-wide DNS on your Pi
     # Note: Port 53 requires elevated privileges and may conflict with existing DNS services
@@ -119,8 +119,8 @@ services:
 
   # N8N Workflow Automation
   n8n:
-    # Using a pinned n8n release for reproducible deployments
-    image: n8nio/n8n:1.108.0
+    # Use the default latest tag for the stack's current image versions
+    image: n8nio/n8n:latest
     container_name: servicepi-n8n
     volumes:
       - n8n_data:/home/node/.n8n
@@ -139,8 +139,8 @@ services:
 
   # WordPress - User-friendly dashboard for service links
   wordpress:
-    # Using a pinned WordPress release for reproducible deployments
-    image: wordpress:6.8.2-apache
+    # Use the default latest tag for the stack's current image versions
+    image: wordpress:latest
     container_name: servicepi-wordpress
     volumes:
       - wordpress_data:/var/www/html
@@ -159,8 +159,8 @@ services:
 
   # OpenWebUI - LLM Web Interface
   openwebui:
-    # Using a pinned OpenWebUI release for reproducible deployments
-    image: ghcr.io/open-webui/open-webui:v0.6.15
+    # Use the default latest tag for the stack's current image versions
+    image: ghcr.io/open-webui/open-webui:latest
     container_name: servicepi-openwebui
     volumes:
       - openwebui_data:/app/backend/data
@@ -181,8 +181,8 @@ services:
 
   # SearXNG - Privacy-respecting metasearch engine
   searxng:
-    # Using a valid pinned SearXNG release for reproducible deployments
-    image: searxng/searxng:2026.11.5-3e95f6cd2
+    # Use the default latest tag for the stack's current image versions
+    image: searxng/searxng:latest
     container_name: servicepi-searxng
     volumes:
       - ./configs/searxng:/etc/searxng
@@ -203,7 +203,7 @@ services:
       - SETUID
 
   wordpress-db:
-    image: mysql:8.4.5
+    image: mysql:latest
     container_name: servicepi-wordpress-db
     volumes:
       - wordpress_db:/var/lib/mysql

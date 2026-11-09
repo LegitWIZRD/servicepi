@@ -46,24 +46,36 @@ jobs:
         # Validate docker-compose file
         docker-compose config
         
-    - name: Check for unpinned Docker images
+    - name: Check Docker image tags
       run: |
-        echo "Checking for unpinned Docker images (using :latest tag)..."
-        
-        # Check docker-compose.yml for :latest tags
-        if grep -E '^\s+image:.*:latest' docker-compose.yml; then
-          echo "❌ ERROR: Found unpinned Docker images using ':latest' tag"
-          echo ""
-          echo "For security and reproducibility, all Docker images should be pinned to specific versions."
-          echo "Please update docker-compose.yml to use version tags instead of ':latest'"
-          echo ""
-          echo "Example:"
-          echo "  ❌ image: nginx:latest"
-          echo "  ✅ image: nginx:1.27.3-alpine"
-          exit 1
-        else
-          echo "✅ All Docker images are pinned to specific versions"
-        fi
+        echo "Checking that Docker images include an explicit tag (including default :latest)..."
+
+        python - <<'PY'
+        import re
+        from pathlib import Path
+
+        bad = []
+        for line in Path('docker-compose.yml').read_text().splitlines():
+            match = re.match(r'^\s*image:\s*(.+?)\s*(?:#.*)?$', line)
+            if not match:
+                continue
+            value = match.group(1).strip()
+            if not value:
+                continue
+            image_part = value.rsplit('/', 1)[-1]
+            if ':' not in image_part:
+                bad.append(value)
+
+        if bad:
+            print('❌ ERROR: Found Docker images missing an explicit tag:')
+            for value in bad:
+                print(f'  - {value}')
+            print('')
+            print('Please add an explicit tag such as :latest or a version tag.')
+            raise SystemExit(1)
+
+        print('✅ All Docker images include an explicit tag, including the default :latest tag')
+        PY
         
     - name: Validate shell scripts
       run: |
