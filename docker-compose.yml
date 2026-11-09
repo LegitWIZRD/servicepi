@@ -15,8 +15,6 @@ services:
       - "8081:8081" # HTTP for WordPress
       - "3000:3000" # HTTP for OpenWebUI
       - "8888:8888" # HTTP for SearXNG
-      # Uncomment the port below when enabling Wazuh (set ENABLE_WAZUH=true in .env)
-      # - "8443:8443" # HTTP for Wazuh Dashboard
     volumes:
       - ./configs/nginx/proxy:/etc/nginx/conf.d
       - ./configs/web:/usr/share/nginx/html/web
@@ -33,8 +31,6 @@ services:
       - wordpress
       - openwebui
       - searxng
-      # Uncomment when enabling Wazuh (set ENABLE_WAZUH=true in .env)
-      # - wazuh-dashboard
 
   # Web Backend (internal only)
   web-backend:
@@ -217,90 +213,6 @@ services:
       - MYSQL_PASSWORD=${WORDPRESS_DB_PASSWORD:?WORDPRESS_DB_PASSWORD_not_set_in_env_file}
     # No exposed ports - internal database only
 
-  # Wazuh Manager - Security monitoring and threat detection
-  # To enable: Set ENABLE_WAZUH=true in .env and uncomment all Wazuh services below
-  # NOTE: Wazuh requires significant resources (4GB+ RAM, 8GB recommended)
-  # wazuh-manager:
-  #   # Wazuh Manager 4.14.3 for security event collection and analysis
-  #   image: wazuh/wazuh-manager:4.14.3
-  #   container_name: servicepi-wazuh-manager
-  #   hostname: wazuh-manager
-  #   volumes:
-  #     - wazuh_api_configuration:/var/ossec/api/configuration
-  #     - wazuh_etc:/var/ossec/etc
-  #     - wazuh_logs:/var/ossec/logs
-  #     - wazuh_queue:/var/ossec/queue
-  #     - wazuh_var_multigroups:/var/ossec/var/multigroups
-  #     - wazuh_integrations:/var/ossec/integrations
-  #     - wazuh_active_response:/var/ossec/active-response/bin
-  #     - wazuh_agentless:/var/ossec/agentless
-  #     - wazuh_wodles:/var/ossec/wodles
-  #   restart: unless-stopped
-  #   networks:
-  #     - servicepi-network
-  #   environment:
-  #     - INDEXER_URL=https://wazuh-indexer:9200
-  #     - INDEXER_USERNAME=${WAZUH_INDEXER_USERNAME:-admin}
-  #     - INDEXER_PASSWORD=${WAZUH_INDEXER_PASSWORD:-SecretPassword}
-  #     - FILEBEAT_SSL_VERIFICATION_MODE=full
-  #     - SSL_CERTIFICATE_AUTHORITIES=/etc/ssl/root-ca.pem
-  #     - SSL_CERTIFICATE=/etc/ssl/filebeat.pem
-  #     - SSL_KEY=/etc/ssl/filebeat.key
-  #     - API_USERNAME=${WAZUH_API_USERNAME:-wazuh-wui}
-  #     - API_PASSWORD=${WAZUH_API_PASSWORD:-MyS3cr37P450r.*-}
-  #   depends_on:
-  #     - wazuh-indexer
-  #   # Ports 1514, 1515 for agent communication (uncomment if using agents)
-  #   # ports:
-  #   #   - "1514:1514"  # Agent events
-  #   #   - "1515:1515"  # Agent enrollment
-
-  # wazuh-indexer:
-  #   # OpenSearch-based indexer for Wazuh (replaces Elasticsearch)
-  #   image: wazuh/wazuh-indexer:4.14.3
-  #   container_name: servicepi-wazuh-indexer
-  #   hostname: wazuh-indexer
-  #   volumes:
-  #     - wazuh_indexer_data:/var/lib/wazuh-indexer
-  #   restart: unless-stopped
-  #   networks:
-  #     - servicepi-network
-  #   environment:
-  #     - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
-  #     - "bootstrap.memory_lock=true"
-  #     - "discovery.type=single-node"
-  #     - "network.host=0.0.0.0"
-  #     - "INDEXER_USERNAME=${WAZUH_INDEXER_USERNAME:-admin}"
-  #     - "INDEXER_PASSWORD=${WAZUH_INDEXER_PASSWORD:-SecretPassword}"
-  #   ulimits:
-  #     memlock:
-  #       soft: -1
-  #       hard: -1
-  #     nofile:
-  #       soft: 65536
-  #       hard: 65536
-  #   # No exposed ports - internal indexer only
-
-  # wazuh-dashboard:
-  #   # Wazuh Dashboard for security event visualization
-  #   image: wazuh/wazuh-dashboard:4.14.3
-  #   container_name: servicepi-wazuh-dashboard
-  #   hostname: wazuh-dashboard
-  #   restart: unless-stopped
-  #   networks:
-  #     - servicepi-network
-  #   environment:
-  #     - INDEXER_USERNAME=${WAZUH_INDEXER_USERNAME:-admin}
-  #     - INDEXER_PASSWORD=${WAZUH_INDEXER_PASSWORD:-SecretPassword}
-  #     - WAZUH_API_URL=https://wazuh-manager
-  #     - API_USERNAME=${WAZUH_API_USERNAME:-wazuh-wui}
-  #     - API_PASSWORD=${WAZUH_API_PASSWORD:-MyS3cr37P450r.*-}
-  #     - OPENSEARCH_HOSTS=https://wazuh-indexer:9200
-  #   depends_on:
-  #     - wazuh-indexer
-  #     - wazuh-manager
-  #   # No exposed ports - accessed via nginx-proxy at :8443
-
 volumes:
   portainer_data:
     driver: local
@@ -320,28 +232,6 @@ volumes:
   # OpenWebUI volume
   openwebui_data:
     driver: local
-  # Wazuh volumes (uncomment when enabling Wazuh - set ENABLE_WAZUH=true in .env)
-  # wazuh_api_configuration:
-  #   driver: local
-  # wazuh_etc:
-  #   driver: local
-  # wazuh_logs:
-  #   driver: local
-  # wazuh_queue:
-  #   driver: local
-  # wazuh_var_multigroups:
-  #   driver: local
-  # wazuh_integrations:
-  #   driver: local
-  # wazuh_active_response:
-  #   driver: local
-  # wazuh_agentless:
-  #   driver: local
-  # wazuh_wodles:
-  #   driver: local
-  # wazuh_indexer_data:
-  #   driver: local
-
 networks:
   servicepi-network:
     driver: bridge

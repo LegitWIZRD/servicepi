@@ -22,8 +22,6 @@ Once configured, the following domain names will be available:
 | Pi-hole Admin | pihole.local | 8053 | http://pihole.local:8053/admin |
 | N8N | n8n.local | 5678 | http://n8n.local:5678/ |
 | WordPress* | wordpress.local | 8081 | http://wordpress.local:8081/ |
-| Wazuh* | wazuh.local | 8443 | http://wazuh.local:8443/ |
-
 *Optional services - must be enabled separately
 
 ## Configuration Methods
@@ -84,8 +82,6 @@ This is the recommended method as it provides network-wide domain resolution for
    192.168.1.100 n8n.local
    # If using WordPress:
    192.168.1.100 wordpress.local
-   # If using Wazuh:
-   192.168.1.100 wazuh.local
    ```
 
 4. Restart Pi-hole to apply changes:
@@ -175,7 +171,6 @@ This method doesn't require Pi-hole DNS to be enabled, but must be configured on
    192.168.1.100 pihole.local
    192.168.1.100 n8n.local
    192.168.1.100 wordpress.local
-   192.168.1.100 wazuh.local
    ```
 
 3. Save and exit

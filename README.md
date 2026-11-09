@@ -18,7 +18,6 @@ ServicePi provides a complete infrastructure-as-code solution for running Docker
 - 🤖 **OpenWebUI** for Large Language Model (LLM) interactions
 - 🔍 **SearXNG** privacy-respecting metasearch engine with OpenWebUI integration
 - 📝 **WordPress** (optional) for user-friendly service directories
-- 🔐 **Wazuh SIEM** (optional) for security monitoring and threat detection
 - 🌐 **Domain name resolution** with .local domain support
 - 🚀 **One-command deployment** and updates
 - 📝 **Configuration management** for all services
@@ -77,9 +76,6 @@ After installation, access your services via HTTP using IP addresses or local do
 - **SearXNG**: `http://your-pi-ip:8888/` or `http://searxng.local:8888/` (HTTP :8888)
 - **WordPress**: `http://your-pi-ip:8081/` or `http://wordpress.local:8081/` (HTTP :8081)
 - **Health Check**: `http://your-pi-ip/health`
-
-**Optional Services:**
-- **Wazuh Dashboard**: `http://your-pi-ip:8443/` or `http://wazuh.local:8443/` (HTTP :8443) - See [Enabling Wazuh](#enabling-wazuh-optional) below
 
 ⚠️ **Security Warning**: These services are HTTP-only and should ONLY be accessible on your trusted local network. Do NOT expose them directly to the internet. For remote access, use a VPN (WireGuard, Tailscale) or SSH tunnel.
 
@@ -255,61 +251,6 @@ Access SearXNG directly at `http://your-pi-ip:8888/` or `http://searxng.local:88
 3. **Create your dashboard:** Use WordPress to build a custom landing page with service links and documentation.
 
 **Use Case:** Create a simple landing page with links to all your ServicePi services, making it easy for family members or team members to find and access services.
-
-### Wazuh Security Monitoring (Optional)
-- Security information and event management (SIEM)
-- Threat detection and incident response
-- Log data analysis and file integrity monitoring
-- Vulnerability detection and compliance management
-- Agent-based monitoring for endpoints
-
-⚠️ **Resource Requirements**: Wazuh requires significant resources - **minimum 4GB RAM, 8GB recommended**. Only enable on Pi 5 with sufficient RAM.
-
-**Enabling Wazuh:**
-
-1. **Set environment flag in `.env` file**:
-   ```bash
-   sudo nano /opt/servicepi/.env
-   # Set: ENABLE_WAZUH=true
-   # Change all Wazuh passwords from defaults!
-   ```
-
-2. **Uncomment Wazuh services** in `docker-compose.yml`:
-   ```bash
-   sudo nano /opt/servicepi/docker-compose.yml
-   # Uncomment: wazuh-manager, wazuh-indexer, wazuh-dashboard services
-   # Uncomment: all wazuh_* volumes
-   # Uncomment: wazuh-dashboard in nginx-proxy depends_on
-   # Uncomment: port 8443:8443 in nginx-proxy ports
-   ```
-
-3. **Uncomment Wazuh nginx configuration**:
-   ```bash
-   sudo nano /opt/servicepi/configs/nginx/proxy/default.conf
-   # Uncomment the Wazuh Dashboard server block
-   ```
-
-4. **Configure firewall**:
-   ```bash
-   sudo ufw allow 8443/tcp
-   # Optional for agents:
-   # sudo ufw allow 1514/tcp
-   # sudo ufw allow 1515/tcp
-   ```
-
-5. **Start services in order** (important!):
-   ```bash
-   cd /opt/servicepi
-   sudo docker compose up -d wazuh-indexer
-   sleep 60  # Wait for indexer to start
-   sudo docker compose up -d wazuh-manager
-   sleep 30  # Wait for manager to start
-   sudo docker compose up -d wazuh-dashboard
-   ```
-
-6. **Access Wazuh:** `http://your-pi-ip:8443/` or `http://wazuh.local:8443/` and log in with credentials from `.env`.
-
-For detailed setup instructions, see [docs/OPTIONAL_SERVICES.md](docs/OPTIONAL_SERVICES.md).
 
 ## CI/CD Pipeline
 
@@ -627,28 +568,7 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
    curl -I http://localhost:8081
    ```
 
-9. **Wazuh services not starting**: Wazuh requires significant resources and proper configuration
-   ```bash
-   # Check Wazuh logs
-   docker logs servicepi-wazuh-manager
-   docker logs servicepi-wazuh-indexer
-   docker logs servicepi-wazuh-dashboard
-   
-   # Verify memory availability (Wazuh needs 4GB+ RAM)
-   free -h
-   
-   # Check indexer status
-   curl -k -u admin:SecretPassword https://localhost:9200
-   
-   # Restart Wazuh services (order matters)
-   docker-compose -f /opt/servicepi/docker-compose.yml restart wazuh-indexer
-   sleep 30
-   docker-compose -f /opt/servicepi/docker-compose.yml restart wazuh-manager
-   sleep 20
-   docker-compose -f /opt/servicepi/docker-compose.yml restart wazuh-dashboard
-   ```
-
-10. **Local domain names not resolving**: Ensure Pi-hole custom.list is configured and DNS is set
+9. **Local domain names not resolving**: Ensure Pi-hole custom.list is configured and DNS is set
     ```bash
     # Edit Pi-hole custom DNS entries
     sudo nano /opt/servicepi/configs/pihole/custom.list
@@ -663,7 +583,7 @@ docker-compose -f /opt/servicepi/docker-compose.yml logs web
     
     # Check your device's DNS settings - should point to Pi IP
     # Alternatively, edit /etc/hosts on your device:
-    # <PI_IP> servicepi.local wordpress.local wazuh.local
+    # <PI_IP> servicepi.local wordpress.local
     ```
 
 ### Backup and Recovery
@@ -700,7 +620,7 @@ For more information, see:
 - [Security Policy](SECURITY.md) - Vulnerability reporting and security guidelines
 - [Installation Guide](INSTALL.md) - Detailed installation instructions
 - [Dependency Management](docs/DEPENDENCY_MANAGEMENT.md) - How to update dependencies
-- [Optional Services Guide](docs/OPTIONAL_SERVICES.md) - WordPress and Wazuh setup
+- [Optional Services Guide](docs/OPTIONAL_SERVICES.md) - WordPress setup
 - [Domain Name Resolution](docs/DOMAIN_NAME_RESOLUTION.md) - Configure .local domains
 
 ## Additional Documentation
@@ -711,7 +631,7 @@ For more information, see:
 - **[docs/PIHOLE_INTEGRATION.md](docs/PIHOLE_INTEGRATION.md)** - Pi-hole setup and configuration
 - **[docs/CSRF_PROXY_FIX.md](docs/CSRF_PROXY_FIX.md)** - Portainer CSRF configuration
 - **[docs/N8N_SECURE_COOKIE_FIX.md](docs/N8N_SECURE_COOKIE_FIX.md)** - N8N HTTP-only configuration
-- **[docs/OPTIONAL_SERVICES.md](docs/OPTIONAL_SERVICES.md)** - WordPress and Wazuh setup guide
+- **[docs/OPTIONAL_SERVICES.md](docs/OPTIONAL_SERVICES.md)** - WordPress setup guide
 - **[docs/DOMAIN_NAME_RESOLUTION.md](docs/DOMAIN_NAME_RESOLUTION.md)** - Configure .local domain names
 
 ## License
